@@ -25,6 +25,8 @@ func setup(director: Node3D, hallway: Node3D, horror: Node3D, narrative: Node, t
 	_transition = transition
 	memory_count = int(GameState.has_flag("memory_photo")) + int(GameState.has_flag("memory_cassette")) + int(GameState.has_flag("memory_rabbit"))
 	loop_iteration = mini(memory_count, 2)
+	if memory_count > 0:
+		_hallway.reconfigure_for_memory(memory_count)
 	_narrative.beat_finished.connect(_on_narrative_finished)
 	_transition.transition_finished.connect(_on_hallway_transition_finished)
 	if memory_count >= 3:

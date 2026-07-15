@@ -21,6 +21,9 @@ func _ready() -> void:
 	var player: Node3D = gameplay.get_node("Player") as Node3D
 	if not _require(is_equal_approx(player.position.z, WorldLayout.ROOM_TRIGGER_Z + 3.0), "room spawn marker ignored"): return
 	if not _require(GameState.objective == "Restored checkpoint objective", "checkpoint objective overwritten"): return
+	var hallway: Node3D = gameplay._hallway
+	if not _require(hallway.variant == 3, "checkpoint did not restore the final hallway variant"): return
+	if not _require(hallway.get_node("Variant3").visible and not hallway.get_node("Variant0").visible, "restored hallway visibility does not match memory state"): return
 	for node_name in ["LobbyPartitionLeft", "LobbyPartitionRight", "PowerPartitionLeft", "PowerPartitionRight", "Room407PartitionLeft", "Room407PartitionRight"]:
 		if not _require(gameplay.has_node(node_name), "%s partition missing" % node_name): return
 	if not _require(not gameplay.has_node("Room407Wall"), "full-width Room407 wall blocks the route"): return
@@ -51,6 +54,14 @@ func _ready() -> void:
 	if not _require(chase_entity.state == chase_entity.State.STALK, "enemy never reaches stalk state"): return
 	if not _require(chase_entity.speed > player.walk_speed, "enemy cannot catch a walking player"): return
 	if not _require(chase_entity.speed < player.walk_speed * player.sprint_multiplier, "enemy makes a full sprint escape impossible"): return
+	gameplay._chase.entity = chase_entity
+	GameState.set_flag("chase_started")
+	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_TRIGGER_Z + 26.0)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not _require(gameplay._chase.recovering, "retreating out of the chase did not request checkpoint recovery"): return
+	await get_tree().create_timer(1.4).timeout
+	if not _require(is_equal_approx(player.global_position.z, WorldLayout.CHASE_RESPAWN_Z), "retreat recovery did not restore the chase marker"): return
 	chase_entity.stop_chase()
 	chase_entity.queue_free()
 	var loop_distance := absf(WorldLayout.LOOP_GATE_Z - WorldLayout.MEMORY_START_Z)
