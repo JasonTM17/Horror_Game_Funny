@@ -100,6 +100,9 @@ func load_settings() -> void:
 	var config := ConfigFile.new()
 	if config.load(CONFIG_PATH) != OK:
 		set_master_volume(master_volume)
+		set_music_volume(music_volume)
+		set_sfx_volume(sfx_volume)
+		set_ambience_volume(ambience_volume)
 		return
 	set_mouse_sensitivity(float(config.get_value("controls", "mouse_sensitivity", mouse_sensitivity)))
 	set_field_of_view(float(config.get_value("display", "field_of_view", field_of_view)))

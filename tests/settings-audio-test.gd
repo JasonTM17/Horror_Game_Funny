@@ -9,6 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	for bus_name in ["Master", "Music", "SFX", "Ambience", "Chase"]:
 		if not _require(AudioServer.get_bus_index(bus_name) >= 0, "%s audio bus missing" % bus_name): return
+	if not _verify_initial_audio_bus_volumes(): return
 	SettingsManager.set_mouse_sensitivity(99.0)
 	SettingsManager.set_field_of_view(12.0)
 	SettingsManager.set_master_volume(-99.0)
@@ -60,6 +61,22 @@ func _ready() -> void:
 	GameState.reset_run()
 	await get_tree().process_frame
 	get_tree().quit()
+
+func _verify_initial_audio_bus_volumes() -> bool:
+	var expected_volumes := {
+		"Master": SettingsManager.master_volume,
+		"Music": SettingsManager.music_volume,
+		"SFX": SettingsManager.sfx_volume,
+		"Ambience": SettingsManager.ambience_volume,
+		"Chase": SettingsManager.music_volume,
+	}
+	for bus_name: String in expected_volumes:
+		var bus_index := AudioServer.get_bus_index(bus_name)
+		var actual_volume := AudioServer.get_bus_volume_db(bus_index)
+		var expected_volume: float = expected_volumes[bus_name]
+		if not _require(is_equal_approx(actual_volume, expected_volume), "%s bus started at %.1f dB instead of %.1f dB" % [bus_name, actual_volume, expected_volume]):
+			return false
+	return true
 
 func _require(condition: bool, message: String) -> bool:
 	if condition:
