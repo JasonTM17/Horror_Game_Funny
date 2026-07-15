@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: Lobby and Fuse Vertical Slice
-status: in-progress
+status: completed
 priority: P1
 dependencies:
   - 2
