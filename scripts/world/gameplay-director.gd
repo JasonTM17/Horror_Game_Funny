@@ -26,7 +26,9 @@ var _note_ui: CanvasLayer
 var _fail_overlay: CanvasLayer
 
 func _ready() -> void:
-	GameState.reset_run()
+	if GameState.checkpoint.is_empty():
+		GameState.reset_run()
+	_memory_count = int(GameState.has_flag("memory_photo")) + int(GameState.has_flag("memory_cassette")) + int(GameState.has_flag("memory_rabbit"))
 	_build_environment()
 	_hallway = HALLWAY_SCRIPT.new()
 	add_child(_hallway)
@@ -77,7 +79,7 @@ func _build_environment() -> void:
 	LevelGeometry.add_box(self, "LobbyBack", Vector3(0, 2.0, 15), Vector3(8, 4, 0.25), Color(0.11, 0.1, 0.12))
 	LevelGeometry.add_box(self, "Room407Wall", Vector3(0, 2.0, -78), Vector3(8, 4, 0.25), Color(0.12, 0.07, 0.08))
 	LevelGeometry.add_box(self, "Room407Floor", Vector3(0, -0.05, -91), Vector3(8, 0.2, 24), Color(0.09, 0.055, 0.06))
-	LevelGeometry.add_box(self, "Room407Back", Vector3(0, 2.0, -103), Vector3(8, 4, 0.25), Color(0.13, 0.06, 0.07))
+	LevelGeometry.add_box(self, "Room407Back", Vector3(0, 2.0, -140), Vector3(8, 4, 0.25), Color(0.13, 0.06, 0.07))
 	LevelGeometry.add_label(self, "NIGHT DESK", Vector3(-2.8, 1.65, 9.0))
 	LevelGeometry.add_label(self, "FLOOR 4", Vector3(-2.9, 2.1, -15.0), Color(0.42, 0.46, 0.48))
 	LevelGeometry.add_label(self, "407", Vector3(-1.0, 2.1, -80.0), Color(0.65, 0.3, 0.28))
@@ -202,20 +204,12 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			_horror.trigger("fuse_power")
 			AudioManager.play_tone("power_restore", 110.0, 0.8, -13.0)
 			return true
-		["memory_photo", "memory_cassette", "memory_rabbit"]:
-			if GameState.has_flag(action_id):
-				return false
-			GameState.set_flag(action_id)
-			_memory_count += 1
-			GameState.add_item(action_id.trim_prefix("memory_"))
-			_hallway.reconfigure_for_memory(_memory_count)
-			_horror.trigger(action_id)
-			AudioManager.play_tone("memory_%s" % _memory_count, 180.0 + _memory_count * 55.0, 0.42, -18.0)
-			if _memory_count >= 3:
-				GameState.set_objective("The radio is repeating your voice. Find the number it wants.")
-			else:
-				GameState.set_objective("The corridor remembers another object. Keep looking.")
-			return true
+		"memory_photo":
+			return _collect_memory(action_id)
+		"memory_cassette":
+			return _collect_memory(action_id)
+		"memory_rabbit":
+			return _collect_memory(action_id)
 		"radio":
 			if _memory_count < 3 or GameState.has_flag("radio_solved"):
 				return false
@@ -238,6 +232,21 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			_finish_ending()
 			return true
 	return false
+
+func _collect_memory(action_id: String) -> bool:
+	if GameState.has_flag(action_id):
+		return false
+	GameState.set_flag(action_id)
+	_memory_count += 1
+	GameState.add_item(action_id.trim_prefix("memory_"))
+	_hallway.reconfigure_for_memory(_memory_count)
+	_horror.trigger(action_id)
+	AudioManager.play_tone("memory_%s" % _memory_count, 180.0 + _memory_count * 55.0, 0.42, -18.0)
+	if _memory_count >= 3:
+		GameState.set_objective("The radio is repeating your voice. Find the number it wants.")
+	else:
+		GameState.set_objective("The corridor remembers another object. Keep looking.")
+	return true
 
 func on_radio_solved() -> void:
 	if GameState.has_flag("radio_solved"):
@@ -292,6 +301,8 @@ func fail_chase() -> void:
 		entity.stop_chase()
 		entity.visible = false
 	GameState.restore_checkpoint()
+	GameState.set_flag("chase_started")
+	GameState.advance_stage(GameState.Stage.CHASE)
 	player.global_position = Vector3(0, 0.02, -108.0)
 	GameState.set_objective("It caught you once. Run earlier and keep the light ahead.")
 	_fail_overlay.show_failure()

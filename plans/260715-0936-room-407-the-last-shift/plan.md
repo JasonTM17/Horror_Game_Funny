@@ -4,7 +4,7 @@ description: >-
   Build and ship a complete 15–20 minute uninterrupted Godot 4.7.1 psychological
   horror game in one continuous gameplay scene with atomic commits and verified
   progression.
-status: pending
+status: in-progress
 priority: P1
 branch: main
 tags:
@@ -37,7 +37,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 | 4 | [Memory Hallway and Radio Puzzle](./phase-04-memory-hallway-and-radio-puzzle.md) | Completed |
 | 5 | [Room 407 Chase and Ending](./phase-05-room-407-chase-and-ending.md) | Completed |
 | 6 | [Audio Visual UI and Accessibility](./phase-06-audio-visual-ui-and-accessibility.md) | Completed |
-| 7 | [Automated QA Red Team and Polish](./phase-07-automated-qa-red-team-and-polish.md) | Pending |
+| 7 | [Automated QA Red Team and Polish](./phase-07-automated-qa-red-team-and-polish.md) | In Progress |
 | 8 | [Documentation Release and Push](./phase-08-documentation-release-and-push.md) | Pending |
 
 ## Dependencies

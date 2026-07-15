@@ -1,10 +1,11 @@
 ---
 phase: 7
-title: "Automated QA Red Team and Polish"
-status: pending
+title: Automated QA Red Team and Polish
+status: in-progress
 priority: P1
-dependencies: [6]
-effort: "large"
+dependencies:
+  - 6
+effort: large
 ---
 
 # Phase 7: Automated QA Red Team and Polish
