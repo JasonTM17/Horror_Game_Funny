@@ -1,0 +1,31 @@
+{
+  "type": "tester-evidence",
+  "date": "2026-07-15",
+  "engine": "4.7.1.stable.official.a13da4feb",
+  "head_commit": "c4efbd1",
+  "checks": [
+    {"name": "editor-import", "status": "pass", "exit_code": 0, "log": ".artifacts/phase7-rerun-editor-import.log"},
+    {"name": "main-scene-smoke", "status": "pass", "exit_code": 0, "log": ".artifacts/phase7-rerun-main.log"},
+    {"name": "gameplay-scene-smoke", "status": "pass", "exit_code": 0, "log": ".artifacts/phase7-rerun-gameplay.log"},
+    {"name": "game-state-test", "status": "pass", "exit_code": 0, "marker": "GAME_STATE_TEST_OK", "log": ".artifacts/phase7-rerun-game-state.log"},
+    {"name": "progression-test", "status": "pass", "exit_code": 0, "marker": "PROGRESSION_TEST_OK", "log": ".artifacts/phase7-rerun-progression.log", "warning": "24 ObjectDB instances leaked at exit"},
+    {"name": "deterministic-runner", "status": "pass", "exit_code": 0, "command": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-headless-tests.ps1", "checks": ["editor-import", "menu", "gameplay", "game-state", "progression"], "warning": "progression log reports 24 ObjectDB instances leaked at exit"},
+    {"name": "git-diff-check", "status": "pass", "exit_code": 0},
+    {"name": "tracked-game-secret-scan", "status": "pass"}
+  ],
+  "blocking_findings": [],
+  "resolved_findings": [
+    "Explicit memory action cases collect all three memories and reject duplicates.",
+    "Room407Back moved beyond the exit so the chase route is open.",
+    "Checkpoint failure reasserts chase state and keeps one entity.",
+    "GameplayDirector preserves state when a checkpoint exists."
+  ],
+  "remaining_concerns": [
+    "Focused interaction/puzzle/checkpoint/settings suites and a production-gate smoke runner are still absent.",
+    "Dynamic hallway currently changes labels rather than disabling/activating variant roots.",
+    "Progression teardown leaves 24 ObjectDB instances at exit.",
+    "Progression must be launched through its .tscn wrapper; direct --script mode cannot resolve autoload identifiers in preloaded gameplay scripts.",
+    "No authored pacing timers/cinematics establish the documented 15-20 minute target; manual measured duration is unresolved."
+  ],
+  "status": "DONE_WITH_CONCERNS"
+}

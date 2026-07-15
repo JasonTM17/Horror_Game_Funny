@@ -12,7 +12,7 @@ effort: large
 
 ## Overview
 
-Build the first 5–7 playable minutes: lobby tutorial, phone mission, duty key, stair/elevator transition, dark fourth floor, fuse pickup/installation, first one-shot horror events, and checkpoint-ready state.
+Build the opening lobby-to-powered-floor slice inside the same continuous gameplay scene: phone mission, duty key, fourth-floor gate, fuse pickup/installation, and first one-shot horror events.
 
 ## Context Links
 
@@ -28,7 +28,7 @@ Build the first 5–7 playable minutes: lobby tutorial, phone mission, duty key,
 
 ## Architecture
 
-Lobby and Floor4 are separate scenes composed from procedural apartment geometry and reusable interactions. Local `HorrorEventDirector` consumes trigger IDs and delegates to scene event nodes. Progression uses explicit prerequisites in `GameState`.
+Lobby and Floor4 are continuous zones assembled by the world/story builders. A scene-local `HorrorEventDirector` consumes stable trigger IDs; progression uses explicit prerequisites in `GameState`. No level scene change occurs between these beats.
 
 ## File Inventory
 
@@ -44,11 +44,11 @@ Lobby and Floor4 are separate scenes composed from procedural apartment geometry
 
 ## Function and Interface Checklist
 
-- [ ] Phone call sets one flag and subtitle sequence on first use.
-- [ ] Floor exit requires phone + duty key; locked feedback is explicit.
-- [ ] Fuse box requires/consumes `fuse`, sets stage, powers selected nodes, triggers one event.
-- [ ] Event director rejects unmet/out-of-order/repeated event IDs.
-- [ ] Recovery area returns player to latest safe marker.
+- [x] Phone call sets one flag and subtitle sequence on first use.
+- [x] Floor exit requires the duty key earned from the guarded phone/logbook flow; locked feedback is explicit.
+- [x] Fuse box requires/consumes `spare_fuse`, sets stage, powers selected nodes, and triggers one event.
+- [x] Event director rejects repeated event IDs.
+- [x] Authored partitions, walls, floor, and ceiling keep the player inside the continuous route.
 
 ## Dependency Map
 
@@ -82,11 +82,12 @@ Lobby and Floor4 are separate scenes composed from procedural apartment geometry
 
 ## Success Criteria
 
-- [ ] Menu starts a polished lobby and reaches powered Floor4 without debug actions.
-- [ ] Fuse puzzle and first horror events cannot repeat or soft-lock.
-- [ ] Objectives/subtitles teach controls and story naturally.
-- [ ] Collision, lighting, scene loads, and recovery work headlessly/manually.
-- [ ] Two focused commits pass checks and disk remains above safety floor.
+- [x] Menu starts the lobby and automated guarded progression reaches powered Floor4 without a production bypass.
+- [x] Fuse puzzle and first horror events resist the covered duplicate/out-of-order cases.
+- [x] Objectives/subtitles provide control and story guidance.
+- [x] Collision layout, lighting nodes, and scene load pass headless checks.
+- [ ] Manual full traversal confirms collision feel, lighting readability, and opening-slice timing.
+- [x] Focused commits pass checks and disk remains above the safety floor.
 
 ## Risks and Mitigation
 

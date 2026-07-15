@@ -28,7 +28,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Architecture
 
-`tests/run-tests.gd` extends `SceneTree`, reports deterministic assertions, and exits nonzero on failures. `tests/smoke-runner.gd` drives safe scene transitions/progression without bypassing production guards. Manual results live in a dated report with exact engine version/commands.
+`tests/run-headless-tests.ps1` launches seven native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, and settings/audio contracts. No production script recognizes a test bypass.
 
 ## File Inventory
 
@@ -42,11 +42,11 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Function and Interface Checklist
 
-- [ ] Test runner returns nonzero and names failing assertion.
-- [ ] Smoke runner lives only under `tests/`, loads production scenes through public gates, and no production script recognizes a debug bypass argument.
+- [x] Test runner returns nonzero, names the failing check/assertion, and rejects leak warnings.
+- [x] All harness code lives under `tests/`; production scripts recognize no debug bypass argument.
 - [ ] Every required progression gate has positive and negative tests.
-- [ ] Red-team fixes preserve the accepted main flow and checkpoint semantics.
-- [ ] Review verifies all public signals/methods and exact path casing.
+- [x] Red-team fixes preserve the accepted continuous flow and checkpoint semantics across the covered regressions.
+- [x] Independent final review checked the committed gameplay/UI/test range and rejected stale findings against final code.
 
 ## Dependency Map
 
@@ -82,11 +82,11 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Success Criteria
 
-- [ ] Headless import, automated suite, and smoke runner pass with saved commands/results.
+- [x] Headless import, boot/gameplay smoke, and all focused automated checks pass with seven logs.
 - [ ] Manual full flow completes in target duration with no known main-path soft-lock.
 - [ ] Every red-team checklist item has pass/fix/known-limitation evidence.
-- [ ] Critical/high review findings are fixed and reverified.
-- [ ] Git diff/check/secret scan pass before each QA/fix commit.
+- [ ] All release blockers are closed; automated review defects are fixed, but manual pacing/chase evidence remains.
+- [x] Git diff/check and tracked-secret/generated-file scans pass for the final QA/fix commits.
 
 ## Risks and Mitigation
 

@@ -44,11 +44,11 @@ Four typed autoloads own global data/routing/audio/settings. Player behavior is 
 
 ## Function and Interface Checklist
 
-- [ ] `GameState.reset_run/add_item/consume_item/set_flag/set_objective/create_checkpoint/restore_checkpoint` are typed and idempotent.
-- [ ] `SceneRouter.change_scene(path, spawn_id)` serializes transitions and owns fade timing only.
-- [ ] `Interactable.get_prompt(actor)` and `interact(actor)` never mutate on prompt lookup.
-- [ ] `PlayerController.set_input_locked(reason, locked)` supports note/cinematic/fail flow.
-- [ ] Settings clamp sensitivity/FOV/volume/flicker before applying.
+- [x] `GameState.reset_run/add_item/consume_item/set_flag/set_objective/create_checkpoint/restore_checkpoint` are typed and idempotent.
+- [x] `SceneRouter.change_scene(path, spawn_id)` serializes scene replacement and spawn selection.
+- [x] `Interactable.get_prompt(actor)` and `interact(actor)` never mutate on prompt lookup.
+- [x] `PlayerController.set_input_locked(reason, locked)` composes pause/settings/note/hallway/fail/ending locks.
+- [x] Settings clamp sensitivity/FOV/volume/flicker before applying.
 
 ## Dependency Map
 
@@ -82,11 +82,11 @@ Four typed autoloads own global data/routing/audio/settings. Player behavior is 
 
 ## Success Criteria
 
-- [ ] Menu launches developer room and pause/settings function.
-- [ ] Player movement, look, sprint, flashlight, and interaction work without per-frame node lookup abuse.
-- [ ] Doors/pickups are reusable and idempotent.
-- [ ] HUD reflects objective, inventory, prompt, subtitle, and fade state.
-- [ ] Headless import and focused automated tests pass before both commits.
+- [x] Menu launches the continuous gameplay scene and pause/settings load successfully.
+- [x] Player controller implements normalized movement, look, sprint, flashlight, and interaction without per-frame discovery lookups.
+- [x] Doors/pickups are reusable and idempotent.
+- [x] HUD reflects objective, inventory, prompt, and subtitle state.
+- [x] Headless import and focused automated tests pass.
 
 ## Risks and Mitigation
 

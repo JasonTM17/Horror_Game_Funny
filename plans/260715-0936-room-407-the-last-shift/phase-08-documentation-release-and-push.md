@@ -41,9 +41,9 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 ## Function and Interface Checklist
 
-- [ ] Every documented class, file, input action, command, and scene exists with exact case.
-- [ ] Asset credits list every authored/generated asset category and license.
-- [ ] Known limitations distinguish untested export/hardware from implemented gameplay.
+- [x] Every documented class, file, input action, command, and scene exists with exact case.
+- [x] Asset credits list every authored/generated asset category and license scope.
+- [x] Known limitations distinguish untested export/hardware/manual behavior from implemented gameplay.
 - [ ] README quick-start works from a clean clone using the official editor.
 - [ ] Final Git audit enumerates commits and proves a clean synced branch.
 
@@ -80,7 +80,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 ## Success Criteria
 
-- [ ] All required documentation is accurate, linked, and license-complete.
+- [x] Required source-release documentation is accurate, internally linked, and license-complete.
 - [ ] Final clean-cache validation reproduces prior passing results.
 - [ ] Working tree is clean and atomic history is visible on `origin/main`.
 - [ ] Final report includes Completed, Architecture, Verification, Git, Run instructions, and Remaining limitations.

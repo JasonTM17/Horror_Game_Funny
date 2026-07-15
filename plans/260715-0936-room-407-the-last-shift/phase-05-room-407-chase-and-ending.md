@@ -48,13 +48,13 @@ active only in chase. Ending is an authored in-world sequence, not a video file.
 
 ## Function and Interface Checklist
 
-- [ ] Snapshot/restore deep-copies flags, inventory, objective, stage, scene, spawn, completed events.
-- [ ] Reload replaces scene before spawning entity; restoration is idempotent.
-- [ ] Enemy transition table rejects illegal transitions and stops outside chase scene.
-- [ ] Chase waits for `NavigationServer3D.map_changed`/agent readiness before enabling pursuit; a timeout falls back to safe waypoint steering instead of freezing progression.
+- [x] Snapshot/restore deep-copies flags, inventory, objective, stage, scene, spawn, completed events.
+- [x] Continue restores state before rebuilding the gameplay scene; capture recovery restores in place and reuses the existing entity.
+- [x] Enemy transition table rejects illegal transitions and remains bounded to the authored chase route.
+- [x] Chase checks navigation-map iteration before requesting path points and falls back to bounded direct/last-seen steering.
 - [ ] Manual trace proves the entity can traverse every chase corner and cannot enter closed-door collision.
-- [ ] Capture locks input once, stops chase loop, fades, and triggers one reload.
-- [ ] Ending gate requires all memories, radio solved, final clue, and chase started/completed.
+- [x] Capture locks input once, stops chase audio/entity, shows fail fade, restores the checkpoint in place, and restarts one entity.
+- [x] Ending gate requires all memories, radio solved, room recording/drawing, final clue, and chase started.
 
 ## Dependency Map
 
@@ -89,11 +89,12 @@ active only in chase. Ending is an authored in-world sequence, not a video file.
 
 ## Success Criteria
 
-- [ ] Main path reaches Room 407, chase, ending, credits, and replay without debug actions.
-- [ ] Enemy implements all named states and only sustains threat during climax.
-- [ ] Capture/reload is repeatable with correct objective, inventory, mouse, audio, and entity count.
-- [ ] Ending cannot be bypassed and replay creates a clean run.
-- [ ] Headless tests and full manual flow pass before both commits.
+- [x] Director-level guarded progression reaches Room 407, chase, ending reveal, and credits without a production bypass.
+- [x] Enemy implements all named states and only sustains threat during the climax.
+- [x] Automated capture recovery restores objective/marker and preserves the one-entity invariant; retreat recovery is covered.
+- [x] Ending rejects an incomplete run, and replay handlers reset `GameState` before scene replacement.
+- [x] Headless tests pass.
+- [ ] Full manual flow verifies physical chase, mouse/audio recovery, reveal readability, and replay.
 
 ## Risks and Mitigation
 

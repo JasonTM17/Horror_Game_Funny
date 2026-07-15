@@ -28,7 +28,7 @@ Build the 4–5 minute distorted hallway loop, three memory pickups, note reader
 
 ## Architecture
 
-One `MemoryHallway` scene holds three variant roots and transition vestibules. `HallwayController` changes variants only after sight-line closure and re-arms after exit. Memory pickups share a base script; radio owns a four-digit bounded input model and reports only a solved flag.
+`DynamicHallwayController` builds four visibility-switched variant roots under the continuous gameplay scene. `HallwayTransitionLayer` hides each swap/reposition behind an opaque blackout and serializes transitions. `StoryProgressionController` guards ordered memory flags; the radio owns a four-digit bounded input model and reports the solved sequence through the gameplay facade.
 
 ## File Inventory
 
@@ -44,11 +44,11 @@ One `MemoryHallway` scene holds three variant roots and transition vestibules. `
 
 ## Function and Interface Checklist
 
-- [ ] Transition is one-shot until body exits; target marker is collision-safe.
-- [ ] Variant state restores from flags/checkpoint without replaying collected events.
-- [ ] Memory pickup returns unchanged result after collection.
-- [ ] Radio accepts digits only, handles backspace/submit, locks briefly on failure, hints at three failures.
-- [ ] Room 407 gate checks `memory_count == 3 && radio_solved`.
+- [x] Blackout transition serializes swaps and uses a fixed collision-safe memory marker.
+- [x] Variant state derives from memory flags on checkpoint rebuild without replaying collected events.
+- [x] Duplicate memory interaction is rejected without incrementing state.
+- [x] Radio accepts digits only, requires four digits, preserves cooldown across close/reopen, and hints at three failures.
+- [x] Room 407 progression requires all three memories and completed radio sequence.
 
 ## Dependency Map
 
@@ -76,18 +76,20 @@ One `MemoryHallway` scene holds three variant roots and transition vestibules. `
 |---|---|---|
 | Critical | Transition spam/turnaround | no double teleport or wall embed |
 | Critical | Pick each memory twice | count remains three maximum |
-| Critical | Correct code without memories | puzzle solves; Room407 stays locked until memories |
+| Critical | Try radio before memories | radio interaction remains unavailable; Room407 stays locked |
 | High | Three wrong codes | bounded failures then readable hint |
 | High | Close note via pause/interaction | input and mouse return exactly once |
 | Medium | Loop timing and readability | 4–5 minutes; no route is pitch black |
 
 ## Success Criteria
 
-- [ ] Three variants produce a convincing changing hallway without obvious teleport artifacts.
-- [ ] Three memories and radio puzzle are completable with environmental clues.
-- [ ] Wrong order, spam, and checkpoint restoration do not duplicate or soft-lock state.
-- [ ] Room 407 remains locked until all four prerequisites are true.
-- [ ] Automated checks and manual timed loop pass before both commits.
+- [x] Four hallway roots and an opaque transition implement three progressive memory changes.
+- [ ] Manual visual pass confirms no obvious teleport artifact and readable variants.
+- [x] Three memories and radio puzzle complete through guarded semantic progression with an environmental `00:07` clue.
+- [x] Covered wrong-order, duplicate, cooldown, and checkpoint restoration cases preserve state.
+- [x] Room 407 remains locked until the three-memory and radio prerequisites are true.
+- [x] Automated checks pass.
+- [ ] Manual timed memory-loop run confirms the 4–5 minute target.
 
 ## Risks and Mitigation
 

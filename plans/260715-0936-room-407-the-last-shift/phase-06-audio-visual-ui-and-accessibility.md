@@ -43,12 +43,12 @@ Polish the complete game with cached procedural audio, positional ambience, low-
 
 ## Function and Interface Checklist
 
-- [ ] Generated audio is cached, peak-limited, and assigned to correct bus.
-- [ ] Procedural buffers are mono 16-bit, capped at 44.1 kHz and bounded duration; total cached PCM stays below 16 MiB.
-- [ ] Named loop start is idempotent; stop/fade clears references.
-- [ ] Flicker never exceeds comfort cap and reduced mode scales intensity/frequency.
-- [ ] Shader supports grain off and avoids unsupported Compatibility features.
-- [ ] All important spoken content has synchronized English subtitles.
+- [x] Generated audio is cached, amplitude-bounded, and assigned to semantic buses.
+- [x] Procedural buffers are mono 16-bit at 22.05 kHz with bounded duration; total cached PCM stays below 16 MiB.
+- [x] Named loop start is idempotent; `stop_all()` clears streams, players, cache, and byte accounting without leaks.
+- [x] Flicker is bounded and can be disabled through settings.
+- [x] Shader supports grain off and imports under the Compatibility renderer.
+- [x] Important phone/radio/story content has English subtitles.
 
 ## Dependency Map
 
@@ -82,11 +82,13 @@ Polish the complete game with cached procedural audio, positional ambience, low-
 
 ## Success Criteria
 
-- [ ] Every required sound category exists using authored procedural content.
-- [ ] PS1 style is cohesive, readable, and adjustable for comfort.
-- [ ] All menus/HUD/subtitles/fail/credits states are complete in English.
-- [ ] Settings persist safely and reset to bounded defaults.
-- [ ] Performance pass documents active light/process budgets and passes target checks.
+- [x] Every required sound category has an authored procedural cue or drone.
+- [x] PS1 treatment, fog, flashlight, grain toggle, flicker toggle, head bob, and camera shake settings are implemented.
+- [ ] Manual visual/audio pass confirms cohesive readability, comfort, and balance on real hardware.
+- [x] Menus/HUD/subtitles/fail/credits states are implemented in English.
+- [x] Settings use bounded defaults and write to `user://room407.cfg`; automated tests use an isolated profile.
+- [ ] Save/quit/relaunch manually verifies settings persistence.
+- [x] Active shadow-light cost was reduced in a focused performance commit.
 
 ## Risks and Mitigation
 

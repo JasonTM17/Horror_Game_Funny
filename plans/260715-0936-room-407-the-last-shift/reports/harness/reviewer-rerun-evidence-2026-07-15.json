@@ -1,0 +1,136 @@
+{
+  "type": "reviewer-rerun-evidence",
+  "date": "2026-07-15",
+  "base_sha": "c4efbd12ca0e51c3089bb22b01441b41210d14d0",
+  "target_sha": "15e2e4ad20339fe125ca8f7884353a8fa36b3cfe",
+  "target_ref": "HEAD/origin/main",
+  "worktree_edits_excluded": true,
+  "verification": [
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\tests\\run-headless-tests.ps1",
+      "exit_code": 0,
+      "checks": [
+        "editor-import OK",
+        "menu OK",
+        "gameplay OK",
+        "GAME_STATE_TEST_OK",
+        "PROGRESSION_TEST_OK",
+        "CHECKPOINT_LAYOUT_TEST_OK"
+      ],
+      "warnings": []
+    },
+    {
+      "command": "git diff --check c4efbd1..HEAD",
+      "exit_code": 0
+    },
+    {
+      "command": "scoped tracked-file secret scan",
+      "matches": 0
+    },
+    {
+      "command": "tracked cache/log/tool/archive scan",
+      "matches": 0
+    },
+    {
+      "command": "git rev-parse HEAD and git ls-remote origin refs/heads/main",
+      "head": "15e2e4ad20339fe125ca8f7884353a8fa36b3cfe",
+      "remote_main": "15e2e4ad20339fe125ca8f7884353a8fa36b3cfe",
+      "match": true
+    }
+  ],
+  "disk_free_gib": {
+    "C": 11.75,
+    "D": 27.21
+  },
+  "pacing_evidence": {
+    "world_axis_length_m": 870.0,
+    "start_to_exit_linear_m": 828.0,
+    "required_path_estimate_m": 1318.0,
+    "fuse_backtrack_extra_m": 120.0,
+    "two_memory_loop_extra_m": 370.0,
+    "walk_speed_mps": 2.0,
+    "sprint_speed_mps": 3.1,
+    "travel_walk_minutes": 10.98,
+    "travel_sprint_minutes": 7.09,
+    "mandatory_narrative_gate_seconds": 88.0,
+    "serial_baseline_walk_minutes": 12.45,
+    "serial_baseline_sprint_minutes": 8.56,
+    "manual_timing_present": false,
+    "verdict": "contradicts a verified 15-20 minute authored experience; distance padding is not pacing evidence"
+  },
+  "prior_findings": [
+    {"id": "C1", "status": "resolved_static_manual_missing", "summary": "Room 407 full-width wall replaced by aperture partitions."},
+    {"id": "C2", "status": "resolved_static_semantic_guards_missing", "summary": "Closed gates resist side bypass by dimensions and sampled rays."},
+    {"id": "C3", "status": "open", "summary": "15-20 minute authored pacing remains unproven and contradicted by route math."},
+    {"id": "H1", "status": "resolved_core", "summary": "Spawn and objective restore; fail retry still lacks production-path test."},
+    {"id": "H2", "status": "open", "summary": "Progression tests still bypass physical and UI paths."},
+    {"id": "H3", "status": "partial", "summary": "Visual variant roots added; discreet transition, safe markers, and restore absent."},
+    {"id": "H4", "status": "partial_blocking", "summary": "Master volume and subtitles added; mandatory audio/settings scope largely absent."},
+    {"id": "H5", "status": "resolved_static", "summary": "Modal interaction locks and Escape ownership fixed."},
+    {"id": "H6", "status": "partial_blocking", "summary": "Agent and LOS added without nav content, bounded fallback, complete FSM, or fair tuning."},
+    {"id": "M1", "status": "open", "summary": "Ending action still requires chase_started only."},
+    {"id": "M2", "status": "open", "summary": "show_objective remains unused."},
+    {"id": "M3", "status": "resolved", "summary": "Fresh logs contain no ObjectDB leak warning."}
+  ],
+  "accepted_findings": [
+    {
+      "id": "C1",
+      "severity": "critical",
+      "category": "spec_pacing",
+      "locations": ["scripts/world/continuous-world-builder.gd:17-25", "scripts/world/world-layout.gd:4-26", "scenes/player/player.tscn:15-16", "tests/checkpoint-layout-test.gd:32-36"],
+      "summary": "A one-scene 870 m straight corridor uses walking distance as duration padding and does not establish an engaging 15-20 minute game."
+    },
+    {
+      "id": "H1",
+      "severity": "high",
+      "category": "progression_puzzle",
+      "locations": ["scripts/world/gameplay-director.gd:93-106", "scripts/world/gameplay-director.gd:139-223"],
+      "summary": "Radio prompt reveals 0007; multiple actions and ending lack full semantic prerequisites or useful wrong-state feedback."
+    },
+    {
+      "id": "H2",
+      "severity": "high",
+      "category": "hallway_state",
+      "locations": ["scripts/world/dynamic-hallway-controller.gd:23-43", "scripts/world/gameplay-director.gd:33-48", "scripts/world/gameplay-director.gd:166-175"],
+      "summary": "Variants pop visibly, teleport is immediate, and checkpoint restore leaves the hallway at Variant0."
+    },
+    {
+      "id": "H3",
+      "severity": "high",
+      "category": "enemy_navigation_fsm",
+      "locations": ["scripts/world/chase-entity.gd:21-76", "scenes/player/player.tscn:15-16"],
+      "summary": "No navigation content or bounded fallback exists; FSM/LOS behavior is incomplete and entity speed cannot pressure a moving player."
+    },
+    {
+      "id": "H4",
+      "severity": "high",
+      "category": "audio_settings_accessibility",
+      "locations": ["scripts/autoload/audio-manager.gd:8-27", "scripts/autoload/settings-manager.gd:5-52", "scripts/ui/settings-panel.gd:3-33", "scripts/player/player-flashlight.gd:9-16"],
+      "summary": "Mandatory buses, positional/loop audio, volume categories, display/comfort settings, reset, and in-game access remain absent."
+    },
+    {
+      "id": "H5",
+      "severity": "high",
+      "category": "test_coverage",
+      "locations": ["tests/progression-test.gd:14-58", "tests/checkpoint-layout-test.gd:27-36"],
+      "summary": "Green tests bypass player physics, public UI interactions, opened-door traversal, AI capture, modal races, settings, and timed playthrough."
+    },
+    {
+      "id": "M1",
+      "severity": "medium",
+      "category": "ux_contract",
+      "locations": ["project.godot:71-74"],
+      "summary": "Advertised Tab objective review action has no consumer."
+    },
+    {
+      "id": "M2",
+      "severity": "medium",
+      "category": "verification_gap",
+      "locations": ["scripts/world/continuous-world-builder.gd:24", "scripts/world/continuous-story-layout.gd:44-63", "tests/checkpoint-layout-test.gd:27-31"],
+      "summary": "Room/open-door capsule traversal is not physically automated or manually evidenced."
+    }
+  ],
+  "spec_verdict": "FAIL",
+  "release_verdict": "BLOCKED",
+  "status": "DONE_WITH_CONCERNS"
+}

@@ -42,11 +42,11 @@ The repository root is also `res://`. Tool binaries stay outside the repository.
 
 ## Function and Interface Checklist
 
-- [ ] Input Map names finalized: move, sprint, interact, flashlight, pause, objective.
-- [ ] Main scene and renderer paths use exact lower-case casing.
-- [ ] No autoload points to a missing script.
-- [ ] Repository ignores `.godot/`, `.artifacts/`, portable tools, exports, logs, IDE state.
-- [ ] Local-only CK scaffolding (`.agents/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, `plans/templates/`) is placed in `.git/info/exclude`, not published or hidden by project `.gitignore`.
+- [x] Input Map names finalized: move, sprint, interact, flashlight, pause, objective.
+- [x] Main scene and renderer paths use exact lower-case casing.
+- [x] No autoload points to a missing script.
+- [x] Repository ignores `.godot/`, `.artifacts/`, portable tools, exports, logs, IDE state.
+- [x] Local-only CK scaffolding (`.agents/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, `plans/templates/`) is placed in `.git/info/exclude`, not published or hidden by project `.gitignore`.
 
 ## Dependency Map
 
@@ -80,11 +80,11 @@ The repository root is also `res://`. Tool binaries stay outside the repository.
 
 ## Success Criteria
 
-- [ ] Godot 4.7.1 runs self-contained from D: and reports its version.
-- [ ] `project.godot` imports headlessly using Compatibility renderer.
-- [ ] `main` and exact `origin` are configured safely.
-- [ ] Three atomic commits exist; no cache, binary tool, log, or secret is staged.
-- [ ] C: and D: free-space readings are recorded after the phase.
+- [x] Godot 4.7.1 runs self-contained from D: and reports its version.
+- [x] `project.godot` imports headlessly using Compatibility renderer.
+- [x] `main` and exact `origin` are configured safely.
+- [x] Three atomic commits exist; no cache, binary tool, log, or secret is staged.
+- [x] C: and D: free-space readings are recorded after the phase.
 
 ## Risks and Mitigation
 

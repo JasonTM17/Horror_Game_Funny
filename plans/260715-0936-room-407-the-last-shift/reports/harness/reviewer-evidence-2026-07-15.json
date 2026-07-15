@@ -1,0 +1,136 @@
+{
+  "review_type": "production-readiness-adversarial",
+  "date": "2026-07-15",
+  "target_sha": "c4efbd12ca0e51c3089bb22b01441b41210d14d0",
+  "target_ref": "HEAD/origin/main",
+  "scope": {
+    "gdscript_files": 26,
+    "scene_files": 9,
+    "concurrent_worktree_edits_excluded": true
+  },
+  "verification": [
+    {
+      "command": "powershell -ExecutionPolicy Bypass -File .\\tests\\run-headless-tests.ps1",
+      "exit_code": 0,
+      "checks": [
+        "editor-import OK",
+        "menu OK",
+        "gameplay OK",
+        "GAME_STATE_TEST_OK",
+        "PROGRESSION_TEST_OK"
+      ],
+      "warnings": [
+        "24 ObjectDB instances were leaked at exit"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "scoped git grep secret scan",
+      "exit_code": 1,
+      "meaning": "no matches"
+    },
+    {
+      "command": "tracked generated-artifact scan",
+      "exit_code": 1,
+      "meaning": "no matches"
+    }
+  ],
+  "spec_verdict": "FAIL",
+  "release_verdict": "BLOCKED",
+  "accepted_findings": [
+    {
+      "id": "C1",
+      "severity": "critical",
+      "path": "scripts/world/gameplay-director.gd",
+      "lines": "76-82,110",
+      "summary": "Full-width Room 407 wall blocks the mandatory path even when the door opens."
+    },
+    {
+      "id": "C2",
+      "severity": "critical",
+      "path": "scripts/world/gameplay-director.gd",
+      "lines": "76-78,103,146-152,213-249",
+      "summary": "Floor gate is walk-around and semantic memory gates permit wrong-order progression."
+    },
+    {
+      "id": "C3",
+      "severity": "critical",
+      "path": "scripts/world/gameplay-director.gd",
+      "lines": "76-112",
+      "summary": "Linear 139 m route with immediate interactions cannot substantiate the required 15-20 minute experience."
+    },
+    {
+      "id": "H1",
+      "severity": "high",
+      "path": "scripts/world/gameplay-director.gd",
+      "lines": "41,90-93,297-313",
+      "summary": "Checkpoint spawn ID is ignored and failure recovery does not follow the authoritative reload/input contract."
+    },
+    {
+      "id": "H2",
+      "severity": "high",
+      "path": "tests/progression-test.gd",
+      "lines": "13-31",
+      "summary": "Test bypasses production movement, collisions, UI, thresholds, and ending."
+    },
+    {
+      "id": "H3",
+      "severity": "high",
+      "path": "scripts/world/dynamic-hallway-controller.gd",
+      "lines": "7-23",
+      "summary": "Dynamic hallway changes labels only; no spatial variants or safe transitions exist."
+    },
+    {
+      "id": "H4",
+      "severity": "high",
+      "path": "scripts/autoload/settings-manager.gd",
+      "lines": "5-52",
+      "summary": "Mandatory audio, settings, accessibility, and subtitle requirements remain incomplete despite completed phase status."
+    },
+    {
+      "id": "H5",
+      "severity": "high",
+      "path": "scripts/player/player-interaction.gd",
+      "lines": "10-28",
+      "summary": "Modal input locks do not stop world interaction; Escape has competing unhandled owners."
+    },
+    {
+      "id": "H6",
+      "severity": "high",
+      "path": "scripts/world/chase-entity.gd",
+      "lines": "28-51",
+      "summary": "Enemy lacks planned navigation readiness/fallback and contains unreachable FSM behavior."
+    },
+    {
+      "id": "M1",
+      "severity": "medium",
+      "path": "scripts/world/gameplay-director.gd",
+      "lines": "229-233",
+      "summary": "Ending gate checks chase_started only."
+    },
+    {
+      "id": "M2",
+      "severity": "medium",
+      "path": "project.godot",
+      "lines": "71-74",
+      "summary": "Advertised show_objective action has no consumer."
+    },
+    {
+      "id": "M3",
+      "severity": "medium",
+      "path": "tests/progression-test.gd",
+      "lines": "41-43",
+      "summary": "Progression test exits with 24 leaked ObjectDB instances."
+    }
+  ],
+  "clean_checks": {
+    "resource_import": "pass",
+    "script_parse": "pass",
+    "secret_scan": "pass",
+    "tracked_generated_artifacts": "pass",
+    "remote_sync_at_review": "pass"
+  }
+}
