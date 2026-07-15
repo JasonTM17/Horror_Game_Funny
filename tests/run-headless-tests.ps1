@@ -13,9 +13,23 @@ New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
 
 function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expected = "") {
     $log = Join-Path ".artifacts" ("test-" + $Name + ".log")
-    & $Godot @Arguments --log-file $log
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "$Name failed with exit code $LASTEXITCODE. See $log"
+    $engineLog = Join-Path $testProfile ("engine-" + $Name + ".log")
+    $consoleLog = Join-Path $testProfile ("console-" + $Name + ".log")
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & $Godot @Arguments --log-file $engineLog 2>&1 | Tee-Object -FilePath $consoleLog
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    $combinedOutput = @()
+    if (Test-Path -LiteralPath $engineLog) {
+        $combinedOutput += Get-Content -LiteralPath $engineLog
+    }
+    if (Test-Path -LiteralPath $consoleLog) {
+        $combinedOutput += Get-Content -LiteralPath $consoleLog
+    }
+    $combinedOutput | Set-Content -LiteralPath $log
+    if ($exitCode -ne 0) {
+        Write-Error "$Name failed with exit code $exitCode. See $log"
     }
     if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|SETTINGS_AUDIO_ASSERT|ObjectDB instances were leaked|Leaked instance:" -Quiet) {
         Write-Error "$Name reported an engine or progression error. See $log"

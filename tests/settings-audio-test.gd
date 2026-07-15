@@ -25,6 +25,9 @@ func _ready() -> void:
 	if not _require(AudioManager._players.has("test_cleanup") and AudioManager._cache.has("test_cleanup") and AudioManager._sample_bytes > 0, "audio cleanup fixture was not created"): return
 	AudioManager.stop_all()
 	if not _require(AudioManager._players.is_empty() and AudioManager._cache.is_empty() and AudioManager._sample_bytes == 0, "audio teardown left cached state"): return
+	if not _require(AudioManager.get_child_count() == 0, "audio teardown deferred a player past shutdown"): return
+	# The audio server releases the active playback on its mix thread after the player is freed.
+	await get_tree().create_timer(0.2).timeout
 	var pause_menu := PAUSE_SCENE.instantiate()
 	add_child(pause_menu)
 	var player := PLAYER_SCENE.instantiate()
