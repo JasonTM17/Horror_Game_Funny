@@ -27,7 +27,7 @@ offset_right = 550.0
 offset_bottom = 225.0
 theme_override_colors/font_color = Color(0.67, 0.7, 0.72, 1)
 theme_override_font_sizes/font_size = 17
-text = "ROOM 407: THE LAST SHIFT\n\nA short psychological horror experience\nBuilt for one continuous night shift."
+text = "ROOM 407: THE LAST SHIFT\n\nDesign & development: JasonTM17 and contributors\nBuilt with Godot Engine 4.7.1\nProcedural art, shader, and audio created for this project\nMIT licensed source"
 horizontal_alignment = 1
 
 [node name="Replay" type="Button" parent="Panel"]

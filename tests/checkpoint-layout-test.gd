@@ -41,6 +41,7 @@ func _ready() -> void:
 		var open_query := PhysicsRayQueryParameters3D.create(Vector3(0.8, 1.0, door.global_position.z + 2.0), Vector3(0.8, 1.0, door.global_position.z - 2.0), 1)
 		var open_hit := gameplay.get_world_3d().direct_space_state.intersect_ray(open_query)
 		if not _require(open_hit.is_empty(), "%s collision still blocks the open passage" % door_id): return
+	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_RESPAWN_Z)
 	var chase_entity: CharacterBody3D = ENTITY_SCRIPT.new() as CharacterBody3D
 	chase_entity.position = player.position + Vector3(0, 0, 18.0)
 	gameplay.add_child(chase_entity)
@@ -48,7 +49,8 @@ func _ready() -> void:
 	chase_entity.start_chase()
 	await get_tree().create_timer(0.8).timeout
 	if not _require(chase_entity.state == chase_entity.State.STALK, "enemy never reaches stalk state"): return
-	if not _require(chase_entity.speed > player.walk_speed * player.sprint_multiplier, "enemy cannot threaten a sprinting player"): return
+	if not _require(chase_entity.speed > player.walk_speed, "enemy cannot catch a walking player"): return
+	if not _require(chase_entity.speed < player.walk_speed * player.sprint_multiplier, "enemy makes a full sprint escape impossible"): return
 	chase_entity.stop_chase()
 	chase_entity.queue_free()
 	var loop_distance := absf(WorldLayout.LOOP_GATE_Z - WorldLayout.MEMORY_START_Z)

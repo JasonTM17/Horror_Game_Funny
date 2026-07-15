@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-@export var speed := 3.25
+@export var speed := 3.0
 @export var detection_range := 24.0
 var target: Node3D
 var active := false
@@ -36,6 +36,13 @@ func stop_chase() -> void:
 
 func _physics_process(delta: float) -> void:
 	if not active or not is_instance_valid(target):
+		return
+	if target.global_position.z > WorldLayout.CHASE_TRIGGER_Z + 25.0:
+		if _director != null:
+			_director.fail_chase()
+		return
+	if target.global_position.z < WorldLayout.EXIT_Z - 8.0:
+		stop_chase()
 		return
 	_state_time += delta
 	_los_timer -= delta

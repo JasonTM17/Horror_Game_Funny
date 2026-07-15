@@ -31,6 +31,7 @@ func start() -> void:
 	_director.add_child(entity)
 	entity.setup(_player, _director)
 	_build_entity_body()
+	_fail_corridor_lights()
 	entity.start_chase()
 	AudioManager.play_tone("chase_alarm", 72.0, 1.2, -9.0)
 	AudioManager.start_drone("chase_drone", 58.0, -19.0, "Chase")
@@ -52,6 +53,7 @@ func finish() -> void:
 		entity.stop_chase()
 		entity.visible = false
 	AudioManager.stop_tone("chase_drone")
+	_build_abandoned_lobby_reveal()
 	var ending_label := Label3D.new()
 	ending_label.text = "THE SHIFT WAS NEVER SCHEDULED\n\nROOM 407 REMEMBERS"
 	ending_label.font_size = 34
@@ -102,3 +104,15 @@ func _build_entity_body() -> void:
 	capsule_shape.height = 2.4
 	shape.shape = capsule_shape
 	entity.add_child(shape)
+
+func _fail_corridor_lights() -> void:
+	for child in _director.get_children():
+		if child is OmniLight3D and child.name.begins_with("CorridorLight"):
+			child.light_energy *= 0.08
+
+func _build_abandoned_lobby_reveal() -> void:
+	var reveal_z := _player.global_position.z - 4.0
+	LevelGeometry.add_box(_director, "AbandonedLobbyFloor", Vector3(0, -0.08, reveal_z), Vector3(7.5, 0.16, 8.0), Color(0.035, 0.03, 0.03))
+	LevelGeometry.add_box(_director, "CondemnedDesk", Vector3(-2.2, 0.5, reveal_z - 1.0), Vector3(2.5, 1.0, 1.2), Color(0.07, 0.045, 0.035))
+	LevelGeometry.add_label(_director, "BUILDING CONDEMNED — 2007", Vector3(0, 2.15, reveal_z - 3.2), Color(0.66, 0.16, 0.12))
+	LevelGeometry.add_label(_director, "NO NIGHT STAFF ASSIGNED", Vector3(0, 1.45, reveal_z - 3.15), Color(0.48, 0.46, 0.42))

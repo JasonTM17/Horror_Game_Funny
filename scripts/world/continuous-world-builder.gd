@@ -33,11 +33,15 @@ static func build(parent: Node3D) -> void:
 	LevelGeometry.add_label(parent, "FLOOR 4", Vector3(-2.9, 2.1, WorldLayout.FLOOR_TRIGGER_Z - 12.0), Color(0.42, 0.46, 0.48))
 	LevelGeometry.add_label(parent, "407", Vector3(-1.0, 2.1, WorldLayout.ROOM_DOOR_Z - 2.0), Color(0.65, 0.3, 0.28))
 	LevelGeometry.add_label(parent, "EXIT", Vector3(0, 2.55, WorldLayout.EXIT_Z + 1.0), Color(0.85, 0.16, 0.12))
+	var corridor_light_index := 0
 	for z in [24.0, -18.0, -55.0, -92.0, -130.0, -170.0, -210.0, -250.0, -290.0, -330.0, -370.0, -415.0, -460.0, -505.0, -565.0, -625.0, -685.0, -745.0, -795.0]:
-		LevelGeometry.add_light(parent, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), 0.62, 8.5)
+		var corridor_light := LevelGeometry.add_light(parent, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), 0.62, 8.5)
+		corridor_light.name = "CorridorLight%02d" % corridor_light_index
+		corridor_light_index += 1
 	LevelGeometry.add_light(parent, Vector3(0, 2.6, WorldLayout.FINAL_CLUE_Z), Color(0.52, 0.12, 0.1), 1.0, 7.0)
 	for chase_z in [-540.0, -585.0, -630.0, -675.0, -720.0, -765.0, -800.0]:
-		LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 0.72, 7.5)
+		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 0.72, 7.5)
+		guide_light.name = "ChaseGuideLight"
 	_add_navigation_surface(parent)
 
 static func _add_partition(parent: Node3D, name: String, z: float, color: Color) -> void:
