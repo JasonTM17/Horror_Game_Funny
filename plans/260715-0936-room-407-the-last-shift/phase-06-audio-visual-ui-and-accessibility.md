@@ -1,10 +1,11 @@
 ---
 phase: 6
-title: "Audio Visual UI and Accessibility"
-status: pending
+title: Audio Visual UI and Accessibility
+status: in-progress
 priority: P1
-dependencies: [5]
-effort: "large"
+dependencies:
+  - 5
+effort: large
 ---
 
 # Phase 6: Audio Visual UI and Accessibility

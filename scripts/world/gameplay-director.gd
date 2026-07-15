@@ -59,6 +59,18 @@ func _process(_delta: float) -> void:
 		_start_chase()
 
 func _build_environment() -> void:
+	var world := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.006, 0.009, 0.016)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.12, 0.16, 0.22)
+	environment.ambient_light_energy = 0.22
+	environment.fog_enabled = true
+	environment.fog_light_color = Color(0.08, 0.1, 0.13)
+	environment.fog_density = 0.012
+	world.environment = environment
+	add_child(world)
 	LevelGeometry.add_box(self, "Floor", Vector3(0, -0.15, -62), Vector3(8, 0.3, 150), Color(0.055, 0.06, 0.075))
 	LevelGeometry.add_box(self, "LeftWall", Vector3(-4, 2.0, -62), Vector3(0.25, 4.0, 150), Color(0.08, 0.075, 0.085))
 	LevelGeometry.add_box(self, "RightWall", Vector3(4, 2.0, -62), Vector3(0.25, 4.0, 150), Color(0.08, 0.075, 0.085))

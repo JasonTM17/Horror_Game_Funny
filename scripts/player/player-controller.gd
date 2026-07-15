@@ -15,6 +15,7 @@ var _locks: Dictionary = {}
 var _pitch := -8.0
 var _bob_time := 0.0
 var _flashlight_on := true
+var _step_time := 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -49,6 +50,13 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.05
 	move_and_slide()
 	_update_head_bob(delta, direction.length() > 0.1)
+	if direction.length() > 0.1 and is_on_floor():
+		_step_time -= delta * (1.45 if Input.is_action_pressed("sprint") else 1.0)
+		if _step_time <= 0.0:
+			_step_time = 0.42
+			AudioManager.play_tone("footstep", 95.0 if randf() > 0.5 else 112.0, 0.06, -27.0)
+	else:
+		_step_time = 0.0
 
 func set_input_locked(reason: String, locked: bool) -> void:
 	if reason.is_empty():
@@ -93,4 +101,3 @@ func _on_setting_changed(name: String, _value: float) -> void:
 		mouse_sensitivity = SettingsManager.mouse_sensitivity
 	elif name == "field_of_view":
 		camera.fov = SettingsManager.field_of_view
-

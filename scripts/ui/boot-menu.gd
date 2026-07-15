@@ -39,10 +39,14 @@ func _ready() -> void:
 	quit.size = Vector2(220, 42)
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	panel.add_child(quit)
+	var settings_panel := preload("res://scenes/ui/settings-panel.tscn").instantiate()
+	add_child(settings_panel)
+	settings_panel.name = "SettingsPanel"
 
 func _start_shift() -> void:
 	SceneRouter.change_scene("res://scenes/gameplay/gameplay.tscn")
 
 func _show_settings() -> void:
-	SettingsManager.set_comfort_head_bob(not SettingsManager.comfort_head_bob)
-	SettingsManager.save_settings()
+	var settings_panel := get_node_or_null("SettingsPanel")
+	if settings_panel != null:
+		settings_panel.open_panel()
