@@ -42,8 +42,9 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Current Evidence Reconciliation — 2026-07-15
 
-- Validated settings-persistence baseline `8a9bfc6` is pushed in `origin/main`; local and remote SHA matched after the push.
-- The isolated Godot 4.7.1 runner passes all nine checks with zero engine, assertion, parse, or ObjectDB leak matches.
+- Physical-route smoke source commit `48ab37e` adds targeted production-player movement/collision coverage; documentation commit `9c79805` reconciles the evergreen QA contract.
+- The isolated Godot 4.7.1 runner passes all ten checks with zero engine, assertion, parse, or ObjectDB leak matches and zero temporary-profile remainders.
+- The targeted movement smoke drives the production `CharacterBody3D` through mapped input and physics across three locked/open doors, selected prerequisite thresholds, Room 407 checkpoint creation, and chase creation. It deliberately does not claim E/raycast interaction, complete keyboard/mouse traversal, or pacing evidence.
 - Independent review findings for settings-profile pollution, checkpoint hallway restoration, radio cooldown reopening, chase retreat, ending reveal staging, and audio teardown were fixed and covered by regressions.
 - Prompt and action-handler prerequisites now agree for lobby, floor, memory, and Room 407 interactions; the expanded negative matrix found and closed direct-call bypasses.
 - Separate writer and reader processes verify all 11 settings survive a relaunch inside one isolated profile, and runner teardown removes that profile.

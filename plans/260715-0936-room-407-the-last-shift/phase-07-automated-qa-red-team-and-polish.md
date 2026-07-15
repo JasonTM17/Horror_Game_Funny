@@ -28,7 +28,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Architecture
 
-`tests/run-headless-tests.ps1` launches nine native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. No production script recognizes a test bypass.
+`tests/run-headless-tests.ps1` launches ten native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, targeted production-player movement/door collision, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. No production script recognizes a test bypass.
 
 ## File Inventory
 
@@ -82,7 +82,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Success Criteria
 
-- [x] Headless import, boot/gameplay smoke, and all focused automated checks pass with nine logs.
+- [x] Headless import, boot/gameplay smoke, and all focused automated checks pass with ten logs.
 - [ ] Manual full flow completes in target duration with no known main-path soft-lock.
 - [ ] Every red-team checklist item has pass/fix/known-limitation evidence.
 - [ ] All release blockers are closed; automated review defects are fixed, but manual pacing/chase evidence remains.
