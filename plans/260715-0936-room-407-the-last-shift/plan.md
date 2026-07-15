@@ -1,0 +1,150 @@
+---
+title: 'Room 407: The Last Shift'
+description: >-
+  Build and ship a complete 15–20 minute Godot 4.7.1 psychological horror game
+  with atomic commits and verified progression.
+status: in-progress
+priority: P1
+branch: main
+tags:
+  - feature
+  - godot
+  - game
+  - critical
+blockedBy: []
+blocks: []
+created: '2026-07-15T02:47:18.920Z'
+createdBy: 'ck:plan'
+source: skill
+---
+
+# Room 407: The Last Shift
+
+## Overview
+
+Create **ROOM 407: THE LAST SHIFT** from an empty public repository. Deliver a complete first-person main path: lobby tutorial, fourth-floor fuse puzzle, three-memory hallway loop, `0007` radio puzzle, Room 407 reveal, checkpointed chase, ending, credits, settings, accessibility, tests, and documentation.
+
+Implementation is sequential. Each coherent slice ends with disk check, headless validation, secret scan, atomic Conventional Commit, and push after local verification. Godot runs portable/self-contained from D: because C: has critically low free space.
+
+## Phases
+
+| Phase | Name | Status |
+|-------|------|--------|
+| 1 | [Repository and Toolchain](./phase-01-repository-and-toolchain.md) | In Progress |
+| 2 | [Core Runtime and Player](./phase-02-core-runtime-and-player.md) | Pending |
+| 3 | [Lobby and Fuse Vertical Slice](./phase-03-lobby-and-fuse-vertical-slice.md) | Pending |
+| 4 | [Memory Hallway and Radio Puzzle](./phase-04-memory-hallway-and-radio-puzzle.md) | Pending |
+| 5 | [Room 407 Chase and Ending](./phase-05-room-407-chase-and-ending.md) | Pending |
+| 6 | [Audio Visual UI and Accessibility](./phase-06-audio-visual-ui-and-accessibility.md) | Pending |
+| 7 | [Automated QA Red Team and Polish](./phase-07-automated-qa-red-team-and-polish.md) | Pending |
+| 8 | [Documentation Release and Push](./phase-08-documentation-release-and-push.md) | Pending |
+
+## Dependencies
+
+- No cross-plan dependencies. Remote repository is empty.
+- Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
+- Compatibility renderer; procedural/created assets only.
+
+## Architecture Summary
+
+- Thin autoloads: `GameState`, `SceneRouter`, `AudioManager`, `SettingsManager`.
+- Scene-local controllers for levels, events, hallway variants, puzzles, and chase.
+- Typed signal-driven progression with idempotent flags and serializable checkpoint snapshots.
+- Reusable interaction base, composed player components, deterministic procedural geometry/audio.
+- Native `SceneTree` test runner plus Godot headless import/runtime smoke checks.
+
+## Scope Boundary
+
+- Required: all acceptance items in the project brief, 15–20 minute main ending.
+- Deferred: optional secondary ending, crouch, persistent save across application restarts, external asset packs, voiced dialogue, export templates/binary release.
+- Never defer: ending, checkpoint/fail recovery, both puzzles, three memories, chase, settings, documentation, or main-path QA.
+
+## Atomic Commit Sequence
+
+1. `chore: initialize Godot project and repository metadata`
+2. `docs: define Room 407 design and architecture`
+3. `docs: add verified implementation plan`
+4. `feat: add runtime services menu and player foundation`
+5. `feat: add reusable interaction doors and objective HUD`
+6. `feat: build lobby tutorial and fourth-floor transition`
+7. `feat: add fuse puzzle and first horror events`
+8. `feat: build dynamic memory hallway progression`
+9. `feat: add memory pickups notes and radio puzzle`
+10. `feat: build Room 407 finale and checkpoint flow`
+11. `feat: add enemy chase fail recovery and ending`
+12. `feat: add procedural audio visual effects and accessibility`
+13. `test: add progression scene and regression checks`
+14. `fix: harden progression against red-team edge cases`
+15. `perf: reduce active lights and procedural update cost`
+16. `docs: finalize run testing architecture and asset guides`
+17. `build: prepare verified playable release candidate`
+
+## Acceptance Criteria
+
+- Godot recognizes the project; every referenced script parses and every main scene loads.
+- Menu starts a completable 15–20 minute first-person flow with two puzzles, three memories, dynamic hallway, Room 407, chase, fail/checkpoint recovery, ending, and credits.
+- Interaction spam/out-of-order actions cannot duplicate items/events/enemies or bypass required gates.
+- Settings cover sensitivity, FOV, volumes, display mode, head bob, shake, grain, and reduced flicker.
+- Headless import, automated tests, runtime smoke, manual full playthrough, and red-team checklist have truthful recorded results.
+- README, design, architecture, testing, asset credits, limitations, license, and changelog match actual code.
+- Git history is atomic, working tree clean, no secrets/generated cache committed, and `main` pushed to the configured origin without force.
+
+## Red Team Review
+
+### Session — 2026-07-15
+
+**Findings:** 5 (4 accepted, 1 rejected)  
+**Severity:** 1 Critical, 3 High, 1 Medium
+
+| # | Finding | Severity | Disposition | Evidence / Applied To |
+|---|---|---|---|---|
+| RT-1 | Local CK/tooling tree can be staged into empty repo | Critical | Accept | `phase-01-repository-and-toolchain.md:48`; local exclude added to Phase 1 |
+| RT-2 | Production smoke hook becomes a progression bypass | High | Accept | `phase-07-automated-qa-red-team-and-polish.md:37`; smoke kept test-only |
+| RT-3 | Chase navigation has no readiness/fallback contract | High | Accept | `phase-05-room-407-chase-and-ending.md:62`; readiness and safe fallback added |
+| RT-4 | Generated PCM cache has no memory/sample budget | High | Accept | `phase-06-audio-visual-ui-and-accessibility.md:45`; 16 MiB bounded budget added |
+| RT-5 | Add persistent checkpoint save across process restart | Medium | Reject | Scope explicitly defers persistent save; brief permits in-memory checkpoint |
+
+### Whole-Plan Consistency Sweep
+
+- Files reread: `plan.md` and all eight phase files.
+- Decision deltas checked: 4.
+- Reconciled stale references: 4.
+- Unresolved contradictions: 0.
+
+## Validation Log
+
+### Session 1 — 2026-07-15
+
+**Trigger:** Deep-plan validation after red-team.  
+**New questions asked:** 0 — the user brief explicitly answers every material decision and instructs implementation to continue without reconfirmation unless unsafe.
+
+### Verification Results
+
+- Tier: Full.
+- Claims checked: 144 structural, dependency, section, and scout-state claims across eight phases.
+- Verified: 144 | Failed: 0 | Unverified: 0.
+- Future `Create` paths were verified as planned artifacts, not falsely treated as existing code.
+- Placeholder scan: 0; stale `[UNVERIFIED]` tags: 0.
+
+### Confirmed Decisions from Explicit Brief
+
+1. Scope: hold required 15–20 minute main path; defer only optional secondary ending, crouch, persistent checkpoint save, external asset packs, and binary export.
+2. Toolchain: Godot 4.7.1 stable, GDScript, Compatibility renderer, portable/self-contained runtime on D:.
+3. Content: project-created primitives, procedural materials/shaders/audio; no unclear copyrighted asset.
+4. Delivery: sequential dependency order, small Conventional Commits, disk checks, no force push, exact GitHub origin.
+5. Evidence: automation proves parse/state contracts; manual playthrough proves navigation, presentation, audio, and 15–20 minute pacing.
+
+### Impact on Phases
+
+- Phase 1 owns disk/tool/Git safety and local tooling exclusion.
+- Phases 2–6 retain the full required gameplay scope.
+- Phase 7 separates test-only smoke automation from production and requires manual timing/red-team evidence.
+- Phase 8 defers binary export honestly while requiring source-playable verification and remote parity.
+
+### Whole-Plan Consistency Sweep
+
+- Files reread: `plan.md`, all eight `phase-*.md`, and both research reports.
+- Decision deltas checked: 5.
+- Reconciled stale references: 1 placeholder report path replaced with the exact plan-scoped path.
+- Unresolved contradictions: 0.
+- Recommendation: proceed with `ck:cook` sequential implementation.
