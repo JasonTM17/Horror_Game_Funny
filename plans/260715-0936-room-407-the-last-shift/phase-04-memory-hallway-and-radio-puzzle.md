@@ -1,10 +1,11 @@
 ---
 phase: 4
-title: "Memory Hallway and Radio Puzzle"
-status: pending
+title: Memory Hallway and Radio Puzzle
+status: in-progress
 priority: P1
-dependencies: [3]
-effort: "large"
+dependencies:
+  - 3
+effort: large
 ---
 
 # Phase 4: Memory Hallway and Radio Puzzle

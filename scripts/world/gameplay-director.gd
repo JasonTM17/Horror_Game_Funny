@@ -6,6 +6,9 @@ const PAUSE_SCENE := preload("res://scenes/ui/pause-menu.tscn")
 const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
 const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
+const RADIO_SCRIPT := preload("res://scripts/puzzles/radio-puzzle.gd")
+const HALLWAY_SCRIPT := preload("res://scripts/world/dynamic-hallway-controller.gd")
+const HORROR_SCRIPT := preload("res://scripts/world/horror-event-director.gd")
 
 var player: CharacterBody3D
 var entity: CharacterBody3D
@@ -13,10 +16,19 @@ var exit_marker := Vector3(0, 1.0, -132.0)
 var _beat_guard: Dictionary = {}
 var _memory_count := 0
 var _ending := false
+var _radio_ui: CanvasLayer
+var _hallway: Node3D
+var _horror: Node3D
 
 func _ready() -> void:
 	GameState.reset_run()
 	_build_environment()
+	_hallway = HALLWAY_SCRIPT.new()
+	add_child(_hallway)
+	_hallway.build(self)
+	_horror = HORROR_SCRIPT.new()
+	add_child(_horror)
+	_horror.setup(self, _hallway)
 	_spawn_player()
 	_spawn_story_objects()
 	GameState.set_objective("Answer the desk phone and sign the night log.")
@@ -168,14 +180,17 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			GameState.set_flag("fuse_installed")
 			GameState.advance_stage(GameState.Stage.FLOOR4_POWERED)
 			GameState.set_objective("Follow the humming lights. Something is waiting in the hall.")
+			_horror.trigger("fuse_power")
 			AudioManager.play_tone("power_restore", 110.0, 0.8, -13.0)
 			return true
-		"memory_photo", "memory_cassette", "memory_rabbit":
+		["memory_photo", "memory_cassette", "memory_rabbit"]:
 			if GameState.has_flag(action_id):
 				return false
 			GameState.set_flag(action_id)
 			_memory_count += 1
 			GameState.add_item(action_id.trim_prefix("memory_"))
+			_hallway.reconfigure_for_memory(_memory_count)
+			_horror.trigger(action_id)
 			AudioManager.play_tone("memory_%s" % _memory_count, 180.0 + _memory_count * 55.0, 0.42, -18.0)
 			if _memory_count >= 3:
 				GameState.set_objective("The radio is repeating your voice. Find the number it wants.")
@@ -185,9 +200,10 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 		"radio":
 			if _memory_count < 3 or GameState.has_flag("radio_solved"):
 				return false
-			GameState.set_flag("radio_solved")
-			GameState.set_objective("Room 407 is open. Do not look behind the door.")
-			AudioManager.play_tone("radio_code", 700.0, 0.2)
+			if _radio_ui == null:
+				_radio_ui = RADIO_SCRIPT.new() as CanvasLayer
+				add_child(_radio_ui)
+			_radio_ui.open(self, _actor)
 			return true
 		"final_clue":
 			if not GameState.has_flag("room_entered") or GameState.has_flag("final_clue_seen"):
@@ -202,6 +218,13 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			_finish_ending()
 			return true
 	return false
+
+func on_radio_solved() -> void:
+	if GameState.has_flag("radio_solved"):
+		return
+	GameState.set_flag("radio_solved")
+	GameState.set_objective("Room 407 is open. Do not look behind the door.")
+	AudioManager.play_tone("radio_code", 700.0, 0.2)
 
 func _memory_label(action_id: String) -> String:
 	return {
