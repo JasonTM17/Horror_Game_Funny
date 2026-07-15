@@ -11,6 +11,15 @@ func _ready() -> void:
 	var director: Node = gameplay
 	director._narrative.duration_scale = 0.001
 	GameState.reset_run()
+	var pacing_before_pause: Dictionary = director.get_playthrough_pacing_report()
+	get_tree().paused = true
+	await get_tree().process_frame
+	OS.delay_msec(60)
+	await get_tree().process_frame
+	get_tree().paused = false
+	var pacing_after_pause: Dictionary = director.get_playthrough_pacing_report()
+	if not _require(is_equal_approx(float(pacing_after_pause["active_gameplay_seconds"]), float(pacing_before_pause["active_gameplay_seconds"])), "paused time leaked into active gameplay pacing"): return
+	if not _require(float(pacing_after_pause["wall_clock_seconds"]) > float(pacing_before_pause["wall_clock_seconds"]), "wall pacing did not include paused time"): return
 	if not _require(not director.handle_story_action("exit", player), "ending must reject a fresh run"): return
 	if not _require(not director.handle_story_action("logbook", player), "logbook must stay gated"): return
 	if not _require(not director.handle_story_action("lobby_register", player), "night register must stay gated before the phone briefing"): return
@@ -30,7 +39,9 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("logbook", player), "logbook signing must be one-shot"): return
 	if not _require(not director.handle_story_action("radio", player), "radio must wait for memories"): return
 	if not _require(not director.handle_story_action("floor_notice", player), "floor notice must stay behind the fourth-floor gate"): return
-	GameState.set_flag("floor_reached")
+	player.global_position.z = WorldLayout.FLOOR_TRIGGER_Z - 0.1
+	director._process(0.0)
+	if not _require(GameState.has_flag("floor_reached") and GameState.stage == GameState.Stage.FLOOR4_DARK, "production floor threshold did not advance pacing stage"): return
 	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must wait for the maintenance notice"): return
 	if not _require(director.handle_story_action("floor_notice", player), "floor notice should be readable"): return
 	if not _require(await _wait_for_flag("floor_notice_observation_complete"), "floor notice observation should complete"): return
@@ -42,6 +53,9 @@ func _ready() -> void:
 	if not _require(GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"), "fuse installation should consume the spare"): return
 	if not _require(not director.handle_story_action("fuse_box", player), "fuse installation must be one-shot"): return
 	if not _require(await _wait_for_flag("power_stable"), "power sequence should stabilize"): return
+	player.global_position.z = WorldLayout.MEMORY_TRIGGER_Z - 0.1
+	director._process(0.0)
+	if not _require(GameState.has_flag("memory_loop_started") and GameState.stage == GameState.Stage.MEMORY_LOOP, "production memory threshold did not advance pacing stage"): return
 	if not _require(not director.handle_story_action("memory_cassette", player), "memories must be collected in authored order"): return
 	if not _require(not director.handle_story_action("hallway_loop", player), "hallway loop must wait for the first memory echo"): return
 	if not _require(director.handle_story_action("memory_photo", player), "photo should collect"): return
@@ -104,7 +118,9 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("room_bed_observation", player), "bed search must wait for the family recording"): return
 	if not _require(not director.handle_story_action("room_wardrobe_observation", player), "wardrobe search must wait for the family recording"): return
 	if not _require(not director.handle_story_action("room_family_table", player), "family table search must wait for the family recording"): return
-	GameState.set_flag("room_entered")
+	player.global_position.z = WorldLayout.ROOM_TRIGGER_Z - 0.1
+	director._process(0.0)
+	if not _require(GameState.has_flag("room_entered") and GameState.stage == GameState.Stage.ROOM_407, "production Room 407 threshold did not advance pacing stage"): return
 	if not _require(director.handle_story_action("room_record", player), "room recording should play"): return
 	if not _require(await _wait_for_flag("room_record_heard"), "room recording should complete"): return
 	if not _require(not director.handle_story_action("room_record", player), "room recording must be one-shot"): return
@@ -123,10 +139,14 @@ func _ready() -> void:
 	director.on_note_closed()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
-	director._start_chase()
+	player.global_position.z = WorldLayout.CHASE_TRIGGER_Z - 0.1
+	director._process(0.0)
 	if not _require(GameState.stage == GameState.Stage.CHASE, "chase stage missing"): return
 	if not _require(is_instance_valid(director._chase.entity), "chase entity missing before capture test"): return
-	director._chase.entity.global_position = player.global_position + Vector3(0, 0, 0.7)
+	# Center the capsule above the floor and let the scheduled production physics
+	# path evaluate navigation, movement, collision recovery, and proximity.
+	director._chase.entity.global_position = player.global_position + Vector3(0, 1.1, 0.05)
+	director._chase.entity.velocity = Vector3.ZERO
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	if not _require(director._chase.recovering, "enemy proximity did not trigger capture recovery"): return
@@ -143,6 +163,12 @@ func _ready() -> void:
 	if not _require(GameState.stage == GameState.Stage.ENDING, "ending stage missing"): return
 	if not _require(gameplay.has_node("AbandonedLobbyFloor"), "abandoned lobby reveal missing"): return
 	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the in-world reveal"): return
+	if not _verify_complete_pacing_report(director): return
+	var pacing_before_duplicate: String = JSON.stringify(director.get_playthrough_pacing_report())
+	director._chase.finish()
+	await get_tree().process_frame
+	if not _require(_count_named_children(gameplay, "EndingOverlay") == 1, "duplicate ending created a second credits overlay"): return
+	if not _require(JSON.stringify(director.get_playthrough_pacing_report()) == pacing_before_duplicate, "duplicate ending mutated the pacing report"): return
 	AudioManager.stop_all()
 	print("PROGRESSION_TEST_OK")
 	gameplay.queue_free()
@@ -156,6 +182,44 @@ func _require(condition: bool, message: String) -> bool:
 	push_error("PROGRESSION_ASSERT: " + message)
 	get_tree().quit(2)
 	return false
+
+func _verify_complete_pacing_report(director: Node) -> bool:
+	if not _require(director.has_method("get_playthrough_pacing_report"), "gameplay director does not expose pacing telemetry"): return false
+	var report: Dictionary = director.get_playthrough_pacing_report()
+	if not _require(bool(report.get("eligible_full_run", false)), "fresh gameplay session was not eligible for pacing evidence"): return false
+	if not _require(bool(report.get("complete", false)), "credits did not finalize the pacing report"): return false
+	if not _require(report.get("within_target") == false, "compressed headless run was incorrectly accepted as a 15-20 minute playthrough"): return false
+	if not _require((report.get("missing_milestones", []) as Array).is_empty(), "complete run retained missing pacing milestones"): return false
+	var expected_order: Array[String] = ["lobby", "floor4_dark", "floor4_powered", "memory_loop", "room_407", "chase", "ending", "credits"]
+	var actual_order: Array = report.get("boundary_order", []) as Array
+	if not _require(actual_order == expected_order, "pacing boundary order did not follow production progression"): return false
+	if not _require(bool(report.get("boundary_order_valid", false)), "complete pacing report marked its milestone order invalid"): return false
+	var stage_seconds: Dictionary = report.get("stage_active_seconds", {}) as Dictionary
+	var previous_seconds := -1.0
+	for milestone: String in expected_order:
+		if not _require(stage_seconds.has(milestone), "pacing report missing %s boundary" % milestone): return false
+		var current_seconds := float(stage_seconds[milestone])
+		if not _require(current_seconds >= previous_seconds, "pacing timestamps decreased at %s" % milestone): return false
+		previous_seconds = current_seconds
+	var chapter_seconds: Dictionary = report.get("chapter_active_seconds", {}) as Dictionary
+	for chapter: String in ["opening", "floor4", "memory_loop", "room407", "chase_ending"]:
+		var duration: Variant = chapter_seconds.get(chapter)
+		if not _require(duration != null and float(duration) >= 0.0, "pacing chapter %s was incomplete" % chapter): return false
+	var mutated_report: Dictionary = director.get_playthrough_pacing_report()
+	mutated_report["eligible_full_run"] = false
+	(mutated_report["target_seconds"] as Dictionary)["total"] = [0.0, 0.0]
+	var fresh_report: Dictionary = director.get_playthrough_pacing_report()
+	if not _require(bool(fresh_report["eligible_full_run"]), "pacing facade leaked top-level report mutations"): return false
+	if not _require((fresh_report["target_seconds"] as Dictionary)["total"] == [900.0, 1200.0], "pacing facade leaked nested report mutations"): return false
+	if not _require(float(report.get("paused_seconds", 0.0)) > 0.0, "pacing report lost the deliberate pause interval"): return false
+	return _require(float(report.get("active_gameplay_seconds", -1.0)) >= 0.0 and float(report.get("wall_clock_seconds", -1.0)) >= float(report.get("active_gameplay_seconds", -1.0)), "pacing totals were invalid")
+
+func _count_named_children(parent: Node, child_name: String) -> int:
+	var count := 0
+	for child in parent.get_children():
+		if child.name == child_name:
+			count += 1
+	return count
 
 func _wait_for_flag(flag: String, max_frames := 180) -> bool:
 	for _frame in max_frames:

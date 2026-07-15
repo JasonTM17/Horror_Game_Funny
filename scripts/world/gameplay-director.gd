@@ -11,6 +11,7 @@ const HALLWAY_TRANSITION_SCRIPT := preload("res://scripts/ui/hallway-transition-
 const VISUAL_EFFECTS_SCRIPT := preload("res://scripts/ui/visual-effects-layer.gd")
 const STORY_CONTROLLER_SCRIPT := preload("res://scripts/world/story-progression-controller.gd")
 const CHASE_CONTROLLER_SCRIPT := preload("res://scripts/world/chase-sequence-controller.gd")
+const PACING_TELEMETRY_SCRIPT := preload("res://scripts/world/playthrough-pacing-telemetry.gd")
 
 var player: CharacterBody3D
 var _hallway: Node3D
@@ -19,6 +20,7 @@ var _narrative: Node
 var _story: StoryProgressionController
 var _chase: ChaseSequenceController
 var _fail_overlay: CanvasLayer
+var _pacing: Node
 
 func _ready() -> void:
 	var fresh_run := GameState.checkpoint.is_empty()
@@ -45,6 +47,11 @@ func _ready() -> void:
 	_chase = CHASE_CONTROLLER_SCRIPT.new() as ChaseSequenceController
 	add_child(_chase)
 	_chase.setup(player, self, _fail_overlay)
+	_pacing = PACING_TELEMETRY_SCRIPT.new()
+	_pacing.name = "PlaythroughPacingTelemetry"
+	add_child(_pacing)
+	_pacing.begin(fresh_run, GameState.stage)
+	_chase.credits_shown.connect(_pacing.record_credits)
 	if fresh_run:
 		GameState.set_objective("Answer the desk phone and sign the night log.")
 	AudioManager.start_drone("building_ambience", 43.0, -34.0, "Ambience")
@@ -122,3 +129,6 @@ func fail_chase() -> void:
 
 func finish_ending() -> void:
 	_chase.finish()
+
+func get_playthrough_pacing_report() -> Dictionary:
+	return _pacing.get_report().duplicate(true) if _pacing != null else {}

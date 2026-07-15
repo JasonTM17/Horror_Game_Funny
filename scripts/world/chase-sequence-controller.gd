@@ -1,6 +1,8 @@
 class_name ChaseSequenceController
 extends Node
 
+signal credits_shown
+
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 const ENDING_SCENE := preload("res://scenes/ui/ending-overlay.tscn")
 
@@ -8,6 +10,7 @@ var entity: CharacterBody3D
 var ending := false
 var recovering := false
 var ending_reveal_duration := 3.0
+var _credits_visible := false
 
 var _player: CharacterBody3D
 var _director: Node3D
@@ -69,11 +72,13 @@ func finish() -> void:
 
 func _show_credits_after_reveal() -> void:
 	await get_tree().create_timer(maxf(0.0, ending_reveal_duration)).timeout
-	if not is_instance_valid(_director):
+	if not is_instance_valid(_director) or _credits_visible:
 		return
 	var overlay := ENDING_SCENE.instantiate()
 	_director.add_child(overlay)
 	overlay.show_ending()
+	_credits_visible = true
+	credits_shown.emit()
 
 func _recover_from_failure() -> void:
 	_player.set_input_locked("fail", true)
