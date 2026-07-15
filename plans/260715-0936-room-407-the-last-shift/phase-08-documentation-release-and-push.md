@@ -1,9 +1,9 @@
 ---
 phase: 8
 title: "Documentation Release and Push"
-status: pending
+status: in-progress
 priority: P1
-dependencies: [7]
+dependencies: [6]
 effort: "medium"
 ---
 
@@ -11,7 +11,7 @@ effort: "medium"
 
 ## Overview
 
-Finalize all user/maintainer documentation from verified code, prepare the playable source release candidate, audit every acceptance criterion, clean Git state, and push the atomic `main` history to origin.
+Finalize all user/maintainer documentation from verified code, prepare the playable source release candidate, audit every acceptance criterion, clean Git state, and push the atomic `main` history to origin. Documentation reconciliation may overlap Phase 7 evidence collection after Phase 6 implementation is complete; final release closure remains gated by every Phase 7 manual criterion.
 
 ## Context Links
 
@@ -34,7 +34,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 | Action | Paths | Rough size | Test impact |
 |---|---|---:|---|
 | Modify | `README.md`, `CHANGELOG.md` | <350 lines total | run/release contract |
-| Modify | `docs/{game-design,architecture,code-standards,testing,known-limitations,asset-credits}.md` | <1,200 lines total | maintainability/evidence |
+| Modify | `docs/{game-design,architecture,code-standards,testing,limitations,asset-credits}.md` | <1,200 lines total | maintainability/evidence |
 | Create | `docs/contributing.md` if needed | <120 lines | contribution workflow |
 | Create | final report under plan `reports/` | <250 lines | completion audit |
 | Modify | plan/phase statuses via CK CLI only | metadata | plan sync |
@@ -43,9 +43,18 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 - [x] Every documented class, file, input action, command, and scene exists with exact case.
 - [x] Asset credits list every authored/generated asset category and license scope.
-- [x] Known limitations distinguish untested export/hardware/manual behavior from implemented gameplay.
-- [ ] README quick-start works from a clean clone using the official editor.
+- [x] `docs/limitations.md` distinguishes untested export, hardware, and manual behavior from implemented gameplay.
+- [x] README quick-start works from a clean clone using the official Godot 4.7.1 executable.
 - [ ] Final Git audit enumerates commits and proves a clean synced branch.
+
+## Current Evidence — 2026-07-15
+
+- The pushed gameplay baseline ends at `40354eb`; `d89e2c7` hardens isolated-profile teardown and `1c225db` reconciles user/maintainer guides. Local `HEAD` and `origin/main` match at `1c225db` before this evidence-only plan update.
+- The exact 12-check headless runner was rerun after user/maintainer guide edits and before evidence-only plan/report synchronization; all checks exited `0` from 17:04:29 through 17:05:02 ICT. The pushed gameplay baseline also exits `0`.
+- A fresh clone of `origin/main` at `1c225db` reproduced the README runner contract with 12 logs, all 9 required markers, zero temporary profiles, and zero tracked changes. The verified clone was deleted from the repository-local temp root.
+- A real local Compatibility-renderer capture is clean and readable, but remains uncommitted and non-physical.
+- Post-rehearsal disk snapshot at 17:08 ICT: C: 11.08 GiB free; D: 29.96 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- No authorized physical F5 15–20 minute boot-to-credits run exists. Phase 8 is in progress, not complete.
 
 ## Dependency Map
 
@@ -83,7 +92,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 - [x] Required source-release documentation is accurate, internally linked, and license-complete.
 - [x] Final clean-cache validation reproduces prior passing results.
 - [ ] Working tree is clean and atomic history is visible on `origin/main`.
-- [ ] Final report includes Completed, Architecture, Verification, Git, Run instructions, and Remaining limitations.
+- [x] Current audit reports requirements/evidence, fixed/open findings, documentation changes, automated verification, renderer evidence, Git, disk, remaining gates, recommendations, and unresolved questions without claiming completion.
 - [ ] Goal is marked complete only after all acceptance evidence is present.
 
 ## Risks and Mitigation
@@ -100,4 +109,6 @@ Final staged diff is scanned for tokens, passwords, local user paths, logs, and 
 
 ## Next Steps
 
-- None when all evidence passes and remote `main` matches local `main`.
+- Record the authorized physical F5 playthrough and manual presentation/settings evidence required by Phase 7.
+- Commit and push this evidence-only plan/audit update, then prove a clean working tree and local/remote parity without rewriting history.
+- Mark the goal complete only after every remaining gate has direct evidence.

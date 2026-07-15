@@ -28,7 +28,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Architecture
 
-`tests/run-headless-tests.ps1` launches ten native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, targeted production-player movement/door collision, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. No production script recognizes a test bypass.
+`tests/run-headless-tests.ps1` launches 12 native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, targeted production-player movement/door collision, player input, visual effects, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. No production script recognizes a test bypass.
 
 ## File Inventory
 
@@ -38,15 +38,24 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 | Create | `tests/smoke-runner.gd` | <220 lines | runtime flow without production bypass |
 | Create | `plans/260715-0936-room-407-the-last-shift/reports/{test,red-team,code-review}-report.md` | reports | audit evidence |
 | Modify | only implementation files with evidence-backed defects | scoped | regression fixes |
-| Modify | `docs/testing.md`, `docs/known-limitations.md` | <250 lines | truthful QA contract |
+| Modify | `docs/testing.md`, `docs/limitations.md` | <250 lines | truthful QA contract |
 
 ## Function and Interface Checklist
 
 - [x] Test runner returns nonzero, names the failing check/assertion, and rejects leak warnings.
 - [x] All harness code lives under `tests/`; production scripts recognize no debug bypass argument.
-- [ ] Every required progression gate has positive and negative tests.
+- [x] Every required semantic progression gate has positive and negative automated coverage; physical E/raycast and full-route cases remain manual.
 - [x] Red-team fixes preserve the accepted continuous flow and checkpoint semantics across the covered regressions.
 - [x] Independent final review checked the committed gameplay/UI/test range and rejected stale findings against final code.
+
+## Current Evidence — 2026-07-15
+
+- The pushed gameplay baseline ends at `40354eb`; `d89e2c7` hardens isolated-profile teardown and `1c225db` reconciles user/maintainer guides. Local `HEAD` and `origin/main` match at `1c225db` before this evidence-only plan update.
+- The exact 12-check runner was rerun after user/maintainer guide edits and before evidence-only plan/report synchronization; all checks exited `0` from 17:04:29 through 17:05:02 ICT: editor import, menu, gameplay, game state, progression, checkpoint/layout, physical route, player input, visual effects, settings/audio, persistence write, and persistence read.
+- A real local Compatibility-renderer capture is clean and readable, but it is uncommitted developer evidence and not a physical F5 traversal.
+- A fresh clone of `origin/main` at `1c225db` independently reproduced 12 logs, all 9 required success markers, zero temporary profiles, and zero tracked changes, then was removed from the verified repository-local temp root.
+- No authorized physical F5 keyboard/mouse run has recorded the complete route or the required 15–20 minute timing. Phase 7 therefore remains in progress.
+- Post-rehearsal disk snapshot at 17:08 ICT: C: 11.08 GiB free; D: 29.96 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
 
 ## Dependency Map
 
@@ -82,7 +91,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Success Criteria
 
-- [x] Headless import, boot/gameplay smoke, and all focused automated checks pass with ten logs.
+- [x] Headless import, boot/gameplay smoke, and all focused automated checks pass with 12 logs and runner exit `0`.
 - [ ] Manual full flow completes in target duration with no known main-path soft-lock.
 - [ ] Every red-team checklist item has pass/fix/known-limitation evidence.
 - [ ] All release blockers are closed; automated review defects are fixed, but manual pacing/chase evidence remains.
@@ -102,4 +111,5 @@ Test logs stay ignored and are reviewed for local paths or credentials before an
 
 ## Next Steps
 
-- Phase 8 reconciles docs with verified reality and performs the final release/push audit.
+- Complete and record an authorized physical F5 keyboard/mouse boot-to-credits run before changing Phase 7 to completed.
+- Phase 8 documentation reconciliation and release auditing can continue, but final release closure remains dependent on the open Phase 7 evidence.
