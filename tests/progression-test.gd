@@ -36,6 +36,12 @@ func _ready() -> void:
 	radio_ui.entry.text = "1111"
 	radio_ui._submit()
 	if not _require(radio_ui.submit_button.disabled, "wrong radio code must start cooldown"): return
+	radio_ui.close()
+	radio_ui.open(director, player)
+	if not _require(not radio_ui._accepting_input and radio_ui.submit_button.disabled, "closing and reopening radio bypassed cooldown"): return
+	radio_ui.entry.text = "0007"
+	radio_ui._submit()
+	if not _require(not GameState.has_flag("radio_sequence_started"), "radio accepted a code during cooldown"): return
 	if not _require(await _wait_for_radio(radio_ui), "radio cooldown should end"): return
 	radio_ui.entry.text = "0007"
 	radio_ui._submit()
@@ -59,9 +65,11 @@ func _ready() -> void:
 		if child.name.begins_with("TheEntity"):
 			entity_count += 1
 	if not _require(entity_count == 1, "fail recovery duplicated the entity"): return
+	director._chase.ending_reveal_duration = 0.01
 	if not _require(director.handle_story_action("exit", player), "ending should accept the completed chase path"): return
 	if not _require(GameState.stage == GameState.Stage.ENDING, "ending stage missing"): return
 	if not _require(gameplay.has_node("AbandonedLobbyFloor"), "abandoned lobby reveal missing"): return
+	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the in-world reveal"): return
 	AudioManager.stop_all()
 	print("PROGRESSION_TEST_OK")
 	gameplay.queue_free()
@@ -93,6 +101,13 @@ func _wait_for_transition(director: Node, max_frames := 180) -> bool:
 func _wait_for_radio(radio_ui: Variant, max_frames := 120) -> bool:
 	for _frame in max_frames:
 		if radio_ui._accepting_input:
+			return true
+		await get_tree().process_frame
+	return false
+
+func _wait_for_node(parent: Node, node_name: String, max_frames := 120) -> bool:
+	for _frame in max_frames:
+		if parent.has_node(node_name):
 			return true
 		await get_tree().process_frame
 	return false

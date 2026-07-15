@@ -8,6 +8,8 @@ var result: Label
 var failures := 0
 var submit_button: Button
 var _accepting_input := true
+var _feedback_generation := 0
+var _cooldown_until_msec := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -18,13 +20,12 @@ func open(owner: Node, actor: Node) -> void:
 	director = owner
 	player = actor
 	entry.text = ""
-	result.text = "The voice repeats: zero, zero, zero..."
-	_accepting_input = true
-	entry.editable = true
-	if submit_button != null:
-		submit_button.disabled = false
+	var cooldown_active := Time.get_ticks_msec() < _cooldown_until_msec
+	result.text = "Static is settling. Wait..." if cooldown_active else "The voice repeats: zero, zero, zero..."
+	_set_input_enabled(not cooldown_active)
 	visible = true
-	entry.grab_focus()
+	if _accepting_input:
+		entry.grab_focus()
 	if player != null and player.has_method("set_input_locked"):
 		player.set_input_locked("radio", true)
 
@@ -99,21 +100,29 @@ func _submit() -> void:
 	result.text = "Wrong. Static swallows the channel."
 	if failures >= 3:
 		result.text = "Hint: the clock stopped at 00:07."
-	_accepting_input = false
-	entry.editable = false
-	submit_button.disabled = true
+	_feedback_generation += 1
+	_cooldown_until_msec = Time.get_ticks_msec() + 550
+	_set_input_enabled(false)
 	AudioManager.play_tone("radio_wrong_static", 96.0, 0.45, -18.0)
-	_finish_wrong_feedback()
+	_finish_wrong_feedback(_feedback_generation)
 
-func _finish_wrong_feedback() -> void:
-	await get_tree().create_timer(0.55).timeout
-	if not is_inside_tree() or not visible:
+func _finish_wrong_feedback(generation: int) -> void:
+	var remaining_seconds := maxf(0.0, float(_cooldown_until_msec - Time.get_ticks_msec()) / 1000.0)
+	if remaining_seconds > 0.0:
+		await get_tree().create_timer(remaining_seconds).timeout
+	if not is_inside_tree() or generation != _feedback_generation:
 		return
+	_cooldown_until_msec = 0
 	entry.text = ""
-	entry.editable = true
-	submit_button.disabled = false
-	_accepting_input = true
-	entry.grab_focus()
+	_set_input_enabled(true)
+	if visible:
+		entry.grab_focus()
+
+func _set_input_enabled(enabled: bool) -> void:
+	_accepting_input = enabled
+	entry.editable = enabled
+	if submit_button != null:
+		submit_button.disabled = not enabled
 
 func close() -> void:
 	visible = false

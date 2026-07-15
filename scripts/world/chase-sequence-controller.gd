@@ -7,6 +7,7 @@ const ENDING_SCENE := preload("res://scenes/ui/ending-overlay.tscn")
 var entity: CharacterBody3D
 var ending := false
 var recovering := false
+var ending_reveal_duration := 3.0
 
 var _player: CharacterBody3D
 var _director: Node3D
@@ -64,6 +65,12 @@ func finish() -> void:
 	_director.add_child(ending_label)
 	_player.set_input_locked("ending", true)
 	AudioManager.play_tone("ending", 130.0, 2.0, -15.0)
+	_show_credits_after_reveal()
+
+func _show_credits_after_reveal() -> void:
+	await get_tree().create_timer(maxf(0.0, ending_reveal_duration)).timeout
+	if not is_instance_valid(_director):
+		return
 	var overlay := ENDING_SCENE.instantiate()
 	_director.add_child(overlay)
 	overlay.show_ending()
