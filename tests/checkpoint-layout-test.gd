@@ -1,6 +1,7 @@
 extends Node
 
 const GAMEPLAY_SCENE := preload("res://scenes/gameplay/gameplay.tscn")
+const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 
 func _ready() -> void:
 	GameState.reset_run()
@@ -24,11 +25,32 @@ func _ready() -> void:
 		if not _require(gameplay.has_node(node_name), "%s partition missing" % node_name): return
 	if not _require(not gameplay.has_node("Room407Wall"), "full-width Room407 wall blocks the route"): return
 	if not _require(gameplay.has_node("floor_door") and gameplay.has_node("power_door") and gameplay.has_node("room_door"), "guarded doors missing"): return
+	if not _require(gameplay.has_node("Ceiling") and gameplay.has_node("NightDeskBase"), "continuous corridor dressing missing"): return
+	var navigation_region := gameplay.get_node_or_null("ContinuousCorridorNavigation") as NavigationRegion3D
+	if not _require(navigation_region != null and navigation_region.navigation_mesh != null, "chase navigation surface missing"): return
+	if not _require(navigation_region.navigation_mesh.get_polygon_count() == 1, "continuous navigation polygon missing"): return
 	for barrier_z in [WorldLayout.FLOOR_DOOR_Z, WorldLayout.POWER_DOOR_Z, WorldLayout.ROOM_DOOR_Z]:
 		for x in [0.0, 3.0]:
 			var query := PhysicsRayQueryParameters3D.create(Vector3(x, 1.0, barrier_z + 2.0), Vector3(x, 1.0, barrier_z - 2.0), 1)
 			var hit := gameplay.get_world_3d().direct_space_state.intersect_ray(query)
 			if not _require(not hit.is_empty(), "barrier at z=%s can be bypassed near x=%s" % [barrier_z, x]): return
+	for door_id in ["floor_door", "power_door", "room_door"]:
+		var door := gameplay.get_node(door_id) as DoorInteractable
+		if not _require(door.interact(player), "%s did not accept valid progression" % door_id): return
+		await get_tree().create_timer(0.65).timeout
+		var open_query := PhysicsRayQueryParameters3D.create(Vector3(0.8, 1.0, door.global_position.z + 2.0), Vector3(0.8, 1.0, door.global_position.z - 2.0), 1)
+		var open_hit := gameplay.get_world_3d().direct_space_state.intersect_ray(open_query)
+		if not _require(open_hit.is_empty(), "%s collision still blocks the open passage" % door_id): return
+	var chase_entity: CharacterBody3D = ENTITY_SCRIPT.new() as CharacterBody3D
+	chase_entity.position = player.position + Vector3(0, 0, 18.0)
+	gameplay.add_child(chase_entity)
+	chase_entity.setup(player, gameplay)
+	chase_entity.start_chase()
+	await get_tree().create_timer(0.8).timeout
+	if not _require(chase_entity.state == chase_entity.State.STALK, "enemy never reaches stalk state"): return
+	if not _require(chase_entity.speed > player.walk_speed * player.sprint_multiplier, "enemy cannot threaten a sprinting player"): return
+	chase_entity.stop_chase()
+	chase_entity.queue_free()
 	var loop_distance := absf(WorldLayout.LOOP_GATE_Z - WorldLayout.MEMORY_START_Z)
 	var chase_distance := absf(WorldLayout.EXIT_Z - WorldLayout.CHASE_TRIGGER_Z)
 	if not _require(loop_distance >= 180.0, "memory loop is too short for authored pacing"): return

@@ -22,12 +22,15 @@ func _ready() -> void:
 	await get_tree().create_timer(0.2).timeout
 	if not _require(GameState.has_flag("power_stable"), "power sequence should stabilize"): return
 	if not _require(director.handle_story_action("memory_photo", player), "photo should collect"): return
+	await get_tree().create_timer(0.05).timeout
 	if not _require(director.handle_story_action("hallway_loop", player), "first hallway loop should turn"): return
 	await get_tree().create_timer(0.05).timeout
 	if not _require(director.handle_story_action("memory_cassette", player), "cassette should collect"): return
+	await get_tree().create_timer(0.05).timeout
 	if not _require(director.handle_story_action("hallway_loop", player), "second hallway loop should turn"): return
 	await get_tree().create_timer(0.05).timeout
 	if not _require(director.handle_story_action("memory_rabbit", player), "rabbit should collect"): return
+	await get_tree().create_timer(0.05).timeout
 	if not _require(not director.handle_story_action("memory_photo", player), "duplicate memory must be rejected"): return
 	if not _require(director.handle_story_action("radio", player), "radio UI should open"): return
 	director.on_radio_solved()
