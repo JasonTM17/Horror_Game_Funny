@@ -1,17 +1,18 @@
 ---
 phase: 2
-title: "Core Runtime and Player"
-status: pending
+title: Core Runtime and Player
+status: in-progress
 priority: P1
-dependencies: [1]
-effort: "large"
+dependencies:
+  - 1
+effort: large
 ---
 
 # Phase 2: Core Runtime and Player
 
 ## Overview
 
-Implement the boot/menu path, typed global services, first-person controller, reusable interaction contract, doors, inventory/objectives, HUD, pause, and a deterministic developer test room.
+Implement the boot/menu path, typed global services, first-person controller, reusable interaction contract, doors, inventory/objectives, HUD, pause, and a deterministic continuous gameplay test room.
 
 ## Context Links
 
@@ -51,7 +52,7 @@ Four typed autoloads own global data/routing/audio/settings. Player behavior is 
 
 ## Dependency Map
 
-`Phase 1 -> autoloads -> menu/boot -> player components -> interactables -> HUD/test room -> Phase 3`
+`Phase 1 -> autoloads -> menu/boot -> player components -> interactables -> HUD/continuous test room -> Phase 3`
 
 ## Implementation Steps
 

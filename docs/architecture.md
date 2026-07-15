@@ -6,20 +6,17 @@ ROOM 407 uses scene composition, typed GDScript, thin global services, and local
 
 Current verified baseline: Godot 4.7.1 recognizes the project, imports the icon, and loads `scenes/boot/boot.tscn` through the Compatibility renderer.
 
-## Scene Flow
+## Continuous Gameplay Flow
 
-```text
-Boot
-└── Main Menu
-    └── Lobby
-        └── Floor 4
-            └── Memory Hallway
-                └── Room 407
-                    └── Chase Hallway
-                        └── Ending / Credits
-```
+The player experiences one uninterrupted night shift in a single `gameplay.tscn`.
+The lobby, fourth-floor corridor, memory loop, Room 407, chase, and ending are
+continuous zones inside that scene. A local `GameplayDirector` unlocks each beat,
+reconfigures the hallway behind occluding turns, and owns checkpoint/fail recovery.
+Only the menu-to-gameplay entry and a final credits return are scene changes.
 
-Reusable scenes provide the player, HUD, doors, pickups, notes, puzzle controls, event triggers, apparition, checkpoint trigger, and entity.
+Reusable scenes provide the player, HUD, doors, pickups, notes, puzzle controls,
+event triggers, apparition, checkpoint trigger, and entity; they are composed under
+the one continuous gameplay scene.
 
 ## Global Services
 

@@ -35,7 +35,9 @@ Room 407 is a buried memory rather than an ordinary apartment. After recovering 
 8. Survive the final chase.
 9. Reach the ending and credits.
 
-There is no combat. The final entity is the only sustained physical threat.
+These are beats in one uninterrupted playable space, not separate stages. There is
+no loading screen between them; a corner, elevator, or blackout hides the director's
+reconfiguration. There is no combat. The final entity is the only sustained physical threat.
 
 ## Pacing
 
@@ -131,7 +133,10 @@ Scripted apparitions handle most of the game. The chase entity uses dormant, app
 
 ## Failure and Recovery
 
-Checkpoints exist before Room 407 and at chase start. Capture locks player input, stops chase audio, fades out, replaces the gameplay scene, restores serializable state, and spawns one entity. Persistent save across application restarts is outside the required scope.
+Checkpoints exist before Room 407 and at chase start. Capture locks player input,
+stops chase audio, fades out, restores serializable state in the same gameplay scene,
+and moves the player to one safe marker. Persistent save across application restarts
+is outside the required scope.
 
 ## Accessibility
 
