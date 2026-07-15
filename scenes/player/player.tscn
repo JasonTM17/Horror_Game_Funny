@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player-controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://scripts/player/player-interaction.gd" id="2_interaction"]
+[ext_resource type="Script" path="res://scripts/player/player-flashlight.gd" id="3_flashlight"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_player"]
+radius = 0.34
+height = 1.8
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+script = ExtResource("1_controller")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("Capsule_player")
+
+[node name="Head" type="Node3D" parent="."]
+position = Vector3(0, 1.52, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+current = true
+fov = 74.0
+
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D"]
+light_color = Color(0.82, 0.9, 1, 1)
+light_energy = 1.8
+spot_range = 18.0
+spot_angle = 32.0
+shadow_enabled = true
+script = ExtResource("3_flashlight")
+
+[node name="Interaction" type="Node3D" parent="Head/Camera3D"]
+script = ExtResource("2_interaction")
+
+[node name="RayCast3D" type="RayCast3D" parent="Head/Camera3D/Interaction"]
+target_position = Vector3(0, 0, -2.5)
+collision_mask = 8
+collide_with_areas = false

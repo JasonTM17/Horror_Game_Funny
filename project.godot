@@ -10,6 +10,13 @@ run/main_scene="res://scenes/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GameState="*res://scripts/autoload/game-state.gd"
+SceneRouter="*res://scripts/autoload/scene-router.gd"
+AudioManager="*res://scripts/autoload/audio-manager.gd"
+SettingsManager="*res://scripts/autoload/settings-manager.gd"
+
 [display]
 
 window/size/viewport_width=960
