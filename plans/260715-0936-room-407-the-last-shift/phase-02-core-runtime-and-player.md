@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Core Runtime and Player
-status: in-progress
+status: completed
 priority: P1
 dependencies:
   - 1
