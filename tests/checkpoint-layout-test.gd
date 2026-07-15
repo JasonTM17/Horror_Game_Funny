@@ -31,6 +31,18 @@ func _ready() -> void:
 	if not _require(gameplay.has_node("Ceiling") and gameplay.has_node("NightDeskBase"), "continuous corridor dressing missing"): return
 	for observation_id in ["desk_clock", "lobby_register", "floor_notice", "memory_echo", "room_bed_observation", "room_wardrobe_observation", "room_family_table"]:
 		if not _require(gameplay.has_node(observation_id), "%s observation prop missing" % observation_id): return
+	var prop_signatures := {
+		"phone": ["PhoneBase", "PhoneHandset", "PhoneIndicator"],
+		"desk_clock": ["ClockBody", "ClockDigits"],
+		"lobby_register": ["BookPages", "BookTitle"],
+		"memory_rabbit": ["RabbitBody", "RabbitEarLeft", "RabbitEarRight"],
+		"radio": ["RadioBody", "RadioDial", "RadioChannel"],
+		"room_family_table": ["FamilyPhoto", "Plate3"]
+	}
+	for prop_id: String in prop_signatures:
+		var prop := gameplay.get_node(prop_id)
+		for part_name: String in prop_signatures[prop_id]:
+			if not _require(prop.has_node(part_name), "%s lost recognizable visual part %s" % [prop_id, part_name]): return
 	var world_environment: WorldEnvironment
 	for child in gameplay.get_children():
 		if child is WorldEnvironment:

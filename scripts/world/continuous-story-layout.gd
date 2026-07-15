@@ -3,6 +3,7 @@ extends RefCounted
 
 const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
 const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
+const PROP_VISUALS := preload("res://scripts/world/story-prop-visual-builder.gd")
 
 static func build(director: Node3D) -> void:
 	_add_story(director, "phone", Vector3(-1.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.25), "Answer the phone", Color(0.16, 0.12, 0.1))
@@ -36,12 +37,7 @@ static func _add_story(director: Node3D, id: String, position: Vector3, label: S
 	item.setup(director, id, label)
 	item.collision_layer = 9
 	director.add_child(item)
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(0.55, 0.65, 0.45)
-	mesh.mesh = box
-	mesh.material_override = LevelGeometry.material(color)
-	item.add_child(mesh)
+	PROP_VISUALS.build(item, id, color)
 	var shape := CollisionShape3D.new()
 	var collider := BoxShape3D.new()
 	collider.size = Vector3(0.55, 0.65, 0.45)
