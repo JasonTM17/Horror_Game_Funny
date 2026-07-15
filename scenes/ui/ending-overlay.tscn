@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ending-overlay.gd" id="1_ending"]
+
+[node name="EndingOverlay" type="CanvasLayer"]
+script = ExtResource("1_ending")
+
+[node name="Panel" type="Panel" parent="."]
+offset_left = 170.0
+offset_top = 72.0
+offset_right = 790.0
+offset_bottom = 468.0
+
+[node name="Title" type="Label" parent="Panel"]
+offset_left = 55.0
+offset_top = 35.0
+offset_right = 565.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 30
+text = "THE SHIFT WAS NEVER SCHEDULED"
+horizontal_alignment = 1
+
+[node name="Credits" type="Label" parent="Panel"]
+offset_left = 70.0
+offset_top = 112.0
+offset_right = 550.0
+offset_bottom = 225.0
+theme_override_colors/font_color = Color(0.67, 0.7, 0.72, 1)
+theme_override_font_sizes/font_size = 17
+text = "ROOM 407: THE LAST SHIFT\n\nA short psychological horror experience\nBuilt for one continuous night shift."
+horizontal_alignment = 1
+
+[node name="Replay" type="Button" parent="Panel"]
+offset_left = 96.0
+offset_top = 282.0
+offset_right = 294.0
+offset_bottom = 330.0
+text = "REPLAY SHIFT"
+
+[node name="Menu" type="Button" parent="Panel"]
+offset_left = 326.0
+offset_top = 282.0
+offset_right = 524.0
+offset_bottom = 330.0
+text = "MAIN MENU"
+
+[connection signal="pressed" from="Panel/Replay" to="." method="_on_replay_pressed"]
+[connection signal="pressed" from="Panel/Menu" to="." method="_on_menu_pressed"]

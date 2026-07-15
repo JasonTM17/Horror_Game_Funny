@@ -10,6 +10,7 @@ const RADIO_SCRIPT := preload("res://scripts/puzzles/radio-puzzle.gd")
 const HALLWAY_SCRIPT := preload("res://scripts/world/dynamic-hallway-controller.gd")
 const HORROR_SCRIPT := preload("res://scripts/world/horror-event-director.gd")
 const NOTE_SCRIPT := preload("res://scripts/ui/note-reader.gd")
+const ENDING_SCRIPT := preload("res://scenes/ui/ending-overlay.tscn")
 
 var player: CharacterBody3D
 var entity: CharacterBody3D
@@ -265,14 +266,14 @@ func _start_chase() -> void:
 	capsule_shape.height = 2.4
 	shape.shape = capsule_shape
 	entity.add_child(shape)
-	entity.active = true
+	entity.start_chase()
 	AudioManager.play_tone("chase_alarm", 72.0, 1.2, -9.0)
 
 func fail_chase() -> void:
 	if not GameState.has_flag("chase_started") or _ending:
 		return
 	if entity != null:
-		entity.active = false
+		entity.stop_chase()
 		entity.visible = false
 	GameState.restore_checkpoint()
 	player.global_position = Vector3(0, 0.02, -108.0)
@@ -281,14 +282,14 @@ func fail_chase() -> void:
 	if entity != null:
 		entity.global_position = player.global_position + Vector3(0, 0, 8.5)
 		entity.visible = true
-		entity.active = true
+		entity.start_chase()
 
 func _finish_ending() -> void:
 	_ending = true
 	GameState.advance_stage(GameState.Stage.ENDING)
 	GameState.set_objective("23:47. The shift was never scheduled.")
 	if entity != null:
-		entity.active = false
+		entity.stop_chase()
 		entity.visible = false
 	var ending := Label3D.new()
 	ending.text = "THE SHIFT WAS NEVER SCHEDULED\n\nROOM 407 REMEMBERS"
@@ -300,3 +301,6 @@ func _finish_ending() -> void:
 	add_child(ending)
 	player.set_input_locked("ending", true)
 	AudioManager.play_tone("ending", 130.0, 2.0, -15.0)
+	var overlay := ENDING_SCRIPT.instantiate()
+	add_child(overlay)
+	overlay.show_ending()
