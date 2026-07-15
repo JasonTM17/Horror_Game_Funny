@@ -1,6 +1,7 @@
 extends Node
 
 const GAMEPLAY_SCENE := preload("res://scenes/gameplay/gameplay.tscn")
+const NOTE_SCRIPT := preload("res://scripts/ui/note-reader.gd")
 const EXPECTED_HEAD_HEIGHT := 1.52
 const EXPECTED_INITIAL_PITCH := -8.0
 
@@ -24,6 +25,8 @@ func _ready() -> void:
 	if not await _verify_production_interaction(player, interaction): return
 	if not _verify_objective_review(): return
 	if not _verify_pause_and_flashlight(player): return
+	if not await _verify_note_escape_restores_input(player): return
+	if not await _verify_door_spam_and_reopen(player, interaction): return
 	if not _verify_comfort_head_bob_restores_authored_origin(player, head): return
 
 	SettingsManager.reset_defaults()
@@ -78,6 +81,60 @@ func _verify_pause_and_flashlight(player: CharacterBody3D) -> bool:
 	if not _require(not get_tree().paused and not player.is_input_locked(), "second pause action did not resume and unlock input"): return false
 	player._unhandled_input(flashlight_event)
 	return _require(flashlight.visible != paused_visibility, "flashlight did not toggle after input resumed")
+
+func _verify_note_escape_restores_input(player: CharacterBody3D) -> bool:
+	var note := NOTE_SCRIPT.new() as CanvasLayer
+	_gameplay.add_child(note)
+	await get_tree().process_frame
+	note.open(null, player, "TEST NOTE", "Input must return after closing this note.")
+	if not _require(note.visible and player.is_input_locked(), "opening a note did not lock player input"): return false
+	var escape_event := InputEventAction.new()
+	escape_event.action = "pause_game"
+	escape_event.pressed = true
+	note._unhandled_input(escape_event)
+	if not _require(not note.visible and not player.is_input_locked(), "Escape did not close the note and restore player input"): return false
+	note.queue_free()
+	await get_tree().process_frame
+	return true
+
+func _verify_door_spam_and_reopen(player: CharacterBody3D, interaction: Node) -> bool:
+	var door := _gameplay.get_node("floor_door") as DoorInteractable
+	player.global_position = Vector3(0.8, 0.02, door.global_position.z + 1.35)
+	player.rotation = Vector3.ZERO
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	interaction.ray.force_raycast_update()
+	if not _require(interaction.ray.get_collider() == door, "interaction ray did not reach the floor door"): return false
+	var interact_event := InputEventAction.new()
+	interact_event.action = "interact"
+	interact_event.pressed = true
+	interaction._unhandled_input(interact_event)
+	if not _require(not door.is_open and not door._moving, "locked door started opening through production E input"): return false
+	await get_tree().create_timer(0.3).timeout
+	GameState.set_flag("log_signed")
+	interaction._unhandled_input(interact_event)
+	interaction._unhandled_input(interact_event)
+	if not _require(door._moving, "door spam cancelled the opening transition"): return false
+	await get_tree().create_timer(0.65).timeout
+	if not _require(door.is_open and not door._moving, "door did not finish one clean open transition"): return false
+	player.global_position = Vector3(1.75, 0.02, door.global_position.z)
+	player.rotation.y = PI / 2.0
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	interaction.ray.force_raycast_update()
+	if not _require(interaction.ray.get_collider() == door, "production ray could not reacquire the rotated open door"): return false
+	interaction._unhandled_input(interact_event)
+	await get_tree().create_timer(0.65).timeout
+	if not _require(not door.is_open, "door did not close after reopening test"): return false
+	player.global_position = Vector3(0.8, 0.02, door.global_position.z + 1.35)
+	player.rotation.y = 0.0
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	interaction.ray.force_raycast_update()
+	if not _require(interaction.ray.get_collider() == door, "production ray could not reacquire the closed door from the front"): return false
+	interaction._unhandled_input(interact_event)
+	await get_tree().create_timer(0.65).timeout
+	return _require(door.is_open, "door did not reopen after a full close cycle")
 
 func _verify_comfort_head_bob_restores_authored_origin(player: CharacterBody3D, head: Node3D) -> bool:
 	SettingsManager.set_comfort_head_bob(false)

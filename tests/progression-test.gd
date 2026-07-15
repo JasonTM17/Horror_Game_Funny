@@ -64,11 +64,20 @@ func _ready() -> void:
 	if not _require(director.handle_story_action("memory_echo", player), "final memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_3"), "final memory echo should finish"): return
 	if not _require(await _wait_for_flag("memory_loop_complete"), "final memory transition should finish"): return
+	if not _require(await _wait_for_transition(director), "final hallway transition should release player input"): return
 	if not _require(not director.handle_story_action("memory_echo", player), "final memory echo must be one-shot"): return
 	if not _require(not director.handle_story_action("hallway_loop", player), "completed memory loop must stay closed"): return
 	if not _require(not director.handle_story_action("memory_photo", player), "duplicate memory must be rejected"): return
 	if not _require(director.handle_story_action("radio", player), "radio UI should open"): return
 	var radio_ui: Variant = director._story._radio_ui
+	var radio_escape := InputEventAction.new()
+	radio_escape.action = "pause_game"
+	radio_escape.pressed = true
+	radio_ui._unhandled_input(radio_escape)
+	if not _require(not radio_ui.visible and not player.is_input_locked(), "Escape did not close radio and restore player input"): return
+	if not _require(director.handle_story_action("radio", player), "radio did not reopen after stepping away"): return
+	radio_ui._on_text_changed("0x0y")
+	if not _require(radio_ui.entry.text == "00", "radio entry did not filter non-digit input"): return
 	radio_ui.entry.text = "1111"
 	radio_ui._submit()
 	if not _require(radio_ui.submit_button.disabled, "wrong radio code must start cooldown"): return
@@ -79,6 +88,13 @@ func _ready() -> void:
 	radio_ui._submit()
 	if not _require(not GameState.has_flag("radio_sequence_started"), "radio accepted a code during cooldown"): return
 	if not _require(await _wait_for_radio(radio_ui), "radio cooldown should end"): return
+	radio_ui.entry.text = "2222"
+	radio_ui._submit()
+	if not _require(await _wait_for_radio(radio_ui), "second radio cooldown should end"): return
+	radio_ui.entry.text = "3333"
+	radio_ui._submit()
+	if not _require(radio_ui.result.text == "Hint: the clock stopped at 00:07.", "radio did not reveal its fallback hint after three failures"): return
+	if not _require(await _wait_for_radio(radio_ui), "third radio cooldown should end"): return
 	radio_ui.entry.text = "0007"
 	radio_ui._submit()
 	if not _require(await _wait_for_flag("radio_solved"), "radio flag missing"): return
@@ -109,7 +125,11 @@ func _ready() -> void:
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
 	director._start_chase()
 	if not _require(GameState.stage == GameState.Stage.CHASE, "chase stage missing"): return
-	director.fail_chase()
+	if not _require(is_instance_valid(director._chase.entity), "chase entity missing before capture test"): return
+	director._chase.entity.global_position = player.global_position + Vector3(0, 0, 0.7)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not _require(director._chase.recovering, "enemy proximity did not trigger capture recovery"): return
 	await get_tree().create_timer(1.4).timeout
 	if not _require(not director._chase.recovering, "fail recovery should finish"): return
 	if not _require(is_equal_approx(player.global_position.z, WorldLayout.CHASE_RESPAWN_Z), "fail recovery marker mismatch"): return
