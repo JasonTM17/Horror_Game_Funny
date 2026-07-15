@@ -134,7 +134,7 @@ The boot menu exposes Continue when a checkpoint exists in the current process. 
 - Text prompts, objectives, notes, radio feedback, and narrative subtitles.
 - Pause-menu access to the same settings panel as the boot menu.
 
-Settings save to `user://room407.cfg` when the panel closes. Automated tests inspect controls and selected clamps; save/relaunch persistence and audible results still require manual evidence.
+Settings save to `user://room407.cfg` when the panel closes. Automated tests inspect controls and selected clamps, then use separate writer and reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
 
 ## Completion Evidence Required
 
@@ -149,7 +149,7 @@ Release validation still needs a recorded manual run covering:
 - darkness, flicker, grain, and red-guide-light readability;
 - master/music/SFX/ambience balance and audible output;
 - mouse capture, pause/settings behavior, and comfort toggles;
-- settings persistence after save, quit, and relaunch.
+- physical Settings-panel save/close behavior and fullscreen transition on target hardware.
 
 ## References
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The repository has one PowerShell runner that executes seven Godot 4.7.1 headless checks. These checks prove resource loading and selected logic/layout invariants. They do not replace a manual F5 boot-to-credits playthrough.
+The repository has one PowerShell runner that executes nine Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
 
 ## Run the Suite
 
@@ -25,9 +25,9 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
 
-The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
+The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. Writer and reader checks share this temporary profile, and guaranteed teardown removes it after success or failure. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
 
-## Exact Seven-Check Matrix
+## Exact Nine-Check Matrix
 
 | # | Check / log | Invocation target | Automated evidence | Not proven |
 |---:|---|---|---|---|
@@ -37,15 +37,19 @@ The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique G
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn` | director-level guarded progression semantics, blackout completion, radio close/reopen cooldown, chase recovery, staged ending and reveal | human interaction timing, physical chase traversal, presentation |
 | 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn` | room spawn and Variant3 restore, barriers/doors, navigation polygon, `STALK`, speed ordering, retreat recovery, authored distances | navigation quality under real play, collision feel, route readability |
-| 7 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses, selected clamps, controls, pause Settings/Escape locks, audio teardown, in-memory Continue | persisted config contents/reload, relaunch persistence, audible sound |
+| 7 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses, selected clamps, controls, pause Settings/Escape locks, audio teardown, in-memory Continue | audible sound and physical UI navigation |
+| 8 | `settings-persistence-write` / `test-settings-persistence-write.log` | `settings-persistence-write-test.tscn` | writes 11 distinct bounded settings to isolated `room407.cfg` | real player profile and physical UI save action |
+| 9 | `settings-persistence-read` / `test-settings-persistence-read.log` | `settings-persistence-read-test.tscn` | a new Godot process restores all 11 values from the same isolated profile | target-device fullscreen transition and physical UI interaction |
 
-Checks 4–7 require these success markers respectively:
+Checks 4–9 require these success markers respectively:
 
 ```text
 GAME_STATE_TEST_OK
 PROGRESSION_TEST_OK
 CHECKPOINT_LAYOUT_TEST_OK
 SETTINGS_AUDIO_TEST_OK
+SETTINGS_PERSISTENCE_WRITE_OK
+SETTINGS_PERSISTENCE_READ_OK
 ```
 
 The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, or settings assertion prefixes.
@@ -101,7 +105,7 @@ These are structural and numeric assertions. They do not move a player capsule t
 
 It also verifies settings controls for music, SFX, ambience, fullscreen, camera shake, film grain, and reset; a Settings button/panel in the pause scene; Escape closes Settings without clearing the pause lock; `stop_all()` clears players, cached samples, and byte accounting; and a visible Continue button after creating an in-memory checkpoint.
 
-Closing the pause settings panel reaches `save_settings()`, but the test does not assert the result, inspect `user://room407.cfg`, launch a second process, or verify `load_settings()` after relaunch. It calls `start_drone()` and `stop_tone()`, but `AudioManager` intentionally skips drone creation under the headless display server, so this is not audible-output evidence.
+The writer process saves distinct values for all 11 settings into an isolated `user://room407.cfg`. The reader starts as a new Godot process with the same temporary profile and asserts every value after autoload initialization calls `load_settings()`. This proves config persistence without touching the normal player profile. It does not send physical UI events or prove fullscreen/display behavior on target hardware. The audio fixture calls generated cues, but headless execution remains no evidence of audible-output quality.
 
 ## Logs
 
@@ -115,6 +119,8 @@ Each run overwrites these machine-local files:
 .artifacts/test-progression.log
 .artifacts/test-checkpoint-layout.log
 .artifacts/test-settings-audio.log
+.artifacts/test-settings-persistence-write.log
+.artifacts/test-settings-persistence-read.log
 ```
 
 Use the console summary for quick status and the matching log for diagnosis. Logs are generated artifacts, not committed proof. Preserve a dated external test report if release evidence must survive cleanup.
@@ -131,10 +137,10 @@ No current automated check verifies the following. Record each result, environme
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
 | Visual balance | Check corridor darkness, flashlight, blackout, flicker, grain, red guide lights, and ending reveal | screenshots/video on target hardware |
 | Audio balance | Listen to phone, narration tones, ambience, footsteps, radio static, chase, fail, and ending | device plus bus-level observations |
-| Settings persistence | Change values, Save & Close, quit, relaunch, and inspect restored values | before/after capture and config result |
+| Settings UI workflow | Change values through the panel, Save & Close, quit, relaunch, and inspect the controls | before/after capture; automated config persistence already passes |
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
 
-Do not mark 15–20 minute pacing, visual/audio balance, audible output, full physical traversal, or settings relaunch persistence as verified until this evidence exists.
+Do not mark 15–20 minute pacing, visual/audio balance, audible output, full physical traversal, or the physical Settings UI workflow as verified until this evidence exists.
 
 ## References
 
@@ -143,6 +149,8 @@ Do not mark 15–20 minute pacing, visual/audio balance, audible output, full ph
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
 - [`settings-audio-test.gd`](../tests/settings-audio-test.gd)
+- [`settings-persistence-write-test.gd`](../tests/settings-persistence-write-test.gd)
+- [`settings-persistence-read-test.gd`](../tests/settings-persistence-read-test.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`audio-manager.gd`](../scripts/autoload/audio-manager.gd)
 - [Known limitations](limitations.md)

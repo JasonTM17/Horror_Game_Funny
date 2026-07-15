@@ -13,7 +13,7 @@ All notable changes to this project are documented here.
 - Procedural corridor geometry, a `NavigationRegion3D`, enemy `STALK` and chase states, chase-time corridor-light failure, checkpoint recovery, abandoned-lobby reveal, and credits.
 - Boot-menu Continue for process-local checkpoints and pause-menu access to Settings.
 - Persisted settings at `user://room407.cfg` for controls, display, audio, and comfort options.
-- Seven-check Windows headless runner with per-check logs under `.artifacts/`.
+- Nine-check Windows headless runner with per-check logs under `.artifacts/`, including isolated two-process settings persistence.
 
 ### Changed
 
@@ -37,11 +37,12 @@ All notable changes to this project are documented here.
 - Captured both Godot log files and console stderr in the headless runner so engine leak warnings cannot be hidden by a clean log file.
 - Enforced observation and Room 407 prerequisites inside action handlers, preventing direct interaction spam from bypassing prompt-level story gates.
 - Raised the finite checkpoint-layout frame cap from 600 to 1200 so its authored door and recovery timers finish before the runner evaluates the success marker.
+- Added guaranteed repository-local test-profile cleanup so repeated runner invocations do not accumulate isolated Godot user data.
 
 ### Known Validation Gaps
 
 - The 15–20 minute pacing target, full physical input traversal, visual readability, audio balance, audible device output, and chase feel still require manual evidence.
-- Settings save/load across a full application relaunch is implemented but not covered by the headless suite.
+- Settings persistence is verified across two isolated Godot processes; the physical Settings-panel save/relaunch workflow on target hardware remains manual evidence.
 - The repository remains source-only and has no export presets or binary build.
 
 ## References

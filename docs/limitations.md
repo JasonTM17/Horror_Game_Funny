@@ -12,15 +12,15 @@
 - Gameplay checkpoints exist only in the `GameState` autoload for the current process.
 - The boot Continue button appears only when that in-memory checkpoint dictionary is populated.
 - Restarting the application removes checkpoint progress and starts a fresh shift.
-- Settings save to `user://room407.cfg` when Settings is closed, but the test suite does not verify file creation, reload, or persistence across application relaunch.
+- Settings save to `user://room407.cfg` when Settings is closed. Isolated writer/reader processes verify file creation and all 11 values across relaunch; physical panel interaction and the real player profile remain manual boundaries.
 
 ## Automated Test Boundaries
 
-- The runner has seven headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, and settings/audio.
-- Every runner invocation uses a unique Godot user-data profile under `.tmp/`; automated settings changes do not touch the normal game profile.
+- The runner has nine headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, settings/audio, persistence write, and persistence read.
+- Every runner invocation uses a unique Godot user-data profile under `.tmp/`; the writer and reader share it, then guaranteed teardown removes it. Automated settings changes do not touch the normal game profile.
 - Progression automation calls gameplay methods and UI submission methods directly; it does not generate a full physical keyboard/mouse traversal.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
-- The settings/audio test verifies buses, selected clamps, controls, pause Settings/Escape lock preservation, audio cache/player teardown, and in-memory Continue. Closing the panel reaches the save method inside the isolated test profile, but the test does not assert persisted config contents, relaunch, reload config, or verify audible output.
+- The settings/audio test verifies buses, selected clamps, controls, pause Settings/Escape lock preservation, audio cache/player teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes. No headless check verifies audible output or physical panel interaction.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, or frame pacing on target hardware.
 
 ## Manual Evidence Still Required
@@ -35,7 +35,7 @@ The following are targets or implemented features, not manually verified release
 - visual balance for flashlight, fog, blackout, flicker, grain, and ending reveal;
 - audible phone, ambience, radio, footsteps, chase, fail, and ending balance;
 - mouse capture, pause/settings behavior, fullscreen, and comfort toggles;
-- settings persistence after save, quit, and relaunch.
+- physical Settings-panel save/close behavior and target-device fullscreen transition.
 
 Use the manual matrix in `testing.md` and attach dated evidence before describing any of these as verified.
 

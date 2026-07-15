@@ -87,7 +87,8 @@ Polish the complete game with cached procedural audio, positional ambience, low-
 - [ ] Manual visual/audio pass confirms cohesive readability, comfort, and balance on real hardware.
 - [x] Menus/HUD/subtitles/fail/credits states are implemented in English.
 - [x] Settings use bounded defaults and write to `user://room407.cfg`; automated tests use an isolated profile.
-- [ ] Save/quit/relaunch manually verifies settings persistence.
+- [x] Separate isolated Godot processes verify all 11 settings persist through save, quit, autoload, and reload.
+- [ ] Manual Settings-panel save/quit/relaunch verifies physical controls and fullscreen behavior.
 - [x] Active shadow-light cost was reduced in a focused performance commit.
 
 ## Risks and Mitigation
