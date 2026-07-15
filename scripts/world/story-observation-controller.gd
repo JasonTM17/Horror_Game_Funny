@@ -35,6 +35,8 @@ func get_prompt(action_id: String) -> String:
 func handle_action(action_id: String) -> bool:
 	match action_id:
 		"desk_clock":
+			if not GameState.has_flag("phone_briefing_complete"):
+				return false
 			return _start_observation("desk_clock", [
 				"The lobby clock is still running, but its second hand never moves.",
 				"The display freezes at 00:07 whenever you look away.",
@@ -42,6 +44,8 @@ func handle_action(action_id: String) -> bool:
 				"In the cracked glass, the elevator doors are standing open behind you."
 			], 4.0)
 		"lobby_register":
+			if not GameState.has_flag("phone_briefing_complete") or not _observation_finished("desk_clock"):
+				return false
 			return _start_observation("lobby_register", [
 				"The register lists every night worker except the shift dated tonight.",
 				"A fresh signature has been added beneath the old manager's name.",
@@ -49,6 +53,8 @@ func handle_action(action_id: String) -> bool:
 				"The final entry says: DO NOT LET THE CHILD ANSWER THE PHONE."
 			], 4.0)
 		"floor_notice":
+			if not GameState.has_flag("floor_reached"):
+				return false
 			return _start_observation("floor_notice", [
 				"MAINTENANCE NOTICE: FLOOR 4 CLOSED AFTER THE 2007 INCIDENT.",
 				"The notice has been signed by a manager who stopped working here years ago.",
@@ -58,6 +64,8 @@ func handle_action(action_id: String) -> bool:
 		"memory_echo":
 			return _start_memory_echo()
 		"room_bed_observation":
+			if not GameState.has_flag("room_entered") or not GameState.has_flag("room_record_heard"):
+				return false
 			return _start_observation("room_bed_observation", [
 				"Dust covers the bed, except for one clean hollow in the blankets.",
 				"A child's voice under the frame whispers your name once.",
@@ -65,6 +73,8 @@ func handle_action(action_id: String) -> bool:
 				"Your own initials are carved into the underside of the frame."
 			], 4.0)
 		"room_wardrobe_observation":
+			if not GameState.has_flag("room_entered") or not GameState.has_flag("room_record_heard"):
+				return false
 			return _start_observation("room_wardrobe_observation", [
 				"The wardrobe is deeper than its back panel should allow.",
 				"Scratches on the inside spell the same four digits as the radio clue.",
@@ -72,6 +82,8 @@ func handle_action(action_id: String) -> bool:
 				"A coat in your childhood size is still warm at the shoulders."
 			], 4.0)
 		"room_family_table":
+			if not GameState.has_flag("room_entered") or not GameState.has_flag("room_record_heard"):
+				return false
 			return _start_observation("room_family_table", [
 				"Four plates are set, but only one has dust disturbed around it.",
 				"The family photograph on the table has been turned face down.",

@@ -13,37 +13,57 @@ func _ready() -> void:
 	GameState.reset_run()
 	if not _require(not director.handle_story_action("exit", player), "ending must reject a fresh run"): return
 	if not _require(not director.handle_story_action("logbook", player), "logbook must stay gated"): return
+	if not _require(not director.handle_story_action("lobby_register", player), "night register must stay gated before the phone briefing"): return
 	if not _require(director.handle_story_action("phone", player), "phone should answer"): return
 	if not _require(await _wait_for_flag("phone_briefing_complete"), "phone briefing should complete"): return
+	if not _require(not director.handle_story_action("phone", player), "phone answer must be one-shot"): return
+	if not _require(not director.handle_story_action("logbook", player), "logbook must wait for both lobby observations"): return
 	if not _require(director.handle_story_action("desk_clock", player), "desk clock should be readable after the briefing"): return
 	if not _require(await _wait_for_flag("desk_clock_observation_complete"), "desk clock observation should complete"): return
 	if not _require(director.handle_story_action("lobby_register", player), "night register should be readable"): return
 	if not _require(await _wait_for_flag("lobby_register_observation_complete"), "night register observation should complete"): return
+	if not _require(not director.handle_story_action("lobby_register", player), "night register observation must be one-shot"): return
 	if not _require(director.handle_story_action("logbook", player), "logbook should grant key"): return
+	if not _require(GameState.has_item("floor_key"), "logbook should add the floor key"): return
+	if not _require(not director.handle_story_action("logbook", player), "logbook signing must be one-shot"): return
 	if not _require(not director.handle_story_action("radio", player), "radio must wait for memories"): return
+	if not _require(not director.handle_story_action("floor_notice", player), "floor notice must stay behind the fourth-floor gate"): return
 	GameState.set_flag("floor_reached")
+	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must wait for the maintenance notice"): return
 	if not _require(director.handle_story_action("floor_notice", player), "floor notice should be readable"): return
 	if not _require(await _wait_for_flag("floor_notice_observation_complete"), "floor notice observation should complete"): return
+	if not _require(not director.handle_story_action("floor_notice", player), "floor notice observation must be one-shot"): return
 	if not _require(director.handle_story_action("fuse_pickup", player), "fuse pickup should work"): return
+	if not _require(GameState.has_item("spare_fuse"), "fuse pickup should add the spare fuse"): return
+	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must be one-shot"): return
 	if not _require(director.handle_story_action("fuse_box", player), "fuse should install"): return
+	if not _require(GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"), "fuse installation should consume the spare"): return
+	if not _require(not director.handle_story_action("fuse_box", player), "fuse installation must be one-shot"): return
 	if not _require(await _wait_for_flag("power_stable"), "power sequence should stabilize"): return
+	if not _require(not director.handle_story_action("memory_cassette", player), "memories must be collected in authored order"): return
+	if not _require(not director.handle_story_action("hallway_loop", player), "hallway loop must wait for the first memory echo"): return
 	if not _require(director.handle_story_action("memory_photo", player), "photo should collect"): return
 	if not _require(await _wait_for_flag("memory_photo_recalled"), "photo memory should finish"): return
+	if not _require(not director.handle_story_action("hallway_loop", player), "hallway loop must wait for the environmental echo"): return
 	if not _require(director.handle_story_action("memory_echo", player), "first memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_1"), "first memory echo should finish"): return
 	if not _require(director.handle_story_action("hallway_loop", player), "first hallway loop should turn"): return
 	if not _require(await _wait_for_transition(director), "first hallway transition should finish"): return
 	if not _require(director.handle_story_action("memory_cassette", player), "cassette should collect"): return
 	if not _require(await _wait_for_flag("memory_cassette_recalled"), "cassette memory should finish"): return
+	if not _require(not director.handle_story_action("memory_cassette", player), "cassette memory must be one-shot"): return
 	if not _require(director.handle_story_action("memory_echo", player), "second memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_2"), "second memory echo should finish"): return
 	if not _require(director.handle_story_action("hallway_loop", player), "second hallway loop should turn"): return
 	if not _require(await _wait_for_transition(director), "second hallway transition should finish"): return
 	if not _require(director.handle_story_action("memory_rabbit", player), "rabbit should collect"): return
 	if not _require(await _wait_for_flag("memory_rabbit_recalled"), "rabbit memory should finish"): return
+	if not _require(not director.handle_story_action("memory_rabbit", player), "rabbit memory must be one-shot"): return
 	if not _require(director.handle_story_action("memory_echo", player), "final memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_3"), "final memory echo should finish"): return
 	if not _require(await _wait_for_flag("memory_loop_complete"), "final memory transition should finish"): return
+	if not _require(not director.handle_story_action("memory_echo", player), "final memory echo must be one-shot"): return
+	if not _require(not director.handle_story_action("hallway_loop", player), "completed memory loop must stay closed"): return
 	if not _require(not director.handle_story_action("memory_photo", player), "duplicate memory must be rejected"): return
 	if not _require(director.handle_story_action("radio", player), "radio UI should open"): return
 	var radio_ui: Variant = director._story._radio_ui
@@ -60,16 +80,27 @@ func _ready() -> void:
 	radio_ui.entry.text = "0007"
 	radio_ui._submit()
 	if not _require(await _wait_for_flag("radio_solved"), "radio flag missing"): return
+	if not _require(not director.handle_story_action("radio", player), "solved radio must not reopen"): return
+	if not _require(not director.handle_story_action("room_record", player), "Room 407 recording must wait for room entry"): return
+	if not _require(not director.handle_story_action("room_drawing", player), "room drawing must wait for the family recording"): return
+	if not _require(not director.handle_story_action("room_bed_observation", player), "bed search must wait for the family recording"): return
+	if not _require(not director.handle_story_action("room_wardrobe_observation", player), "wardrobe search must wait for the family recording"): return
+	if not _require(not director.handle_story_action("room_family_table", player), "family table search must wait for the family recording"): return
 	GameState.set_flag("room_entered")
 	if not _require(director.handle_story_action("room_record", player), "room recording should play"): return
 	if not _require(await _wait_for_flag("room_record_heard"), "room recording should complete"): return
+	if not _require(not director.handle_story_action("room_record", player), "room recording must be one-shot"): return
 	if not _require(director.handle_story_action("room_drawing", player), "room drawing should unlock"): return
+	if not _require(not director.handle_story_action("final_clue", player), "final clue must wait for the three Room 407 searches"): return
 	if not _require(director.handle_story_action("room_bed_observation", player), "room bed observation should unlock"): return
 	if not _require(await _wait_for_flag("room_bed_observation_complete"), "room bed observation should complete"): return
+	if not _require(not director.handle_story_action("room_bed_observation", player), "bed observation must be one-shot"): return
 	if not _require(director.handle_story_action("room_wardrobe_observation", player), "wardrobe observation should unlock"): return
 	if not _require(await _wait_for_flag("room_wardrobe_observation_complete"), "wardrobe observation should complete"): return
+	if not _require(not director.handle_story_action("final_clue", player), "final clue must wait for the family table observation"): return
 	if not _require(director.handle_story_action("room_family_table", player), "family table observation should unlock"): return
 	if not _require(await _wait_for_flag("room_family_table_observation_complete"), "family table observation should complete"): return
+	if not _require(not director.handle_story_action("room_family_table", player), "family table observation must be one-shot"): return
 	if not _require(director.handle_story_action("final_clue", player), "final clue should open note"): return
 	director.on_note_closed()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return

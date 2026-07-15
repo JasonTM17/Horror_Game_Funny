@@ -59,9 +59,9 @@ func get_prompt(action_id: String, _actor: Node) -> String:
 		return "[E] Enter the changed hallway" if memory_count > loop_iteration and _latest_memory_recalled() and _latest_echo_heard() else "Listen to what the memory reveals"
 	if action_id == "radio" and memory_count >= 3 and GameState.has_flag("memory_loop_complete") and not GameState.has_flag("radio_solved"):
 		return "[E] Tune the radio"
-	if action_id == "room_record" and not GameState.has_flag("room_record_started") and not GameState.has_flag("room_record_heard"):
+	if action_id == "room_record" and GameState.has_flag("room_entered") and not GameState.has_flag("room_record_started") and not GameState.has_flag("room_record_heard"):
 		return "[E] Play the family recording"
-	if action_id == "room_drawing" and not GameState.has_flag("room_drawing_seen"):
+	if action_id == "room_drawing" and GameState.has_flag("room_entered") and not GameState.has_flag("room_drawing_seen"):
 		return "[E] Inspect the wall drawing"
 	if action_id == "final_clue" and GameState.has_flag("room_record_heard") and GameState.has_flag("room_drawing_seen") and bool(_observations.call("final_clue_ready")) and not GameState.has_flag("final_clue_seen"):
 		return "[E] Read the child's note"
@@ -217,7 +217,7 @@ func _open_radio(actor: Node) -> bool:
 	return true
 
 func _play_room_recording() -> bool:
-	if GameState.has_flag("room_record_started") or GameState.has_flag("room_record_heard"):
+	if not GameState.has_flag("room_entered") or GameState.has_flag("room_record_started") or GameState.has_flag("room_record_heard"):
 		return false
 	GameState.set_flag("room_record_started")
 	GameState.set_objective("Listen to the recording recovered from Room 407.")
@@ -230,7 +230,7 @@ func _play_room_recording() -> bool:
 	return true
 
 func _inspect_room_drawing() -> bool:
-	if not GameState.has_flag("room_record_heard") or GameState.has_flag("room_drawing_seen"):
+	if not GameState.has_flag("room_entered") or not GameState.has_flag("room_record_heard") or GameState.has_flag("room_drawing_seen"):
 		return false
 	GameState.set_flag("room_drawing_seen")
 	GameState.set_subtitle("The drawing shows you holding the red rabbit outside Room 407.")
