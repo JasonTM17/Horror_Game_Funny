@@ -50,12 +50,16 @@ SETTINGS_AUDIO_TEST_OK
 
 The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, or settings assertion prefixes.
 
+The checkpoint-layout check has a finite 1200-frame hard cap because it intentionally waits for three door animations plus chase/recovery timers. A shorter 600-frame cap could end a fast headless run cleanly before the marker without indicating a gameplay assertion failure.
+
 ## Progression Coverage
 
 `progression-test.gd` instantiates the production gameplay scene and calls its public story facade. Narrative duration is reduced only for test execution. It verifies:
 
 - fresh-run ending and early logbook rejection;
+- direct action calls reject premature lobby, floor, memory-loop, radio, and Room 407 interactions instead of relying only on hidden prompts;
 - phone briefing, stopped-clock and night-register observations, logbook, floor-notice observation, fuse pickup/install, and power stabilization;
+- phone, observations, logbook, fuse, memories, radio, and Room 407 actions preserve one-shot behavior and expected inventory side effects;
 - ordered photo, cassette, and rabbit collection with one completed environmental echo required after each memory;
 - first, second, and final blackout transition completion;
 - duplicate memory rejection;

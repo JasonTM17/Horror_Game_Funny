@@ -35,6 +35,8 @@ All notable changes to this project are documented here.
 - Isolated headless test settings from the real Godot user profile and made leak warnings fail the runner.
 - Released procedural audio players synchronously and added a short audio-server drain in the regression fixture so WAV playback objects do not leak during shutdown.
 - Captured both Godot log files and console stderr in the headless runner so engine leak warnings cannot be hidden by a clean log file.
+- Enforced observation and Room 407 prerequisites inside action handlers, preventing direct interaction spam from bypassing prompt-level story gates.
+- Raised the finite checkpoint-layout frame cap from 600 to 1200 so its authored door and recovery timers finish before the runner evaluates the success marker.
 
 ### Known Validation Gaps
 

@@ -42,9 +42,10 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Current Evidence Reconciliation — 2026-07-15
 
-- Implementation/documentation baseline `6a0b4b4` is pushed to `origin/main`; local and remote SHA match.
+- Validated gate-hardening baseline `9a6b938` is pushed in `origin/main`; local and remote SHA matched after the push.
 - The isolated Godot 4.7.1 runner passes all seven checks with zero engine, assertion, parse, or ObjectDB leak matches.
 - Independent review findings for settings-profile pollution, checkpoint hallway restoration, radio cooldown reopening, chase retreat, ending reveal staging, and audio teardown were fixed and covered by regressions.
+- Prompt and action-handler prerequisites now agree for lobby, floor, memory, and Room 407 interactions; the expanded negative matrix found and closed direct-call bypasses.
 - Phase 1–6 status denotes completed implementation slices. Open checkboxes in Phases 3–6 are deliberately carried into Phase 7 because they require physical/manual evidence, not more implementation claims.
 - Phase 7 cannot complete until a real F5 keyboard/mouse playthrough records chapter timing, total 15–20 minute pacing, physical traversal, chase feel, visual/audio balance, and settings relaunch behavior.
 - Phase 8 documentation is implemented, but final clean-clone/manual evidence, clean-tree report, and completion audit remain open until Phase 7 evidence exists.
