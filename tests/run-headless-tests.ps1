@@ -6,10 +6,6 @@ $ErrorActionPreference = "Stop"
 $env:TEMP = Join-Path (Get-Location) ".tmp"
 $env:TMP = $env:TEMP
 $testProfile = Join-Path $env:TEMP ("godot-user-" + [guid]::NewGuid().ToString("N"))
-$env:APPDATA = Join-Path $testProfile "AppData\Roaming"
-$env:LOCALAPPDATA = Join-Path $testProfile "AppData\Local"
-New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
-New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
 
 function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expected = "") {
     $log = Join-Path ".artifacts" ("test-" + $Name + ".log")
@@ -40,11 +36,16 @@ function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expecte
     Write-Host "$Name OK"
 }
 
-if (-not (Test-Path -LiteralPath $Godot)) {
-    Write-Error "Godot executable not found: $Godot"
-}
-
 try {
+    if (-not (Test-Path -LiteralPath $Godot)) {
+        Write-Error "Godot executable not found: $Godot"
+    }
+
+    $env:APPDATA = Join-Path $testProfile "AppData\Roaming"
+    $env:LOCALAPPDATA = Join-Path $testProfile "AppData\Local"
+    New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
+    New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
+
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--editor", "--quit") "editor-import"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/boot/boot.tscn", "--quit-after", "8") "menu"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/gameplay/gameplay.tscn", "--quit-after", "20") "gameplay"
@@ -59,11 +60,13 @@ try {
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-read-test.tscn", "--quit-after", "60") "settings-persistence-read" "SETTINGS_PERSISTENCE_READ_OK"
 }
 finally {
-    $tempRoot = (Resolve-Path -LiteralPath $env:TEMP).Path.TrimEnd("\")
-    $profilePath = (Resolve-Path -LiteralPath $testProfile).Path.TrimEnd("\")
-    $expectedPrefix = $tempRoot + "\godot-user-"
-    if (-not $profilePath.StartsWith($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        Write-Error "Refusing to remove test profile outside the repository-local temp root: $profilePath"
+    if (Test-Path -LiteralPath $testProfile) {
+        $tempRoot = (Resolve-Path -LiteralPath $env:TEMP).Path.TrimEnd("\")
+        $profilePath = (Resolve-Path -LiteralPath $testProfile).Path.TrimEnd("\")
+        $expectedPrefix = $tempRoot + "\godot-user-"
+        if (-not $profilePath.StartsWith($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Write-Error "Refusing to remove test profile outside the repository-local temp root: $profilePath"
+        }
+        Remove-Item -LiteralPath $profilePath -Recurse -Force
     }
-    Remove-Item -LiteralPath $profilePath -Recurse -Force
 }
