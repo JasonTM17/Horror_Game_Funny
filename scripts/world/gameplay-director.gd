@@ -11,6 +11,7 @@ const HALLWAY_SCRIPT := preload("res://scripts/world/dynamic-hallway-controller.
 const HORROR_SCRIPT := preload("res://scripts/world/horror-event-director.gd")
 const NOTE_SCRIPT := preload("res://scripts/ui/note-reader.gd")
 const ENDING_SCRIPT := preload("res://scenes/ui/ending-overlay.tscn")
+const FAIL_SCRIPT := preload("res://scenes/ui/fail-overlay.tscn")
 
 var player: CharacterBody3D
 var entity: CharacterBody3D
@@ -22,6 +23,7 @@ var _radio_ui: CanvasLayer
 var _hallway: Node3D
 var _horror: Node3D
 var _note_ui: CanvasLayer
+var _fail_overlay: CanvasLayer
 
 func _ready() -> void:
 	GameState.reset_run()
@@ -78,6 +80,8 @@ func _spawn_player() -> void:
 	var hud := HUD_SCENE.instantiate()
 	add_child(hud)
 	add_child(PAUSE_SCENE.instantiate())
+	_fail_overlay = FAIL_SCRIPT.instantiate()
+	add_child(_fail_overlay)
 
 func _spawn_story_objects() -> void:
 	_add_story("phone", Vector3(-1.8, 0.55, 8.8), "Answer the phone", Color(0.16, 0.12, 0.1))
@@ -278,6 +282,7 @@ func fail_chase() -> void:
 	GameState.restore_checkpoint()
 	player.global_position = Vector3(0, 0.02, -108.0)
 	GameState.set_objective("It caught you once. Run earlier and keep the light ahead.")
+	_fail_overlay.show_failure()
 	AudioManager.play_tone("fail", 48.0, 0.5, -12.0)
 	if entity != null:
 		entity.global_position = player.global_position + Vector3(0, 0, 8.5)
