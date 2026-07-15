@@ -39,13 +39,12 @@ static func add_label(parent: Node3D, text: String, position: Vector3, color := 
 	parent.add_child(label)
 	return label
 
-static func add_light(parent: Node3D, position: Vector3, color: Color, energy := 1.0, range := 8.0) -> OmniLight3D:
+static func add_light(parent: Node3D, position: Vector3, color: Color, energy := 1.0, range := 8.0, shadows := false) -> OmniLight3D:
 	var light := OmniLight3D.new()
 	light.position = position
 	light.light_color = color
 	light.light_energy = energy
 	light.omni_range = range
-	light.shadow_enabled = true
+	light.shadow_enabled = shadows
 	parent.add_child(light)
 	return light
-
