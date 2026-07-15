@@ -16,6 +16,8 @@ var _pitch := -8.0
 var _bob_time := 0.0
 var _flashlight_on := true
 var _step_time := 0.0
+var _shake_remaining := 0.0
+var _shake_strength := 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -52,6 +54,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.05
 	move_and_slide()
 	_update_head_bob(delta, direction.length() > 0.1)
+	_update_camera_shake(delta)
 	if direction.length() > 0.1 and is_on_floor():
 		_step_time -= delta * (1.45 if Input.is_action_pressed("sprint") else 1.0)
 		if _step_time <= 0.0:
@@ -77,6 +80,12 @@ func set_input_locked(reason: String, locked: bool) -> void:
 func is_input_locked() -> bool:
 	return not _locks.is_empty()
 
+func add_camera_shake(strength: float, duration: float) -> void:
+	if not SettingsManager.camera_shake_enabled:
+		return
+	_shake_strength = maxf(_shake_strength, clampf(strength, 0.0, 0.12))
+	_shake_remaining = maxf(_shake_remaining, clampf(duration, 0.0, 1.5))
+
 func _toggle_pause() -> void:
 	get_tree().paused = not get_tree().paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -93,6 +102,15 @@ func _update_head_bob(delta: float, moving: bool) -> void:
 	else:
 		head.position.y = move_toward(head.position.y, 0.7, delta * 3.0)
 		head.position.x = move_toward(head.position.x, 0.0, delta * 3.0)
+
+func _update_camera_shake(delta: float) -> void:
+	if _shake_remaining > 0.0 and SettingsManager.camera_shake_enabled:
+		_shake_remaining -= delta
+		camera.position = Vector3(randf_range(-1.0, 1.0), randf_range(-0.7, 0.7), 0.0) * _shake_strength
+	else:
+		_shake_remaining = 0.0
+		_shake_strength = move_toward(_shake_strength, 0.0, delta * 0.3)
+		camera.position = camera.position.move_toward(Vector3.ZERO, delta * 0.45)
 
 func _apply_settings() -> void:
 	mouse_sensitivity = SettingsManager.mouse_sensitivity

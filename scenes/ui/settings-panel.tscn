@@ -6,84 +6,160 @@
 script = ExtResource("1_settings")
 
 [node name="Panel" type="Panel" parent="."]
-offset_left = 160.0
-offset_top = 58.0
-offset_right = 800.0
-offset_bottom = 480.0
+offset_left = 80.0
+offset_top = 22.0
+offset_right = 880.0
+offset_bottom = 518.0
 
 [node name="Title" type="Label" parent="Panel"]
 offset_left = 38.0
 offset_top = 24.0
-offset_right = 560.0
+offset_right = 720.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 25
 text = "SHIFT SETTINGS"
 
 [node name="SensitivityLabel" type="Label" parent="Panel"]
 offset_left = 38.0
-offset_top = 88.0
+offset_top = 78.0
 offset_right = 240.0
-offset_bottom = 116.0
+offset_bottom = 106.0
 text = "Mouse sensitivity"
 
 [node name="Sensitivity" type="HSlider" parent="Panel"]
-offset_left = 260.0
-offset_top = 86.0
-offset_right = 585.0
-offset_bottom = 116.0
+offset_left = 205.0
+offset_top = 76.0
+offset_right = 430.0
+offset_bottom = 106.0
 min_value = 0.01
 max_value = 0.25
 step = 0.01
 
 [node name="FovLabel" type="Label" parent="Panel"]
 offset_left = 38.0
-offset_top = 140.0
+offset_top = 123.0
 offset_right = 240.0
-offset_bottom = 168.0
+offset_bottom = 151.0
 text = "Field of view"
 
 [node name="Fov" type="HSlider" parent="Panel"]
-offset_left = 260.0
-offset_top = 138.0
-offset_right = 585.0
-offset_bottom = 168.0
+offset_left = 205.0
+offset_top = 121.0
+offset_right = 430.0
+offset_bottom = 151.0
 min_value = 60.0
 max_value = 95.0
 step = 1.0
 
 [node name="Flicker" type="CheckButton" parent="Panel"]
-offset_left = 38.0
-offset_top = 255.0
-offset_right = 300.0
-offset_bottom = 295.0
+offset_left = 480.0
+offset_top = 121.0
+offset_right = 740.0
+offset_bottom = 159.0
 text = "Allow light flicker"
 
 [node name="HeadBob" type="CheckButton" parent="Panel"]
-offset_left = 38.0
-offset_top = 305.0
-offset_right = 300.0
-offset_bottom = 345.0
+offset_left = 480.0
+offset_top = 166.0
+offset_right = 740.0
+offset_bottom = 204.0
 text = "Comfort head bob"
 
 [node name="VolumeLabel" type="Label" parent="Panel"]
 offset_left = 38.0
-offset_top = 192.0
+offset_top = 168.0
 offset_right = 240.0
-offset_bottom = 220.0
+offset_bottom = 196.0
 text = "Master volume"
 
 [node name="Volume" type="HSlider" parent="Panel"]
-offset_left = 260.0
-offset_top = 190.0
-offset_right = 585.0
-offset_bottom = 220.0
+offset_left = 205.0
+offset_top = 166.0
+offset_right = 430.0
+offset_bottom = 196.0
 min_value = -40.0
 max_value = 6.0
 step = 1.0
 
-[node name="Close" type="Button" parent="Panel"]
+[node name="MusicLabel" type="Label" parent="Panel"]
 offset_left = 38.0
-offset_top = 360.0
+offset_top = 213.0
+offset_right = 200.0
+offset_bottom = 241.0
+text = "Music / chase"
+
+[node name="Music" type="HSlider" parent="Panel"]
+offset_left = 205.0
+offset_top = 211.0
+offset_right = 430.0
+offset_bottom = 241.0
+min_value = -40.0
+max_value = 6.0
+step = 1.0
+
+[node name="SfxLabel" type="Label" parent="Panel"]
+offset_left = 38.0
+offset_top = 258.0
+offset_right = 200.0
+offset_bottom = 286.0
+text = "Sound effects"
+
+[node name="Sfx" type="HSlider" parent="Panel"]
+offset_left = 205.0
+offset_top = 256.0
+offset_right = 430.0
+offset_bottom = 286.0
+min_value = -40.0
+max_value = 6.0
+step = 1.0
+
+[node name="AmbienceLabel" type="Label" parent="Panel"]
+offset_left = 38.0
+offset_top = 303.0
+offset_right = 200.0
+offset_bottom = 331.0
+text = "Ambience"
+
+[node name="Ambience" type="HSlider" parent="Panel"]
+offset_left = 205.0
+offset_top = 301.0
+offset_right = 430.0
+offset_bottom = 331.0
+min_value = -40.0
+max_value = 6.0
+step = 1.0
+
+[node name="Fullscreen" type="CheckButton" parent="Panel"]
+offset_left = 480.0
+offset_top = 76.0
+offset_right = 740.0
+offset_bottom = 114.0
+text = "Fullscreen"
+
+[node name="CameraShake" type="CheckButton" parent="Panel"]
+offset_left = 480.0
+offset_top = 211.0
+offset_right = 740.0
+offset_bottom = 249.0
+text = "Camera shake"
+
+[node name="FilmGrain" type="CheckButton" parent="Panel"]
+offset_left = 480.0
+offset_top = 256.0
+offset_right = 740.0
+offset_bottom = 294.0
+text = "Film grain / scanlines"
+
+[node name="Reset" type="Button" parent="Panel"]
+offset_left = 38.0
+offset_top = 416.0
 offset_right = 235.0
-offset_bottom = 406.0
+offset_bottom = 462.0
+text = "RESET DEFAULTS"
+
+[node name="Close" type="Button" parent="Panel"]
+offset_left = 255.0
+offset_top = 416.0
+offset_right = 452.0
+offset_bottom = 462.0
 text = "SAVE & CLOSE"
