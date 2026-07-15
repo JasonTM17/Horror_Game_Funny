@@ -127,9 +127,9 @@ Ending success remains in the gameplay scene. The chase controller stops the ent
 
 ## Verification Boundaries
 
-The nine-check headless runner verifies import, scene loading, state snapshots, guarded progression, radio cooldown across close/reopen, layout/door/navigation invariants, restored hallway variants, chase state/speed ordering and retreat recovery, failure recovery, staged ending success, settings controls/clamps, buses, pause Settings/Escape, audio teardown, in-memory Continue visibility, and settings persistence across two Godot processes.
+The ten-check headless runner verifies import, scene loading, state snapshots, guarded progression, radio cooldown across close/reopen, layout/door/navigation invariants, targeted production-player movement and door collision, restored hallway variants, chase state/speed ordering and retreat recovery, failure recovery, staged ending success, settings controls/clamps, buses, pause Settings/Escape, audio teardown, in-memory Continue visibility, and settings persistence across two Godot processes.
 
-It does not synthesize full physical player input or verify monitor output, audible output, lighting/audio balance, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
+It synthesizes `move_forward` for focused capsule/collision checks, but it does not generate a complete physical keyboard/mouse playthrough or verify monitor output, audible output, lighting/audio balance, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
 ## References
 

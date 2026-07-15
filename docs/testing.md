@@ -2,7 +2,7 @@
 
 ## Overview
 
-The repository has one PowerShell runner that executes nine Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
+The repository has one PowerShell runner that executes ten Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, targeted production-player movement/collision, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
 
 ## Run the Suite
 
@@ -27,7 +27,7 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
 
 The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. Writer and reader checks share this temporary profile, and guaranteed teardown removes it after success or failure. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
 
-## Exact Nine-Check Matrix
+## Exact Ten-Check Matrix
 
 | # | Check / log | Invocation target | Automated evidence | Not proven |
 |---:|---|---|---|---|
@@ -37,22 +37,24 @@ The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique G
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn` | director-level guarded progression semantics, blackout completion, radio close/reopen cooldown, chase recovery, staged ending and reveal | human interaction timing, physical chase traversal, presentation |
 | 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn` | room spawn and Variant3 restore, barriers/doors, navigation polygon, `STALK`, speed ordering, retreat recovery, authored distances | navigation quality under real play, collision feel, route readability |
-| 7 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses, selected clamps, controls, pause Settings/Escape locks, audio teardown, in-memory Continue | audible sound and physical UI navigation |
-| 8 | `settings-persistence-write` / `test-settings-persistence-write.log` | `settings-persistence-write-test.tscn` | writes 11 distinct bounded settings to isolated `room407.cfg` | real player profile and physical UI save action |
-| 9 | `settings-persistence-read` / `test-settings-persistence-read.log` | `settings-persistence-read-test.tscn` | a new Godot process restores all 11 values from the same isolated profile | target-device fullscreen transition and physical UI interaction |
+| 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | E/raycast interaction, complete route, puzzles, physical keyboard/mouse, timing, chase feel |
+| 8 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses, selected clamps, controls, pause Settings/Escape locks, audio teardown, in-memory Continue | audible sound and physical UI navigation |
+| 9 | `settings-persistence-write` / `test-settings-persistence-write.log` | `settings-persistence-write-test.tscn` | writes 11 distinct bounded settings to isolated `room407.cfg` | real player profile and physical UI save action |
+| 10 | `settings-persistence-read` / `test-settings-persistence-read.log` | `settings-persistence-read-test.tscn` | a new Godot process restores all 11 values from the same isolated profile | target-device fullscreen transition and physical UI interaction |
 
-Checks 4–9 require these success markers respectively:
+Checks 4–10 require these success markers respectively:
 
 ```text
 GAME_STATE_TEST_OK
 PROGRESSION_TEST_OK
 CHECKPOINT_LAYOUT_TEST_OK
+PHYSICAL_ROUTE_SMOKE_TEST_OK
 SETTINGS_AUDIO_TEST_OK
 SETTINGS_PERSISTENCE_WRITE_OK
 SETTINGS_PERSISTENCE_READ_OK
 ```
 
-The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, or settings assertion prefixes.
+The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, or settings assertion prefixes.
 
 The checkpoint-layout check has a finite 1200-frame hard cap because it intentionally waits for three door animations plus chase/recovery timers. A shorter 600-frame cap could end a fast headless run cleanly before the marker without indicating a gameplay assertion failure.
 
@@ -93,6 +95,19 @@ The test manipulates UI fields and calls methods directly. It does not send actu
 
 These are structural and numeric assertions. They do not move a player capsule through every doorway or prove that a `NavigationAgent3D` follows the route correctly under player-driven pursuit.
 
+## Production Movement and Door Coverage
+
+`physical-route-smoke-test.gd` instantiates the production gameplay scene and production `CharacterBody3D`. It presses the mapped `move_forward` action across physics frames, which reaches the player controller's normal `Input.get_vector()` and `move_and_slide()` path. It verifies:
+
+- the floor, power, and Room 407 doors remain closed without their prerequisite flags;
+- the capsule receives forward movement but stops at each locked door;
+- each valid flag opens its door and lets the same capsule cross the passage;
+- the memory threshold rejects entry before `power_stable` and activates after it;
+- the Room 407 threshold creates the expected gameplay-scene checkpoint snapshot; and
+- the chase threshold rejects premature entry, then starts once `chase_ready` and creates a valid entity.
+
+The harness teleports between focused gates, sets prerequisite flags, and calls `door.interact()` directly. It does not press E through the production raycast, solve the complete puzzles, traverse every meter, exercise a player-driven chase, or measure 15–20 minute pacing.
+
 ## Settings and Audio Coverage
 
 `settings-audio-test.gd` verifies the presence of Master, Music, SFX, Ambience, and Chase buses. It asserts these boundary examples:
@@ -118,6 +133,7 @@ Each run overwrites these machine-local files:
 .artifacts/test-game-state.log
 .artifacts/test-progression.log
 .artifacts/test-checkpoint-layout.log
+.artifacts/test-physical-route.log
 .artifacts/test-settings-audio.log
 .artifacts/test-settings-persistence-write.log
 .artifacts/test-settings-persistence-read.log
@@ -127,7 +143,7 @@ Use the console summary for quick status and the matching log for diagnosis. Log
 
 ## Required Manual Matrix
 
-No current automated check verifies the following. Record each result, environment, date, tester, and evidence link before a release claim.
+No current automated check fully verifies the following. Record each result, environment, date, tester, and evidence link before a release claim.
 
 | Area | Manual procedure | Evidence required |
 |---|---|---|
@@ -148,6 +164,7 @@ Do not mark 15–20 minute pacing, visual/audio balance, audible output, full ph
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
+- [`physical-route-smoke-test.gd`](../tests/physical-route-smoke-test.gd)
 - [`settings-audio-test.gd`](../tests/settings-audio-test.gd)
 - [`settings-persistence-write-test.gd`](../tests/settings-persistence-write-test.gd)
 - [`settings-persistence-read-test.gd`](../tests/settings-persistence-read-test.gd)

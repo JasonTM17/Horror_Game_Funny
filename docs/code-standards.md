@@ -115,11 +115,11 @@ Settings save to `user://room407.cfg` when the settings panel closes. Checkpoint
 
 ## Tests and Evidence
 
-- Run the narrowest relevant check first, then the complete nine-check runner for shared contracts.
+- Run the narrowest relevant check first, then the complete ten-check runner for shared contracts.
 - Automated progression tests must cover success, early rejection, duplicate rejection, and recovery where applicable.
 - Keep expected success markers and assertion prefixes synchronized with `run-headless-tests.ps1`.
 - Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.
-- A headless pass is not evidence of physical input traversal, visual/audio balance, audible output, the physical Settings UI workflow, or 15–20 minute pacing. The two-process writer/reader pair is evidence only for config persistence.
+- A headless pass is not evidence of complete physical keyboard/mouse traversal, visual/audio balance, audible output, the physical Settings UI workflow, or 15–20 minute pacing. The targeted movement smoke proves only its listed capsule/door/threshold cases, and the two-process writer/reader pair proves only config persistence.
 - Record manual evidence separately; never convert an unobserved design target into a verified claim.
 
 ## Documentation and Git

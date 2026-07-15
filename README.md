@@ -54,7 +54,7 @@ Checkpoints are process-local. Restarting the application clears gameplay progre
 
 ## Test
 
-Run all nine headless checks from the repository root:
+Run all ten headless checks from the repository root:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1
@@ -67,7 +67,7 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
 
-The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. It covers import, boot and gameplay loading, state/checkpoint behavior, guarded progression, layout/navigation/chase invariants, settings/audio structure, and settings save/load across two separate Godot processes. It does not prove a 15–20 minute run, visual or audio balance, audible device output, the physical Settings UI workflow, or full keyboard-and-mouse traversal. See [Testing](docs/testing.md) for the exact matrix.
+The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. It covers import, boot and gameplay loading, state/checkpoint behavior, guarded progression, layout/navigation/chase invariants, targeted production-player movement and door collision, settings/audio structure, and settings save/load across two separate Godot processes. It does not prove a 15–20 minute run, visual or audio balance, audible device output, the physical Settings UI workflow, or full keyboard-and-mouse traversal. See [Testing](docs/testing.md) for the exact matrix.
 
 ## Export
 
@@ -79,7 +79,7 @@ No gameplay captures are committed yet. Add only verified in-engine captures und
 
 ## Contributing
 
-Keep changes focused, use Conventional Commit messages, and do not commit `.godot/`, `.artifacts/`, local tools, exports, or credentials. Before submitting a change, run the nine-check suite and `git diff --check`, then update documentation only for behavior the current source or recorded manual evidence proves.
+Keep changes focused, use Conventional Commit messages, and do not commit `.godot/`, `.artifacts/`, local tools, exports, or credentials. Before submitting a change, run the ten-check suite and `git diff --check`, then update documentation only for behavior the current source or recorded manual evidence proves.
 
 ## Project Layout
 

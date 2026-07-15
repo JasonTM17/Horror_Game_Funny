@@ -13,7 +13,7 @@ All notable changes to this project are documented here.
 - Procedural corridor geometry, a `NavigationRegion3D`, enemy `STALK` and chase states, chase-time corridor-light failure, checkpoint recovery, abandoned-lobby reveal, and credits.
 - Boot-menu Continue for process-local checkpoints and pause-menu access to Settings.
 - Persisted settings at `user://room407.cfg` for controls, display, audio, and comfort options.
-- Nine-check Windows headless runner with per-check logs under `.artifacts/`, including isolated two-process settings persistence.
+- Ten-check Windows headless runner with per-check logs under `.artifacts/`, including targeted production-player movement/door collision and isolated two-process settings persistence.
 
 ### Changed
 

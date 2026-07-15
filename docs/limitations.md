@@ -16,9 +16,10 @@
 
 ## Automated Test Boundaries
 
-- The runner has nine headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, settings/audio, persistence write, and persistence read.
+- The runner has ten headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, targeted physical-route movement, settings/audio, persistence write, and persistence read.
 - Every runner invocation uses a unique Godot user-data profile under `.tmp/`; the writer and reader share it, then guaranteed teardown removes it. Automated settings changes do not touch the normal game profile.
 - Progression automation calls gameplay methods and UI submission methods directly; it does not generate a full physical keyboard/mouse traversal.
+- The physical-route smoke sends the mapped forward action through the production player and physics, proving three locked/open door passages plus selected threshold gates. It teleports between gates, sets flags, and calls doors directly, so it does not prove E/raycast interaction, the complete route, puzzle input, chase feel, or pacing.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
 - The settings/audio test verifies buses, selected clamps, controls, pause Settings/Escape lock preservation, audio cache/player teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes. No headless check verifies audible output or physical panel interaction.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, or frame pacing on target hardware.
