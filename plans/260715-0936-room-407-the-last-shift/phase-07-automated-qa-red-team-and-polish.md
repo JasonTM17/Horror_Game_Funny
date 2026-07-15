@@ -62,6 +62,47 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 `polished complete flow -> import tests -> behavior tests -> smoke -> manual timing -> red-team/review -> fixes -> rerun -> Phase 8`
 
+## Completion-Audit Polish Slice — 2026-07-15
+
+### Expected Output
+
+The existing continuous scene keeps its route and public controls, while consumed quest items, pre-Room checkpoint placement, door guards, rendered scare beats, chase entity physics/state behavior, synthesized audio variation, flicker comfort, and menu/settings focus/error handling match the brief. Every correction receives a focused regression and the unchanged twelve-check runner remains the broad gate.
+
+### Acceptance Criteria
+
+- The installed fuse cannot reappear in inventory or regain a prompt after backtracking.
+- The floor door requires the granted key once; key consumption and the session-level permanent unlock are atomic and idempotent, and the door reopens without restoring the key.
+- Completing the radio sequence creates `room_entrance` before the Room 407 door; crossing the room threshold cannot overwrite it, while later explicit checkpoints such as `chase_start` can supersede it for capture recovery.
+- Door prompt and interaction overrides honor `interaction_enabled`, base cooldown, movement lock, flag guards, and required-item guards before starting any tween. A rejected interaction produces no tween, motion audio, cooldown, item consumption, or door-state mutation.
+- Crossing the fourth-floor threshold once changes a rendered elevator display, closes the real floor door behind the player, and creates a distant non-damaging apparition; repeating the threshold cannot duplicate the event.
+- Room 407 receives bounded procedural dressing and a visible pre-chase manifestation. Chase dressing cannot block the central navigation lane or add expensive lights/shadows; scare actors clean up deterministically and guarded events reset safely with a new run.
+- Audio cache identity includes ID and every sample-rendering parameter; identical parameters reuse one sample, distinct pitch/duration parameters do not, and stop/eviction paths reclaim exact cached-byte accounting.
+- Flashlight flicker uses a minimum interval and maximum pulse duration, restores base energy when disabled, and cannot advance timers, RNG, or energy while the tree is paused.
+- The production chase entity capsule starts above the floor without test-only Y correction. Deterministic regressions prove that APPEAR pauses, STALK advances slowly, CHASE uses full pursuit, LOST_TARGET/SEARCH use the last seen position, and DESPAWN stops movement.
+- Boot and pause menus establish keyboard focus; closing Settings returns focus to its caller. A failed config save is surfaced and never documented as successful persistence.
+- Focused checks pass repeatedly, the exact twelve-check runner exits `0`, diff/secret/generated-file audits pass, and each coherent group is committed and pushed without force.
+
+### Scope Boundary
+
+No Blender/MCP assets, binary export, persistent gameplay save, crouch, secondary ending, new level split, extra autoload, paid/unclear asset, or automated claim of physical 15–20 minute completion. Manual F5, audible mix, rendered comfort/readability, fullscreen behavior, and chase feel remain open evidence.
+
+### Touchpoints
+
+- Progression: `scripts/world/{gameplay-director,story-progression-controller,continuous-story-layout}.gd`, `scripts/interaction/door-interactable.gd`, `scripts/ui/hud.gd`.
+- Presentation: `scripts/world/{continuous-world-builder,horror-event-director,chase-sequence-controller,chase-entity}.gd`.
+- Audio/accessibility/UI: `scripts/autoload/{audio-manager,settings-manager}.gd`, `scripts/player/player-flashlight.gd`, `scripts/ui/{boot-menu,pause-menu,settings-panel}.gd`.
+- Regression: existing `progression`, `checkpoint-layout`, `physical-route`, `player-input`, and `settings-audio` checks; no thirteenth runner entry.
+
+### Atomic Commit Checkpoints
+
+1. `docs: plan completion audit polish`
+2. `fix(progression): enforce quest item and checkpoint invariants`
+3. `feat(horror): render fourth-floor and Room 407 scare beats`
+4. `fix(chase): align entity body and state behavior`
+5. `fix(presentation): preserve tone variants and bound flicker`
+6. `fix(ui): restore menu focus and report save failures`
+7. `docs: record completion audit polish evidence`
+
 ## Implementation Steps
 
 1. Build deterministic test harness and focused state/interaction/puzzle/checkpoint/settings suites.
