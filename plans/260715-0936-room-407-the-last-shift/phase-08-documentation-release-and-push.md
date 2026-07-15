@@ -81,7 +81,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 ## Success Criteria
 
 - [x] Required source-release documentation is accurate, internally linked, and license-complete.
-- [ ] Final clean-cache validation reproduces prior passing results.
+- [x] Final clean-cache validation reproduces prior passing results.
 - [ ] Working tree is clean and atomic history is visible on `origin/main`.
 - [ ] Final report includes Completed, Architecture, Verification, Git, Run instructions, and Remaining limitations.
 - [ ] Goal is marked complete only after all acceptance evidence is present.
