@@ -5,6 +5,10 @@ param(
 $ErrorActionPreference = "Stop"
 $env:TEMP = Join-Path (Get-Location) ".tmp"
 $env:TMP = $env:TEMP
+$testProfile = Join-Path $env:TEMP ("godot-user-" + [guid]::NewGuid().ToString("N"))
+$env:APPDATA = Join-Path $testProfile "AppData\Roaming"
+$env:LOCALAPPDATA = Join-Path $testProfile "AppData\Local"
+New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
 New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
 
 function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expected = "") {
@@ -13,7 +17,7 @@ function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expecte
     if ($LASTEXITCODE -ne 0) {
         Write-Error "$Name failed with exit code $LASTEXITCODE. See $log"
     }
-    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|SETTINGS_AUDIO_ASSERT" -Quiet) {
+    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|SETTINGS_AUDIO_ASSERT|ObjectDB instances were leaked|Leaked instance:" -Quiet) {
         Write-Error "$Name reported an engine or progression error. See $log"
     }
     if ($Expected -and -not (Select-String -Path $log -Pattern $Expected -SimpleMatch -Quiet)) {

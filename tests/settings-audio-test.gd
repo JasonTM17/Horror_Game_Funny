@@ -20,9 +20,11 @@ func _ready() -> void:
 	await get_tree().process_frame
 	for node_path in ["Panel/Music", "Panel/Sfx", "Panel/Ambience", "Panel/Fullscreen", "Panel/CameraShake", "Panel/FilmGrain", "Panel/Reset"]:
 		if not _require(panel.has_node(node_path), "%s control missing" % node_path): return
-	AudioManager.start_drone("test_drone", 51.0, -30.0, "Ambience")
+	AudioManager.play_tone("test_cleanup", 51.0, 0.1, -30.0, "Ambience")
 	await get_tree().process_frame
-	AudioManager.stop_tone("test_drone")
+	if not _require(AudioManager._players.has("test_cleanup") and AudioManager._cache.has("test_cleanup") and AudioManager._sample_bytes > 0, "audio cleanup fixture was not created"): return
+	AudioManager.stop_all()
+	if not _require(AudioManager._players.is_empty() and AudioManager._cache.is_empty() and AudioManager._sample_bytes == 0, "audio teardown left cached state"): return
 	var pause_menu := PAUSE_SCENE.instantiate()
 	add_child(pause_menu)
 	var player := PLAYER_SCENE.instantiate()
@@ -32,7 +34,11 @@ func _ready() -> void:
 	player.set_input_locked("pause", true)
 	pause_menu._settings()
 	if not _require(pause_menu.get_node("SettingsPanel").visible and player.is_input_locked(), "pause settings did not preserve the input lock"): return
-	pause_menu.get_node("SettingsPanel").close_panel()
+	var escape := InputEventAction.new()
+	escape.action = "pause_game"
+	escape.pressed = true
+	pause_menu.get_node("SettingsPanel")._unhandled_input(escape)
+	if not _require(not pause_menu.get_node("SettingsPanel").visible, "Escape did not close pause settings"): return
 	if not _require(player.is_input_locked(), "closing settings cleared the pause lock"): return
 	player.set_input_locked("pause", false)
 	GameState.set_objective("Continue test")

@@ -73,7 +73,7 @@ func stop_all() -> void:
 		if is_instance_valid(player):
 			player.stop()
 			player.stream = null
-			player.free()
+			player.queue_free()
 	_players.clear()
 	_cache.clear()
 	_sample_bytes = 0
