@@ -3,8 +3,6 @@ extends Node3D
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
 const PAUSE_SCENE := preload("res://scenes/ui/pause-menu.tscn")
-const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
-const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 const RADIO_SCRIPT := preload("res://scripts/puzzles/radio-puzzle.gd")
 const HALLWAY_SCRIPT := preload("res://scripts/world/dynamic-hallway-controller.gd")
@@ -12,11 +10,10 @@ const HORROR_SCRIPT := preload("res://scripts/world/horror-event-director.gd")
 const NOTE_SCRIPT := preload("res://scripts/ui/note-reader.gd")
 const ENDING_SCRIPT := preload("res://scenes/ui/ending-overlay.tscn")
 const FAIL_SCRIPT := preload("res://scenes/ui/fail-overlay.tscn")
+const NARRATIVE_SCRIPT := preload("res://scripts/world/narrative-sequencer.gd")
 
 var player: CharacterBody3D
 var entity: CharacterBody3D
-var exit_marker := Vector3(0, 1.0, -132.0)
-var _beat_guard: Dictionary = {}
 var _memory_count := 0
 var _ending := false
 var _radio_ui: CanvasLayer
@@ -24,72 +21,63 @@ var _hallway: Node3D
 var _horror: Node3D
 var _note_ui: CanvasLayer
 var _fail_overlay: CanvasLayer
+var _narrative: Node
+var _loop_iteration := 0
+var _recovering := false
+var _loop_transitioning := false
 
 func _ready() -> void:
-	if GameState.checkpoint.is_empty():
+	var fresh_run := GameState.checkpoint.is_empty()
+	if fresh_run:
 		GameState.reset_run()
 	_memory_count = int(GameState.has_flag("memory_photo")) + int(GameState.has_flag("memory_cassette")) + int(GameState.has_flag("memory_rabbit"))
-	_build_environment()
+	_loop_iteration = mini(_memory_count, 2)
+	ContinuousWorldBuilder.build(self)
 	_hallway = HALLWAY_SCRIPT.new()
 	add_child(_hallway)
 	_hallway.build(self)
 	_horror = HORROR_SCRIPT.new()
 	add_child(_horror)
 	_horror.setup(self, _hallway)
+	_narrative = NARRATIVE_SCRIPT.new()
+	add_child(_narrative)
+	_narrative.beat_finished.connect(_on_narrative_finished)
 	_spawn_player()
-	_spawn_story_objects()
-	GameState.set_objective("Answer the desk phone and sign the night log.")
+	ContinuousStoryLayout.build(self)
+	if _memory_count >= 3:
+		_disable_loop_gate()
+	if fresh_run:
+		GameState.set_objective("Answer the desk phone and sign the night log.")
 
 func _process(_delta: float) -> void:
 	if player == null or _ending:
 		return
 	var z := player.global_position.z
-	if z < -11.0 and not GameState.has_flag("floor_reached"):
+	if z < WorldLayout.FLOOR_TRIGGER_Z and not GameState.has_flag("floor_reached"):
 		GameState.set_flag("floor_reached")
 		GameState.advance_stage(GameState.Stage.FLOOR4_DARK)
 		GameState.set_objective("The fourth floor is dark. Find the spare fuse.")
 		AudioManager.play_tone("door_slam", 58.0, 0.32, -11.0)
-	if z < -38.0 and GameState.has_flag("fuse_installed") and not GameState.has_flag("memory_loop_started"):
+	if z < WorldLayout.MEMORY_TRIGGER_Z and GameState.has_flag("power_stable") and not GameState.has_flag("memory_loop_started"):
 		GameState.set_flag("memory_loop_started")
 		GameState.advance_stage(GameState.Stage.MEMORY_LOOP)
 		GameState.set_objective("The hallway has changed. Find three things that remember you.")
-	if z < -72.0 and GameState.has_flag("radio_solved") and not GameState.has_flag("room_entered"):
+	if z < WorldLayout.ROOM_TRIGGER_Z and GameState.has_flag("radio_solved") and not GameState.has_flag("room_entered"):
 		GameState.set_flag("room_entered")
 		GameState.advance_stage(GameState.Stage.ROOM_407)
 		GameState.set_objective("Room 407 is open. Find what was left behind.")
-	if z < -104.0 and GameState.has_flag("final_clue_seen") and not GameState.has_flag("chase_started"):
+		GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
+	if z < WorldLayout.CHASE_TRIGGER_Z and GameState.has_flag("chase_ready") and not GameState.has_flag("chase_started"):
 		_start_chase()
-
-func _build_environment() -> void:
-	var world := WorldEnvironment.new()
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.006, 0.009, 0.016)
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.12, 0.16, 0.22)
-	environment.ambient_light_energy = 0.22
-	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.08, 0.1, 0.13)
-	environment.fog_density = 0.012
-	world.environment = environment
-	add_child(world)
-	LevelGeometry.add_box(self, "Floor", Vector3(0, -0.15, -62), Vector3(8, 0.3, 150), Color(0.055, 0.06, 0.075))
-	LevelGeometry.add_box(self, "LeftWall", Vector3(-4, 2.0, -62), Vector3(0.25, 4.0, 150), Color(0.08, 0.075, 0.085))
-	LevelGeometry.add_box(self, "RightWall", Vector3(4, 2.0, -62), Vector3(0.25, 4.0, 150), Color(0.08, 0.075, 0.085))
-	LevelGeometry.add_box(self, "LobbyBack", Vector3(0, 2.0, 15), Vector3(8, 4, 0.25), Color(0.11, 0.1, 0.12))
-	LevelGeometry.add_box(self, "Room407Wall", Vector3(0, 2.0, -78), Vector3(8, 4, 0.25), Color(0.12, 0.07, 0.08))
-	LevelGeometry.add_box(self, "Room407Floor", Vector3(0, -0.05, -91), Vector3(8, 0.2, 24), Color(0.09, 0.055, 0.06))
-	LevelGeometry.add_box(self, "Room407Back", Vector3(0, 2.0, -140), Vector3(8, 4, 0.25), Color(0.13, 0.06, 0.07))
-	LevelGeometry.add_label(self, "NIGHT DESK", Vector3(-2.8, 1.65, 9.0))
-	LevelGeometry.add_label(self, "FLOOR 4", Vector3(-2.9, 2.1, -15.0), Color(0.42, 0.46, 0.48))
-	LevelGeometry.add_label(self, "407", Vector3(-1.0, 2.1, -80.0), Color(0.65, 0.3, 0.28))
-	for z in [10.0, -17.0, -31.0, -46.0, -62.0, -87.0, -111.0, -128.0]:
-		LevelGeometry.add_light(self, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), 0.48, 6.5)
-	LevelGeometry.add_light(self, Vector3(0, 2.6, -95), Color(0.52, 0.12, 0.1), 1.0, 7.0)
 
 func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate()
-	player.position = Vector3(0, 0.02, 11.0)
+	var spawn_z := WorldLayout.PLAYER_START_Z
+	if GameState.pending_spawn_id == "room_entrance":
+		spawn_z = WorldLayout.ROOM_TRIGGER_Z + 3.0
+	elif GameState.pending_spawn_id == "chase_start":
+		spawn_z = WorldLayout.CHASE_RESPAWN_Z
+	player.position = Vector3(0, 0.02, spawn_z)
 	add_child(player)
 	var hud := HUD_SCENE.instantiate()
 	add_child(hud)
@@ -97,77 +85,30 @@ func _spawn_player() -> void:
 	_fail_overlay = FAIL_SCRIPT.instantiate()
 	add_child(_fail_overlay)
 
-func _spawn_story_objects() -> void:
-	_add_story("phone", Vector3(-1.8, 0.55, 8.8), "Answer the phone", Color(0.16, 0.12, 0.1))
-	_add_story("logbook", Vector3(1.8, 0.42, 8.8), "Sign the night log", Color(0.25, 0.18, 0.12))
-	_add_door("floor_door", Vector3(0, 1.25, -8.0), "log_signed", "", 92.0)
-	_add_story("fuse_pickup", Vector3(2.3, 0.45, -24.0), "Take the spare fuse", Color(0.74, 0.55, 0.2))
-	_add_story("fuse_box", Vector3(-2.8, 1.15, -34.0), "Open the fuse box", Color(0.2, 0.22, 0.24))
-	_add_story("memory_photo", Vector3(-2.4, 0.6, -47.0), "Inspect the burned photograph", Color(0.28, 0.18, 0.12))
-	_add_story("memory_cassette", Vector3(2.2, 0.35, -57.0), "Take the cassette", Color(0.12, 0.08, 0.06))
-	_add_story("memory_rabbit", Vector3(-2.4, 0.42, -66.0), "Pick up the red rabbit", Color(0.5, 0.08, 0.07))
-	_add_story("radio", Vector3(2.2, 0.7, -71.0), "Tune the radio", Color(0.12, 0.16, 0.17))
-	_add_door("room_door", Vector3(0, 1.25, -78.0), "radio_solved", "", -92.0)
-	_add_story("final_clue", Vector3(0, 0.5, -94.0), "Read the child's note", Color(0.32, 0.26, 0.19))
-	_add_story("exit", Vector3(0, 1.0, -128.0), "Run for the lobby", Color(0.18, 0.22, 0.24))
-
-func _add_story(id: String, position: Vector3, label: String, color: Color) -> StoryInteractable:
-	var item := STORY_SCRIPT.new() as StoryInteractable
-	item.name = id
-	item.position = position
-	item.setup(self, id, label)
-	item.collision_layer = 9
-	add_child(item)
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(0.55, 0.65, 0.45)
-	mesh.mesh = box
-	mesh.material_override = LevelGeometry.material(color)
-	item.add_child(mesh)
-	var shape := CollisionShape3D.new()
-	var collider := BoxShape3D.new()
-	collider.size = Vector3(0.55, 0.65, 0.45)
-	shape.shape = collider
-	item.add_child(shape)
-	return item
-
-func _add_door(id: String, position: Vector3, locked_flag: String, required_item: String, angle: float) -> DoorInteractable:
-	var door := DOOR_SCRIPT.new() as DoorInteractable
-	door.name = id
-	door.position = position
-	door.open_angle = angle
-	door.locked_flag = locked_flag
-	door.required_item = required_item
-	door.prompt_text = "Door"
-	door.collision_layer = 9
-	add_child(door)
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(2.2, 2.5, 0.2)
-	mesh.mesh = box
-	mesh.material_override = LevelGeometry.material(Color(0.16, 0.12, 0.12))
-	door.add_child(mesh)
-	var shape := CollisionShape3D.new()
-	var collider := BoxShape3D.new()
-	collider.size = Vector3(2.2, 2.5, 0.2)
-	shape.shape = collider
-	door.add_child(shape)
-	return door
-
 func get_story_prompt(action_id: String, _actor: Node) -> String:
 	if action_id == "phone" and not GameState.has_flag("phone_answered"):
 		return "[E] Answer the ringing phone"
-	if action_id == "logbook" and GameState.has_flag("phone_answered") and not GameState.has_flag("log_signed"):
+	if action_id == "logbook" and GameState.has_flag("phone_briefing_complete") and not GameState.has_flag("log_signed"):
 		return "[E] Sign the night log"
 	if action_id == "fuse_pickup" and not GameState.has_item("spare_fuse"):
 		return "[E] Take the spare fuse"
 	if action_id == "fuse_box" and not GameState.has_flag("fuse_installed"):
 		return "[E] Install the fuse"
-	if action_id.begins_with("memory_") and not GameState.has_flag(action_id):
+	if action_id == "memory_photo" and _loop_iteration == 0 and not GameState.has_flag(action_id):
 		return "[E] " + _memory_label(action_id)
-	if action_id == "radio" and not GameState.has_flag("radio_solved"):
+	if action_id == "memory_cassette" and _loop_iteration == 1 and not GameState.has_flag(action_id):
+		return "[E] " + _memory_label(action_id)
+	if action_id == "memory_rabbit" and _loop_iteration == 2 and not GameState.has_flag(action_id):
+		return "[E] " + _memory_label(action_id)
+	if action_id == "hallway_loop" and _memory_count < 3:
+		return "[E] Enter the changed hallway" if _memory_count > _loop_iteration else "Find what the hallway is hiding"
+	if action_id == "radio" and _memory_count >= 3 and not GameState.has_flag("radio_solved"):
 		return "[E] Tune the radio to 0007"
-	if action_id == "final_clue" and not GameState.has_flag("final_clue_seen"):
+	if action_id == "room_record" and not GameState.has_flag("room_record_started") and not GameState.has_flag("room_record_heard"):
+		return "[E] Play the family recording"
+	if action_id == "room_drawing" and not GameState.has_flag("room_drawing_seen"):
+		return "[E] Inspect the wall drawing"
+	if action_id == "final_clue" and GameState.has_flag("room_record_heard") and GameState.has_flag("room_drawing_seen") and not GameState.has_flag("final_clue_seen"):
 		return "[E] Read the child's note"
 	if action_id == "exit" and GameState.has_flag("final_clue_seen"):
 		return "[E] Run for the lobby"
@@ -179,11 +120,17 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			if GameState.has_flag("phone_answered"):
 				return false
 			GameState.set_flag("phone_answered")
-			GameState.set_objective("Sign the night log, then take the fourth-floor key.")
+			GameState.set_objective("Listen to the manager. The line keeps cutting out.")
 			AudioManager.play_tone("phone_click", 440.0, 0.12)
+			_narrative.play([
+				"MANAGER: You are covering the last shift, yes?",
+				"MANAGER: Sign the log. Take the fourth-floor key.",
+				"MANAGER: The lights failed outside Room 407.",
+				"MANAGER: If someone calls from inside... do not answer twice."
+			], "phone_briefing_complete", 5.0)
 			return true
 		"logbook":
-			if not GameState.has_flag("phone_answered") or GameState.has_flag("log_signed"):
+			if not GameState.has_flag("phone_briefing_complete") or GameState.has_flag("log_signed"):
 				return false
 			GameState.set_flag("log_signed")
 			GameState.add_item("floor_key")
@@ -200,9 +147,15 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			GameState.consume_item("spare_fuse")
 			GameState.set_flag("fuse_installed")
 			GameState.advance_stage(GameState.Stage.FLOOR4_POWERED)
-			GameState.set_objective("Follow the humming lights. Something is waiting in the hall.")
+			GameState.set_objective("Wait for the emergency circuit to stabilize.")
 			_horror.trigger("fuse_power")
 			AudioManager.play_tone("power_restore", 110.0, 0.8, -13.0)
+			_narrative.play([
+				"The fuse catches. One light wakes up.",
+				"A second light answers farther down the hall.",
+				"A door slams where there was no door.",
+				"The emergency circuit settles into a low hum."
+			], "power_stable", 4.0)
 			return true
 		"memory_photo":
 			return _collect_memory(action_id)
@@ -210,6 +163,16 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 			return _collect_memory(action_id)
 		"memory_rabbit":
 			return _collect_memory(action_id)
+		"hallway_loop":
+			if _memory_count <= _loop_iteration or _memory_count >= 3 or _loop_transitioning:
+				return false
+			_loop_iteration += 1
+			if _actor is Node3D:
+				_actor.global_position = Vector3(0, 0.02, WorldLayout.MEMORY_START_Z)
+			GameState.set_objective("The same corridor returned, but the doors are wrong.")
+			AudioManager.play_tone("hallway_turn", 52.0, 1.0, -11.0)
+			_run_loop_transition(_actor, _loop_iteration)
+			return true
 		"radio":
 			if _memory_count < 3 or GameState.has_flag("radio_solved"):
 				return false
@@ -218,8 +181,27 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 				add_child(_radio_ui)
 			_radio_ui.open(self, _actor)
 			return true
+		"room_record":
+			if GameState.has_flag("room_record_started") or GameState.has_flag("room_record_heard"):
+				return false
+			GameState.set_flag("room_record_started")
+			GameState.set_objective("Listen to the recording recovered from Room 407.")
+			AudioManager.play_tone("room_record", 145.0, 1.2, -16.0)
+			_narrative.play([
+				"RECORDING: You promised you would come back for us.",
+				"CHILD: I put the rabbit where the hallway cannot see.",
+				"RECORDING: The door was locked from the outside."
+			], "room_record_heard", 4.0)
+			return true
+		"room_drawing":
+			if not GameState.has_flag("room_record_heard") or GameState.has_flag("room_drawing_seen"):
+				return false
+			GameState.set_flag("room_drawing_seen")
+			GameState.set_subtitle("The drawing shows you holding the red rabbit outside Room 407.")
+			GameState.set_objective("The final note is waiting at the back of the impossible room.")
+			return true
 		"final_clue":
-			if not GameState.has_flag("room_entered") or GameState.has_flag("final_clue_seen"):
+			if not GameState.has_flag("room_entered") or not GameState.has_flag("room_record_heard") or not GameState.has_flag("room_drawing_seen") or GameState.has_flag("final_clue_seen"):
 				return false
 			if _note_ui == null:
 				_note_ui = NOTE_SCRIPT.new() as CanvasLayer
@@ -234,7 +216,10 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 	return false
 
 func _collect_memory(action_id: String) -> bool:
-	if GameState.has_flag(action_id):
+	if GameState.has_flag(action_id) or _loop_transitioning:
+		return false
+	var expected: String = ["memory_photo", "memory_cassette", "memory_rabbit"][_loop_iteration]
+	if action_id != expected:
 		return false
 	GameState.set_flag(action_id)
 	_memory_count += 1
@@ -243,24 +228,69 @@ func _collect_memory(action_id: String) -> bool:
 	_horror.trigger(action_id)
 	AudioManager.play_tone("memory_%s" % _memory_count, 180.0 + _memory_count * 55.0, 0.42, -18.0)
 	if _memory_count >= 3:
+		_disable_loop_gate()
 		GameState.set_objective("The radio is repeating your voice. Find the number it wants.")
 	else:
 		GameState.set_objective("The corridor remembers another object. Keep looking.")
 	return true
 
 func on_radio_solved() -> void:
-	if GameState.has_flag("radio_solved"):
+	if GameState.has_flag("radio_solved") or GameState.has_flag("radio_sequence_started"):
 		return
-	GameState.set_flag("radio_solved")
-	GameState.set_objective("Room 407 is open. Do not look behind the door.")
+	GameState.set_flag("radio_sequence_started")
+	GameState.set_objective("The radio has found a recording in your voice.")
 	AudioManager.play_tone("radio_code", 700.0, 0.2)
+	_narrative.play([
+		"YOUR VOICE: Zero. Zero. Zero. Seven.",
+		"YOUR VOICE: I left the rabbit under the bed.",
+		"YOUR VOICE: I locked the door from the outside.",
+		"The radio clicks off. Room 407 unlocks."
+	], "radio_solved", 4.0)
 
 func on_note_closed() -> void:
 	if GameState.has_flag("final_clue_seen"):
 		return
 	GameState.set_flag("final_clue_seen")
-	GameState.set_objective("The lights are going out. Reach the lobby before it finds you.")
-	GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
+	GameState.set_objective("The lights are failing one by one. Listen before you run.")
+	_narrative.play([
+		"The note is written in your childhood handwriting.",
+		"Behind you, the family recording starts again.",
+		"The corridor stretches toward a red EXIT light.",
+		"Something stands between you and the room you forgot."
+	], "chase_ready", 4.0)
+
+func _on_narrative_finished(flag: String) -> void:
+	match flag:
+		"phone_briefing_complete":
+			GameState.set_objective("Sign the night log and take the fourth-floor key.")
+		"power_stable":
+			GameState.set_objective("Follow the humming lights into the changed hallway.")
+		"radio_solved":
+			GameState.set_objective("Room 407 is open. Do not look behind the door.")
+		"room_record_heard":
+			GameState.set_objective("A child's drawing is pinned deeper inside Room 407.")
+		"chase_ready":
+			GameState.set_objective("RUN. Follow the red lights to the lobby exit.")
+			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
+
+func _disable_loop_gate() -> void:
+	var gate := get_node_or_null("hallway_loop") as StoryInteractable
+	if gate == null:
+		return
+	gate.interaction_enabled = false
+	gate.collision_layer = 0
+	gate.visible = false
+
+func _run_loop_transition(actor: Node, iteration: int) -> void:
+	_loop_transitioning = true
+	if actor != null and actor.has_method("set_input_locked"):
+		actor.set_input_locked("hallway", true)
+	GameState.set_subtitle("The elevator bell rings behind you. This is loop %d." % (iteration + 1))
+	await get_tree().create_timer(4.0 * _narrative.duration_scale).timeout
+	GameState.set_subtitle("")
+	if actor != null and is_instance_valid(actor) and actor.has_method("set_input_locked"):
+		actor.set_input_locked("hallway", false)
+	_loop_transitioning = false
 
 func _memory_label(action_id: String) -> String:
 	return {
@@ -270,12 +300,16 @@ func _memory_label(action_id: String) -> String:
 	}.get(action_id, "Inspect")
 
 func _start_chase() -> void:
+	if GameState.has_flag("chase_started") or is_instance_valid(entity):
+		return
 	GameState.set_flag("chase_started")
 	GameState.advance_stage(GameState.Stage.CHASE)
 	GameState.set_objective("RUN. The exit is at the far end of the corridor.")
 	entity = ENTITY_SCRIPT.new() as CharacterBody3D
 	entity.name = "TheEntity"
 	entity.position = player.global_position + Vector3(0, 0, 8.5)
+	entity.collision_layer = 8
+	entity.collision_mask = 1
 	add_child(entity)
 	entity.setup(player, self)
 	var mesh := MeshInstance3D.new()
@@ -295,22 +329,27 @@ func _start_chase() -> void:
 	AudioManager.play_tone("chase_alarm", 72.0, 1.2, -9.0)
 
 func fail_chase() -> void:
-	if not GameState.has_flag("chase_started") or _ending:
+	if not GameState.has_flag("chase_started") or _ending or _recovering:
 		return
+	_recovering = true
+	player.set_input_locked("fail", true)
 	if entity != null:
 		entity.stop_chase()
 		entity.visible = false
+	_fail_overlay.show_failure()
+	AudioManager.play_tone("fail", 48.0, 0.5, -12.0)
+	await get_tree().create_timer(1.25).timeout
 	GameState.restore_checkpoint()
 	GameState.set_flag("chase_started")
 	GameState.advance_stage(GameState.Stage.CHASE)
-	player.global_position = Vector3(0, 0.02, -108.0)
+	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_RESPAWN_Z)
 	GameState.set_objective("It caught you once. Run earlier and keep the light ahead.")
-	_fail_overlay.show_failure()
-	AudioManager.play_tone("fail", 48.0, 0.5, -12.0)
 	if entity != null:
 		entity.global_position = player.global_position + Vector3(0, 0, 8.5)
 		entity.visible = true
 		entity.start_chase()
+	player.set_input_locked("fail", false)
+	_recovering = false
 
 func _finish_ending() -> void:
 	_ending = true

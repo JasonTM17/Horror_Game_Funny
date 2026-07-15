@@ -4,13 +4,16 @@ extends CanvasLayer
 @onready var inventory_label: Label = $Margin/Column/Inventory
 @onready var prompt_label: Label = $Prompt
 @onready var feedback_label: Label = $Feedback
+@onready var subtitle_label: Label = $Subtitle
 var _feedback_time := 0.0
 
 func _ready() -> void:
 	GameState.objective_changed.connect(_on_objective_changed)
 	GameState.inventory_changed.connect(_on_inventory_changed)
+	GameState.subtitle_changed.connect(_on_subtitle_changed)
 	_on_objective_changed(GameState.objective)
 	_on_inventory_changed(GameState.inventory)
+	_on_subtitle_changed(GameState.subtitle)
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null:
 		var interaction := player.get_node_or_null("Head/Camera3D/Interaction")
@@ -41,3 +44,6 @@ func _on_feedback_requested(text: String) -> void:
 		return
 	feedback_label.text = text
 	_feedback_time = 2.4
+
+func _on_subtitle_changed(text: String) -> void:
+	subtitle_label.text = text

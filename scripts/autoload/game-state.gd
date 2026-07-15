@@ -5,11 +5,13 @@ signal stage_changed(stage: int)
 signal objective_changed(text: String)
 signal inventory_changed(items: Array[String])
 signal flag_changed(id: String, value: bool)
+signal subtitle_changed(text: String)
 
 enum Stage { LOBBY, FLOOR4_DARK, FLOOR4_POWERED, MEMORY_LOOP, ROOM_407, CHASE, ENDING }
 
 var stage: int = Stage.LOBBY
 var objective: String = "Find the night desk and sign in."
+var subtitle: String = ""
 var inventory: Array[String] = []
 var flags: Dictionary = {}
 var completed_events: Dictionary = {}
@@ -19,6 +21,7 @@ var pending_spawn_id: String = "start"
 func reset_run() -> void:
 	stage = Stage.LOBBY
 	objective = "Find the night desk and sign in."
+	subtitle = ""
 	inventory.clear()
 	flags.clear()
 	completed_events.clear()
@@ -27,6 +30,7 @@ func reset_run() -> void:
 	stage_changed.emit(stage)
 	objective_changed.emit(objective)
 	inventory_changed.emit(inventory.duplicate())
+	subtitle_changed.emit(subtitle)
 
 func advance_stage(next_stage: int) -> void:
 	if next_stage < stage:
@@ -41,6 +45,12 @@ func set_objective(text: String) -> void:
 		return
 	objective = text
 	objective_changed.emit(objective)
+
+func set_subtitle(text: String) -> void:
+	if subtitle == text:
+		return
+	subtitle = text
+	subtitle_changed.emit(subtitle)
 
 func add_item(item_id: String) -> bool:
 	if item_id.is_empty() or inventory.has(item_id):
@@ -101,4 +111,3 @@ func restore_checkpoint() -> bool:
 	objective_changed.emit(objective)
 	inventory_changed.emit(inventory.duplicate())
 	return true
-

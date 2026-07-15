@@ -12,16 +12,16 @@ func trigger(event_id: String) -> void:
 		return
 	match event_id:
 		"memory_photo":
-			_spawn_message("YOU WERE HERE", Vector3(0, 2.2, -51.0), Color(0.72, 0.2, 0.18))
+			_spawn_message("YOU WERE HERE", Vector3(0, 2.2, WorldLayout.MEMORY_PHOTO_Z - 5.0), Color(0.72, 0.2, 0.18))
 			AudioManager.play_tone("memory_whisper", 210.0, 0.6, -17.0)
 		"memory_cassette":
-			_spawn_message("DON'T TURN AROUND", Vector3(0, 2.2, -62.0), Color(0.62, 0.58, 0.5))
+			_spawn_message("DON'T TURN AROUND", Vector3(0, 2.2, WorldLayout.MEMORY_CASSETTE_Z - 5.0), Color(0.62, 0.58, 0.5))
 			AudioManager.play_tone("memory_whisper_two", 95.0, 0.9, -18.0)
 		"memory_rabbit":
-			_spawn_apparition(Vector3(0, 1.25, -75.0))
+			_spawn_apparition(Vector3(0, 1.25, WorldLayout.LOOP_GATE_Z - 6.0))
 			AudioManager.play_tone("memory_whisper_three", 56.0, 1.1, -14.0)
 		"fuse_power":
-			_spawn_message("THE LIGHTS REMEMBER", Vector3(-2.8, 2.0, -36.0), Color(0.48, 0.64, 0.72))
+			_spawn_message("THE LIGHTS REMEMBER", Vector3(-2.8, 2.0, WorldLayout.FUSE_BOX_Z - 4.0), Color(0.48, 0.64, 0.72))
 
 func _spawn_message(text: String, position: Vector3, color: Color) -> void:
 	var label := LevelGeometry.add_label(self, text, position, color)
