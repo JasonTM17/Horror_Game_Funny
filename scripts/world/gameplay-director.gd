@@ -9,6 +9,7 @@ const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 const RADIO_SCRIPT := preload("res://scripts/puzzles/radio-puzzle.gd")
 const HALLWAY_SCRIPT := preload("res://scripts/world/dynamic-hallway-controller.gd")
 const HORROR_SCRIPT := preload("res://scripts/world/horror-event-director.gd")
+const NOTE_SCRIPT := preload("res://scripts/ui/note-reader.gd")
 
 var player: CharacterBody3D
 var entity: CharacterBody3D
@@ -19,6 +20,7 @@ var _ending := false
 var _radio_ui: CanvasLayer
 var _hallway: Node3D
 var _horror: Node3D
+var _note_ui: CanvasLayer
 
 func _ready() -> void:
 	GameState.reset_run()
@@ -208,9 +210,10 @@ func handle_story_action(action_id: String, _actor: Node) -> bool:
 		"final_clue":
 			if not GameState.has_flag("room_entered") or GameState.has_flag("final_clue_seen"):
 				return false
-			GameState.set_flag("final_clue_seen")
-			GameState.set_objective("The lights are going out. Reach the lobby before it finds you.")
-			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
+			if _note_ui == null:
+				_note_ui = NOTE_SCRIPT.new() as CanvasLayer
+				add_child(_note_ui)
+			_note_ui.open(self, _actor, "A CHILD'S NOTE", "Mum says the room is only a room if we leave it.\n\nI counted the clock four times. It always stops at 00:07.\n\nIf the hallway starts breathing, run toward the red exit sign.")
 			return true
 		"exit":
 			if not GameState.has_flag("chase_started"):
@@ -225,6 +228,13 @@ func on_radio_solved() -> void:
 	GameState.set_flag("radio_solved")
 	GameState.set_objective("Room 407 is open. Do not look behind the door.")
 	AudioManager.play_tone("radio_code", 700.0, 0.2)
+
+func on_note_closed() -> void:
+	if GameState.has_flag("final_clue_seen"):
+		return
+	GameState.set_flag("final_clue_seen")
+	GameState.set_objective("The lights are going out. Reach the lobby before it finds you.")
+	GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
 
 func _memory_label(action_id: String) -> String:
 	return {
