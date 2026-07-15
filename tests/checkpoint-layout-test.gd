@@ -29,6 +29,20 @@ func _ready() -> void:
 	if not _require(not gameplay.has_node("Room407Wall"), "full-width Room407 wall blocks the route"): return
 	if not _require(gameplay.has_node("floor_door") and gameplay.has_node("power_door") and gameplay.has_node("room_door"), "guarded doors missing"): return
 	if not _require(gameplay.has_node("Ceiling") and gameplay.has_node("NightDeskBase"), "continuous corridor dressing missing"): return
+	var world_environment: WorldEnvironment
+	for child in gameplay.get_children():
+		if child is WorldEnvironment:
+			world_environment = child as WorldEnvironment
+			break
+	if not _require(world_environment != null and world_environment.environment.ambient_light_energy >= 0.7, "ambient light regressed below the readability floor"): return
+	if not _require(world_environment.environment.tonemap_exposure >= 1.2 and world_environment.environment.fog_density <= 0.007, "corridor exposure or fog regressed below the navigation readability floor"): return
+	var lobby_light := gameplay.get_node_or_null("CorridorLight00") as OmniLight3D
+	if not _require(lobby_light != null and lobby_light.light_energy >= 3.0 and lobby_light.omni_range >= 12.0, "lobby task lighting regressed below the readability floor"): return
+	var lobby_task_light := gameplay.get_node_or_null("LobbyTaskLight") as OmniLight3D
+	if not _require(lobby_task_light != null and lobby_task_light.light_energy >= 1.8, "warm lobby focus light missing"): return
+	var corridor_light := gameplay.get_node_or_null("CorridorLight01") as OmniLight3D
+	if not _require(corridor_light != null and corridor_light.light_energy >= 1.1 and corridor_light.omni_range >= 10.0, "corridor pool lights regressed below the readability floor"): return
+	if not _require(player.flashlight.light_energy >= 3.0 and player.flashlight.spot_range >= 20.0, "flashlight regressed below the navigation readability floor"): return
 	var navigation_region := gameplay.get_node_or_null("ContinuousCorridorNavigation") as NavigationRegion3D
 	if not _require(navigation_region != null and navigation_region.navigation_mesh != null, "chase navigation surface missing"): return
 	if not _require(navigation_region.navigation_mesh.get_polygon_count() == 1, "continuous navigation polygon missing"): return

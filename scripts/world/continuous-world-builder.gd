@@ -7,17 +7,18 @@ static func build(parent: Node3D) -> void:
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color(0.006, 0.009, 0.016)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.14, 0.18, 0.25)
-	environment.ambient_light_energy = 0.3
+	environment.ambient_light_color = Color(0.24, 0.28, 0.36)
+	environment.ambient_light_energy = 0.78
+	environment.tonemap_exposure = 1.35
 	environment.fog_enabled = true
 	environment.fog_light_color = Color(0.08, 0.1, 0.13)
-	environment.fog_density = 0.009
+	environment.fog_density = 0.0065
 	world.environment = environment
 	parent.add_child(world)
-	LevelGeometry.add_box(parent, "Floor", Vector3(0, -0.15, WorldLayout.FLOOR_CENTER_Z), Vector3(8, 0.3, WorldLayout.FLOOR_LENGTH), Color(0.055, 0.06, 0.075))
-	LevelGeometry.add_box(parent, "Ceiling", Vector3(0, 4.1, WorldLayout.FLOOR_CENTER_Z), Vector3(8, 0.2, WorldLayout.FLOOR_LENGTH), Color(0.045, 0.05, 0.065))
-	LevelGeometry.add_box(parent, "LeftWall", Vector3(-4, 2.0, WorldLayout.FLOOR_CENTER_Z), Vector3(0.25, 4.0, WorldLayout.FLOOR_LENGTH), Color(0.08, 0.075, 0.085))
-	LevelGeometry.add_box(parent, "RightWall", Vector3(4, 2.0, WorldLayout.FLOOR_CENTER_Z), Vector3(0.25, 4.0, WorldLayout.FLOOR_LENGTH), Color(0.08, 0.075, 0.085))
+	LevelGeometry.add_box(parent, "Floor", Vector3(0, -0.15, WorldLayout.FLOOR_CENTER_Z), Vector3(8, 0.3, WorldLayout.FLOOR_LENGTH), Color(0.085, 0.09, 0.11))
+	LevelGeometry.add_box(parent, "Ceiling", Vector3(0, 4.1, WorldLayout.FLOOR_CENTER_Z), Vector3(8, 0.2, WorldLayout.FLOOR_LENGTH), Color(0.07, 0.075, 0.09))
+	LevelGeometry.add_box(parent, "LeftWall", Vector3(-4, 2.0, WorldLayout.FLOOR_CENTER_Z), Vector3(0.25, 4.0, WorldLayout.FLOOR_LENGTH), Color(0.13, 0.12, 0.14))
+	LevelGeometry.add_box(parent, "RightWall", Vector3(4, 2.0, WorldLayout.FLOOR_CENTER_Z), Vector3(0.25, 4.0, WorldLayout.FLOOR_LENGTH), Color(0.13, 0.12, 0.14))
 	LevelGeometry.add_box(parent, "LobbyBack", Vector3(0, 2.0, 35), Vector3(8, 4, 0.25), Color(0.11, 0.1, 0.12))
 	_add_partition(parent, "LobbyPartition", WorldLayout.FLOOR_DOOR_Z, Color(0.1, 0.09, 0.11))
 	_add_partition(parent, "PowerPartition", WorldLayout.POWER_DOOR_Z, Color(0.08, 0.09, 0.1))
@@ -35,12 +36,16 @@ static func build(parent: Node3D) -> void:
 	LevelGeometry.add_label(parent, "EXIT", Vector3(0, 2.55, WorldLayout.EXIT_Z + 1.0), Color(0.85, 0.16, 0.12))
 	var corridor_light_index := 0
 	for z in [24.0, -18.0, -55.0, -92.0, -130.0, -170.0, -210.0, -250.0, -290.0, -330.0, -370.0, -415.0, -460.0, -505.0, -565.0, -625.0, -685.0, -745.0, -795.0]:
-		var corridor_light := LevelGeometry.add_light(parent, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), 0.62, 8.5)
+		var light_energy := 3.2 if is_equal_approx(z, 24.0) else 1.25
+		var light_range := 13.0 if is_equal_approx(z, 24.0) else 10.5
+		var corridor_light := LevelGeometry.add_light(parent, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), light_energy, light_range)
 		corridor_light.name = "CorridorLight%02d" % corridor_light_index
 		corridor_light_index += 1
-	LevelGeometry.add_light(parent, Vector3(0, 2.6, WorldLayout.FINAL_CLUE_Z), Color(0.52, 0.12, 0.1), 1.0, 7.0)
+	var lobby_task_light := LevelGeometry.add_light(parent, Vector3(0, 2.25, WorldLayout.LOBBY_PROP_Z - 0.5), Color(0.92, 0.58, 0.34), 2.0, 5.5)
+	lobby_task_light.name = "LobbyTaskLight"
+	LevelGeometry.add_light(parent, Vector3(0, 2.6, WorldLayout.FINAL_CLUE_Z), Color(0.52, 0.12, 0.1), 1.6, 8.0)
 	for chase_z in [-540.0, -585.0, -630.0, -675.0, -720.0, -765.0, -800.0]:
-		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 0.72, 7.5)
+		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 1.05, 9.0)
 		guide_light.name = "ChaseGuideLight"
 	_add_navigation_surface(parent)
 

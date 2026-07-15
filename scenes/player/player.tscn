@@ -28,9 +28,9 @@ fov = 74.0
 
 [node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D"]
 light_color = Color(0.82, 0.9, 1, 1)
-light_energy = 1.8
-spot_range = 18.0
-spot_angle = 32.0
+light_energy = 3.2
+spot_range = 22.0
+spot_angle = 34.0
 shadow_enabled = true
 script = ExtResource("3_flashlight")
 
