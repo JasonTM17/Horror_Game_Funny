@@ -115,7 +115,7 @@ Settings save to `user://room407.cfg` when the settings panel closes. Checkpoint
 
 ## Tests and Evidence
 
-- Run the narrowest relevant check first, then the complete ten-check runner for shared contracts.
+- Run the narrowest relevant check first, then the complete twelve-check runner for shared contracts.
 - Automated progression tests must cover success, early rejection, duplicate rejection, and recovery where applicable.
 - Keep expected success markers and assertion prefixes synchronized with `run-headless-tests.ps1`.
 - Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.

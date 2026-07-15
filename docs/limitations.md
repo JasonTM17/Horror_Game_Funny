@@ -16,11 +16,13 @@
 
 ## Automated Test Boundaries
 
-- The runner has ten headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, targeted physical-route movement, settings/audio, persistence write, and persistence read.
+- The runner has twelve headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, targeted physical-route movement, player-input integration, visual-effects contracts, settings/audio, persistence write, and persistence read.
 - Every runner invocation uses a unique Godot user-data profile under `.tmp/`; the writer and reader share it, then guaranteed teardown removes it. Automated settings changes do not touch the normal game profile.
-- Progression automation calls gameplay methods and UI submission methods directly; it does not generate a full physical keyboard/mouse traversal.
-- The physical-route smoke sends the mapped forward action through the production player and physics, proving three locked/open door passages plus selected threshold gates. It teleports between gates, sets flags, and calls doors directly, so it does not prove E/raycast interaction, the complete route, puzzle input, chase feel, or pacing.
+- Progression automation calls gameplay and radio widget methods directly. It covers radio Escape/unlock, non-digit filtering, cooldown persistence, the three-failure hint, final-note gating, and an entity-proximity capture recovery after injected positioning. It does not type, click, close the final note through physical input, or run a player-driven chase.
+- The physical-route smoke synthesizes the mapped forward action through `Input.action_press()`, then reaches the production player's `Input.get_vector()` and physics path. It proves three locked/open door passages plus selected threshold gates, but it teleports between gates, sets flags, and calls doors directly. It does not prove physical W/E delivery, E/raycast interaction, the complete route, puzzle input, chase feel, or pacing.
+- The player-input integration check confirms a physical E binding exists, then passes constructed `InputEventAction` objects directly to production handlers. It covers the phone interaction ray, objective review, pause/flashlight locks, note Escape/unlock, door spam and close/reopen cycles, and authored head-position restoration. It does not inject operating-system keyboard/mouse events or prove input latency and feel.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
+- The visual-effects check verifies the overlay shader/material, dither/VHS/fear uniforms, chase/ending fear targets, and the film-grain visibility toggle. It does not inspect rendered pixels, readability, comfort, monitor gamma, or GPU performance.
 - The settings/audio test verifies buses, selected clamps, controls, pause Settings/Escape lock preservation, audio cache/player teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes. No headless check verifies audible output or physical panel interaction.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, or frame pacing on target hardware.
 
@@ -28,7 +30,7 @@
 
 The following are targets or implemented features, not manually verified release claims:
 
-- 15–20 minute blind-run pacing and per-chapter pacing;
+- 15-20 minute blind-run pacing and per-chapter pacing;
 - complete F5 boot-to-credits traversal using real input;
 - collision and door passage feel across the entire corridor;
 - live `NavigationAgent3D` behavior and chase fairness under player control;
@@ -42,7 +44,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 
 ## Content and Presentation Scope
 
-- Geometry, materials, labels, shader effects, and audio are intentionally procedural and asset-light.
+- Geometry, materials, labels, shader effects, and audio are intentionally procedural and asset-light. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
 - The project contains no committed screenshots or gameplay-capture directory.
 - Voice acting, external hero props, crouch, and a secondary ending are deferred.
 - The radio, subtitles, and credits use runtime UI/default theme behavior rather than committed font assets.

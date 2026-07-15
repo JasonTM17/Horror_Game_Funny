@@ -30,6 +30,7 @@ F6 is editor current-scene execution and can skip the boot scene. The memory loo
 | `DynamicHallwayController` | Four visibility-switched corridor variants and memory-driven dressing changes |
 | `HorrorEventDirector` | Idempotent, local visual/audio events and apparitions |
 | `NarrativeSequencer` | Timed subtitle lines and completion flags |
+| `VisualEffectsLayer` | Full-screen retro shader, settings visibility, and stage-driven fear intensity |
 
 `GameplayDirector` exposes a small facade (`get_story_prompt`, `handle_story_action`, `on_radio_solved`, `on_note_closed`, `fail_chase`, and `finish_ending`) so interactables and UI do not need direct references to the specialized controllers.
 
@@ -121,15 +122,51 @@ Ending success remains in the gameplay scene. The chase controller stops the ent
 
 `SettingsManager` clamps values at the service boundary and applies audio levels to named buses. `settings-panel.gd` reads current values on construction, updates them immediately, and saves the full config when the panel closes.
 
-`AudioManager` creates 16-bit, 22,050 Hz mono PCM tones and caps cached sample data at 16 MiB. `stop_all()` stops streams, clears cache/accounting, and queues player nodes for safe end-of-frame release. Drones are skipped under the headless display server, so a successful headless call does not prove audible output.
+`AudioManager` precedes `SettingsManager` in the autoload list. It creates the Music, SFX, Ambience, and Chase buses, then `SettingsManager.load_settings()` applies saved levels. When no config exists, the same method calls the four audio setters with their in-code defaults, including mapping music volume to Chase. The settings/audio check starts with an isolated first-run profile and asserts every named bus matches those defaults.
 
-`VisualEffectsLayer` applies the project-authored canvas shader and toggles the overlay from `film_grain_enabled`. Flashlight flicker, head bob, and camera shake read their settings at runtime.
+`AudioManager` creates 16-bit, 22,050 Hz mono PCM tones and caps cached sample data at 16 MiB. `stop_all()` stops streams, clears cache/accounting, and frees player nodes synchronously. Drones are skipped under the headless display server, so a successful headless call does not prove audible output.
+
+`VisualEffectsLayer` creates a full-screen `ColorRect` with the project-authored Compatibility canvas shader. The shader combines 2x2 dithering, VHS horizontal jitter/tracking, animated grain, scanlines, a cold color grade, and an edge vignette. `GameState.stage_changed` targets fear intensity at 1.0 for `CHASE`, 0.12 for `ENDING`, and 0.0 otherwise; the shader darkens and warms the edge as that value rises. `film_grain_enabled` controls visibility of the entire overlay, so disabling **Film Grain** also disables dither, VHS, scanline, grade, and chase fear-vignette effects. Flashlight flicker, head bob, and camera shake read their separate settings at runtime.
+
+## Extension Guide
+
+These are the current extension points verified against the source and headless checks.
+
+### Interaction
+
+1. Add a stable lowercase ID through `_add_story()` or `_add_door()` in `continuous-story-layout.gd`.
+2. Keep the player ray on collision mask value `4`, the named Interactable physics bit. Existing story props and doors use collision layer value `5` (`World` value `1` plus `Interactable` value `4`), so the player capsule sees their solid world collision while the interaction ray can acquire them.
+3. Use `StoryInteractable` for director-routed actions, `DoorInteractable` for animated guarded doors, or `PickupInteractable` for a direct inventory pickup. Each target must retain a `CollisionShape3D` and implement the `get_prompt()` / `interact()` contract inherited from `Interactable`.
+4. Add a production-ray assertion to `player-input-integration-test.gd`; use `physical-route-smoke-test.gd` as well when the object must block or clear player movement.
+
+### Story Beat
+
+1. Register the prop and ID in `ContinuousStoryLayout`.
+2. Put prompt prerequisites in `StoryProgressionController.get_prompt()` and repeat the guard in `handle_action()` or its delegated method; hidden prompt text is not an authorization boundary. Observation-only sequences belong in `StoryObservationController`.
+3. Store durable run state through stable `GameState` flags/items/stages, update the objective explicitly, and send timed lines through `NarrativeSequencer` when completion must occur after playback.
+4. Extend `progression-test.gd` with premature rejection, accepted progression, one-shot behavior, and exact state side effects. Add checkpoint restore assertions when the beat can exist before a Continue reload.
+
+### Hallway Variant
+
+`DynamicHallwayController._build_variant_props()` owns the geometry below `Variant0` through `Variant3`; add or replace dressing under the intended `variant_roots[index]`. A new state beyond those four also requires increasing the root-creation count, changing the clamp in `reconfigure_for_memory()`, extending the ordered memory IDs/count thresholds in `StoryProgressionController`, and updating the restored-variant assertions in `checkpoint-layout-test.gd`. The current three-memory contract deliberately caps the final state at index 3.
+
+### Setting
+
+1. Add a typed default, bounded setter, `setting_changed` emission, reset value, and save/load key in `settings-manager.gd`.
+2. Add the control to `settings-panel.tscn`, initialize and connect it in `settings-panel.gd`, and make the runtime consumer read the current value plus subscribe to changes when live updates are required.
+3. Extend both persistence processes for the new serialized value. Add boundary or initial-application coverage to `settings-audio-test.gd`; visual overlay behavior belongs in `visual-effects-test.gd`.
+
+### Test Check
+
+Create a focused `.gd` script and `.tscn` harness under `tests/`, print one unique success marker only after all assertions pass, then add one `Invoke-GodotCheck` entry in `run-headless-tests.ps1`. If the check uses a new assertion prefix, add that prefix to the runner's failure scan. Keep external profile/config behavior inside the runner's isolated `.tmp/` user-data tree and document the new check in `testing.md`.
 
 ## Verification Boundaries
 
-The ten-check headless runner verifies import, scene loading, state snapshots, guarded progression, radio cooldown across close/reopen, layout/door/navigation invariants, targeted production-player movement and door collision, restored hallway variants, chase state/speed ordering and retreat recovery, failure recovery, staged ending success, settings controls/clamps, buses, pause Settings/Escape, audio teardown, in-memory Continue visibility, and settings persistence across two Godot processes.
+The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-It synthesizes `move_forward` for focused capsule/collision checks, but it does not generate a complete physical keyboard/mouse playthrough or verify monitor output, audible output, lighting/audio balance, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
+Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; layout, navigation, restored hallway, chase state/speed, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps; first-run bus defaults; audio teardown; in-memory Continue visibility; and settings persistence across two Godot processes.
+
+The movement checks teleport between focused gates and the input check positions the player at selected production targets. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
 ## References
 
@@ -139,6 +176,10 @@ It synthesizes `move_forward` for focused capsule/collision checks, but it does 
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
+- [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
+- [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
+- [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
+- [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
 - [Testing matrix](testing.md)
