@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/pause-menu.gd" id="1_pause"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+script = ExtResource("1_pause")
+
+[node name="Panel" type="Panel" parent="."]
+visible = false
+offset_left = 320.0
+offset_top = 120.0
+offset_right = 640.0
+offset_bottom = 420.0
+
+[node name="Title" type="Label" parent="Panel"]
+offset_left = 92.0
+offset_top = 28.0
+offset_right = 230.0
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 26
+text = "PAUSED"
+
+[node name="Resume" type="Button" parent="Panel"]
+offset_left = 55.0
+offset_top = 90.0
+offset_right = 265.0
+offset_bottom = 138.0
+text = "RESUME"
+
+[node name="Restart" type="Button" parent="Panel"]
+offset_left = 55.0
+offset_top = 150.0
+offset_right = 265.0
+offset_bottom = 198.0
+text = "RESTART SHIFT"
+
+[node name="Menu" type="Button" parent="Panel"]
+offset_left = 55.0
+offset_top = 210.0
+offset_right = 265.0
+offset_bottom = 258.0
+text = "MAIN MENU"

@@ -2,6 +2,7 @@ extends Node3D
 
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
+const PAUSE_SCENE := preload("res://scenes/ui/pause-menu.tscn")
 const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
 const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
@@ -61,6 +62,7 @@ func _spawn_player() -> void:
 	add_child(player)
 	var hud := HUD_SCENE.instantiate()
 	add_child(hud)
+	add_child(PAUSE_SCENE.instantiate())
 
 func _spawn_story_objects() -> void:
 	_add_story("phone", Vector3(-1.8, 0.55, 8.8), "Answer the phone", Color(0.16, 0.12, 0.1))
