@@ -6,17 +6,15 @@
 script = ExtResource("1_fail")
 
 [node name="Panel" type="ColorRect" parent="."]
-offset_left = 230.0
-offset_top = 190.0
-offset_right = 730.0
-offset_bottom = 350.0
-color = Color(0.12, 0.015, 0.02, 0.9)
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.025, 0.004, 0.008, 0.96)
 
 [node name="Message" type="Label" parent="Panel"]
-offset_left = 30.0
-offset_top = 34.0
-offset_right = 470.0
-offset_bottom = 126.0
+offset_left = 230.0
+offset_top = 220.0
+offset_right = 730.0
+offset_bottom = 320.0
 theme_override_colors/font_color = Color(0.92, 0.78, 0.72, 1)
 theme_override_font_sizes/font_size = 22
 text = "THE HALLWAY SWALLOWED YOU\nThe checkpoint is still warm."

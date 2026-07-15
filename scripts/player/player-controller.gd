@@ -32,6 +32,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		flashlight.visible = _flashlight_on
 		flashlight_changed.emit(_flashlight_on)
 	if event.is_action_pressed("pause_game"):
+		if _locks.has("note") or _locks.has("radio") or _locks.has("fail") or _locks.has("ending"):
+			return
 		_toggle_pause()
 
 func _physics_process(delta: float) -> void:

@@ -49,6 +49,7 @@ func _build_ui() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("pause_game"):
+		get_viewport().set_input_as_handled()
 		close_note()
 
 func close_note() -> void:

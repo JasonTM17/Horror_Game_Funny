@@ -73,6 +73,11 @@ func _on_text_changed(value: String) -> void:
 	if filtered != value:
 		entry.text = filtered
 
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("pause_game"):
+		get_viewport().set_input_as_handled()
+		close()
+
 func _submit() -> void:
 	if entry.text == "0007":
 		if director != null and director.has_method("on_radio_solved"):
