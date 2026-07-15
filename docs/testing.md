@@ -55,12 +55,12 @@ The runner fails on a non-zero Godot exit, a missing expected marker, or matchin
 `progression-test.gd` instantiates the production gameplay scene and calls its public story facade. Narrative duration is reduced only for test execution. It verifies:
 
 - fresh-run ending and early logbook rejection;
-- phone briefing, stopped-clock observation, logbook, floor-notice observation, fuse pickup/install, and power stabilization;
+- phone briefing, stopped-clock and night-register observations, logbook, floor-notice observation, fuse pickup/install, and power stabilization;
 - ordered photo, cassette, and rabbit collection with one completed environmental echo required after each memory;
 - first, second, and final blackout transition completion;
 - duplicate memory rejection;
 - radio UI opening, wrong-code cooldown/disabled submit state, close/reopen cooldown preservation, cooldown recovery, correct `0007`, and `radio_solved` completion;
-- Room 407 recording, drawing, bed/wardrobe observations, note, and chase readiness;
+- Room 407 recording, drawing, bed/wardrobe/family-table observations, note, and chase readiness;
 - chase stage, capture recovery marker, and no duplicate entity after recovery;
 - successful ending gate, `ENDING` stage, `AbandonedLobbyFloor` reveal node, and delayed credits appearance.
 
@@ -80,6 +80,7 @@ The test manipulates UI fields and calls methods directly. It does not send actu
 - the entity reaches `STALK` after `APPEAR`;
 - entity 3.0 is faster than walk 2.0 and slower than sprint 3.1;
 - retreat beyond the chase boundary requests recovery and restores the chase marker;
+- representative story props retain recognizable child parts (phone handset, clock digits, book title, rabbit ears, radio dial, and family-table plate);
 - memory-loop distance is at least 180 units, chase distance at least 280, and total corridor length at least 850.
 
 These are structural and numeric assertions. They do not move a player capsule through every doorway or prove that a `NavigationAgent3D` follows the route correctly under player-driven pursuit.

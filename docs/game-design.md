@@ -61,7 +61,7 @@ These values are authored pacing goals, not measured results. A complete keyboar
 
 ### Lobby
 
-The phone and logbook teach interaction. The player must also read the stopped desk clock before the logbook becomes valid; its 00:07 clue seeds the later radio puzzle. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
+The phone and logbook teach interaction. The player must read the stopped desk clock and then the night register before the logbook becomes valid; its 00:07 clue seeds the later radio puzzle. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
 
 ### Fourth Floor
 
@@ -91,7 +91,7 @@ The hallway controller exposes four visual roots: the initial corridor and three
 
 ### Room 407
 
-The family recording must finish before the drawing can be inspected. The player then searches the child's bed and wardrobe for two physical clues; all four observations are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
+The family recording must finish before the drawing can be inspected. The player then searches the child's bed, wardrobe, and family table for three physical clues; all five Room 407 clue interactions are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
 
 ### Chase and Ending
 

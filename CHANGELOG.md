@@ -18,7 +18,8 @@ All notable changes to this project are documented here.
 ### Changed
 
 - Split progression, chase, recovery, and ending responsibilities out of the gameplay facade.
-- Added authored observation beats inside the continuous route: the stopped desk clock, floor notice, three memory echoes, and two Room 407 searches now gate the next story step with readable narrative feedback.
+- Added authored observation beats inside the continuous route: the stopped desk clock, night register, floor notice, three memory echoes, and three Room 407 searches now gate the next story step with readable narrative feedback.
+- Replaced generic story-prop boxes with readable procedural PS1 silhouettes for phones, clocks, books, paper clues, fuses, cassettes, the rabbit, radio, search markers, the family table, and the exit panel.
 - Raised bounded ambient, lobby focus, corridor pool, flashlight, and chase-guide lighting floors after real Compatibility-renderer captures; the route remains dark without losing its main silhouettes.
 - Tuned chase speed to 3.0 units/second against player walk 2.0 and sprint 3.1 units/second.
 - Expanded progression coverage to exercise radio wrong/correct UI behavior, chase recovery, ending success, and the abandoned-lobby reveal.
