@@ -6,8 +6,10 @@ var _cache: Dictionary = {}
 var _sample_bytes: int = 0
 
 func _ready() -> void:
-	if AudioServer.get_bus_index("Master") < 0:
-		AudioServer.add_bus()
+	for bus_name in ["SFX", "Ambience", "Chase"]:
+		if AudioServer.get_bus_index(bus_name) < 0:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
 
 func play_tone(id: String, frequency: float, duration: float, volume_db: float = -16.0) -> void:
 	if frequency <= 0.0 or duration <= 0.0:
@@ -18,7 +20,7 @@ func play_tone(id: String, frequency: float, duration: float, volume_db: float =
 	var player: AudioStreamPlayer = _players.get(id)
 	if not is_instance_valid(player):
 		player = AudioStreamPlayer.new()
-		player.bus = "Master"
+		player.bus = "SFX"
 		add_child(player)
 		_players[id] = player
 	player.stream = stream
@@ -53,4 +55,3 @@ func _get_tone(id: String, frequency: float, duration: float) -> AudioStreamWAV:
 	_sample_bytes += data.size()
 	_cache[id] = stream
 	return stream
-

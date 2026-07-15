@@ -5,10 +5,12 @@ func _ready() -> void:
 	visible = false
 	$Panel/Sensitivity.value = SettingsManager.mouse_sensitivity
 	$Panel/Fov.value = SettingsManager.field_of_view
+	$Panel/Volume.value = SettingsManager.master_volume
 	$Panel/Flicker.button_pressed = SettingsManager.flicker_enabled
 	$Panel/HeadBob.button_pressed = SettingsManager.comfort_head_bob
 	$Panel/Sensitivity.value_changed.connect(_on_sensitivity)
 	$Panel/Fov.value_changed.connect(_on_fov)
+	$Panel/Volume.value_changed.connect(_on_volume)
 	$Panel/Flicker.toggled.connect(SettingsManager.set_flicker_enabled)
 	$Panel/HeadBob.toggled.connect(SettingsManager.set_comfort_head_bob)
 	$Panel/Close.pressed.connect(close_panel)
@@ -26,3 +28,6 @@ func _on_sensitivity(value: float) -> void:
 
 func _on_fov(value: float) -> void:
 	SettingsManager.set_field_of_view(value)
+
+func _on_volume(value: float) -> void:
+	SettingsManager.set_master_volume(value)
