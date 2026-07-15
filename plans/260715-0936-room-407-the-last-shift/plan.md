@@ -42,22 +42,21 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Current Evidence Reconciliation — 2026-07-15
 
-- The pushed gameplay baseline ends at `40354eb`; `d89e2c7` hardens isolated-profile teardown and `1c225db` reconciles user/maintainer guides. Local `HEAD` and `origin/main` match at `1c225db` before this evidence-only plan update.
-- The exact isolated Godot 4.7.1 runner was rerun after user/maintainer guide edits and before evidence-only plan/report synchronization; all 12 checks exited `0` from 17:04:29 through 17:05:02 ICT: editor import, menu, gameplay, game state, progression, checkpoint/layout, physical route, player input, visual effects, settings/audio, persistence write, and persistence read.
-- The targeted movement smoke drives the production `CharacterBody3D` through mapped input and physics across three locked/open doors, selected prerequisite thresholds, Room 407 checkpoint creation, and chase creation. It deliberately does not claim E/raycast interaction, complete keyboard/mouse traversal, or pacing evidence.
-- Independent review findings for settings-profile pollution, checkpoint hallway restoration, radio cooldown reopening, chase retreat, ending reveal staging, and audio teardown were fixed and covered by regressions.
-- Prompt and action-handler prerequisites now agree for lobby, floor, memory, and Room 407 interactions; the expanded negative matrix found and closed direct-call bypasses.
-- Separate writer and reader processes verify all 11 settings survive a relaunch inside one isolated profile, and runner teardown removes that profile.
-- A real local Compatibility-renderer capture is clean and readable. It is uncommitted developer evidence produced without a physical F5 playthrough, so it does not prove route traversal, presentation over the full game, audible output, or pacing.
-- A fresh clone of `origin/main` at `1c225db` reproduced the README runner contract with 12 logs, all 9 required markers, zero temporary profiles, and zero tracked changes, then was removed from the verified repository-local temp root.
+- Telemetry code `fc8f7e7` and reconciled user/maintainer documentation `257e601` are pushed. Local `HEAD` and `origin/main` matched at `257e601` before this evidence-only plan/journal update.
+- The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in the order actually observed, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
+- The exact isolated Godot 4.7.1 runner passes all 12 checks after the telemetry, production-physics capture, pause, finalization, and audio-drain regressions. The compressed fresh payload is complete and order-valid with a false target verdict, as intended.
+- A fresh clone of `origin/main` at `257e601` reproduced the README runner contract in 45.7 seconds: 12 logs, all 9 required markers, zero bad log matches, zero temporary profiles, and zero tracked changes. The verified clone was then removed from the checked repository-local temp root.
+- Independent adversarial re-review found no remaining code findings after post-credits immutability, actual-order, physics-capture, measurable-pause, and audio-teardown fixes.
+- Separate writer and reader processes still verify all 11 settings survive relaunch inside one isolated profile, and guaranteed runner teardown removes that profile.
+- A real local Compatibility-renderer capture remains clean and readable developer evidence, but it is not a physical F5 traversal and cannot prove route completion, presentation quality, audible output, or pacing.
 - Phase 1–6 status denotes completed implementation slices. Open checkboxes in Phases 3–6 are deliberately carried into Phase 7 because they require physical/manual evidence, not more implementation claims.
-- Phase 7 remains in progress because no authorized physical F5 keyboard/mouse playthrough has recorded chapter timing, total 15–20 minute pacing, complete traversal, chase feel, visual/audio balance, or the physical Settings-panel relaunch workflow.
-- Phase 8 is in progress for documentation reconciliation and release auditing. It cannot complete until the Phase 7 manual evidence, final clean-tree evidence, and post-documentation remote parity exist.
-- Post-rehearsal disk snapshot at 17:08 ICT: C: 11.08 GiB free; D: 29.96 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- Phase 7 remains in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or recorded chase/presentation/audio/settings evidence.
+- Phase 8 documentation and clean-clone auditing are current, but final closure remains dependent on Phase 7 physical evidence and the final clean synced Git state after that evidence is recorded.
+- Post-rehearsal disk snapshot at 18:20 ICT: C: 10.50 GiB free; D: 34.50 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
 
 ## Dependencies
 
-- No cross-plan dependencies. `origin/main` contains the pushed atomic history through runner-cleanup commit `d89e2c7` and user/maintainer documentation commit `1c225db`; only this evidence-only plan/report update remains local.
+- No cross-plan dependencies. `origin/main` contains the pushed atomic history through telemetry commit `fc8f7e7` and pacing-documentation commit `257e601`; only this evidence-only plan/journal/report update remains local at report creation.
 - Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
 - Compatibility renderer; procedural/created assets only.
 

@@ -49,12 +49,12 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 ## Current Evidence — 2026-07-15
 
-- The pushed gameplay baseline ends at `40354eb`; `d89e2c7` hardens isolated-profile teardown and `1c225db` reconciles user/maintainer guides. Local `HEAD` and `origin/main` match at `1c225db` before this evidence-only plan update.
-- The exact 12-check headless runner was rerun after user/maintainer guide edits and before evidence-only plan/report synchronization; all checks exited `0` from 17:04:29 through 17:05:02 ICT. The pushed gameplay baseline also exits `0`.
-- A fresh clone of `origin/main` at `1c225db` reproduced the README runner contract with 12 logs, all 9 required markers, zero temporary profiles, and zero tracked changes. The verified clone was deleted from the repository-local temp root.
+- Telemetry code `fc8f7e7` and reconciled README/design/architecture/testing/limitations/changelog commit `257e601` are pushed. Local `HEAD` and `origin/main` matched at `257e601` before this evidence-only plan/journal update.
+- The exact 12-check headless runner passes after all telemetry/review fixes. The compressed fresh report is complete and order-valid but correctly outside target; the restored-run report is incomplete/ineligible with a null total verdict.
+- A fresh clone of `origin/main` at `257e601` reproduced the README runner contract with 12 logs, all 9 required markers, zero bad log matches, zero temporary profiles, and zero tracked changes. The verified clone was deleted from the repository-local temp root.
 - A real local Compatibility-renderer capture is clean and readable, but remains uncommitted and non-physical.
-- Post-rehearsal disk snapshot at 17:08 ICT: C: 11.08 GiB free; D: 29.96 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
-- No authorized physical F5 15–20 minute boot-to-credits run exists. Phase 8 is in progress, not complete.
+- Post-rehearsal disk snapshot at 18:20 ICT: C: 10.50 GiB free; D: 34.50 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- No authorized physical F5 15–20 minute boot-to-credits run with same-run telemetry exists. Phase 8 is in progress, not complete.
 
 ## Dependency Map
 
@@ -110,5 +110,6 @@ Final staged diff is scanned for tokens, passwords, local user paths, logs, and 
 ## Next Steps
 
 - Record the authorized physical F5 playthrough and manual presentation/settings evidence required by Phase 7.
-- Commit and push this evidence-only plan/audit update, then prove a clean working tree and local/remote parity without rewriting history.
+- Preserve the same-run capture and telemetry payload; use its chapter/total timings for any final tuning inside the continuous scene.
+- Commit and push this evidence-only plan/journal/audit update, then prove a clean working tree and local/remote parity without rewriting history.
 - Mark the goal complete only after every remaining gate has direct evidence.
