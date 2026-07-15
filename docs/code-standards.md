@@ -1,93 +1,143 @@
 # Code Standards
 
-## Goals
+## Overview
 
-Prefer YAGNI, KISS, then DRY. Code must protect a complete short game, not become a generic horror framework.
+Prefer YAGNI, KISS, then DRY. Protect the contracts of this complete short game instead of turning it into a generic horror framework. Follow existing GDScript and Godot scene patterns before introducing a new abstraction.
 
 ## Files and Naming
 
-- New files and directories use descriptive lowercase kebab-case.
-- GDScript classes use PascalCase; methods, variables, and signals use snake_case.
-- Stable IDs and input actions use lowercase snake_case strings defined once.
-- Scene and resource paths are lowercase and case-exact for Linux compatibility.
-- Keep code files under 200 lines where practical. Split only at real ownership boundaries.
+- Use descriptive lowercase kebab-case for new files and directories.
+- Use PascalCase for named GDScript classes.
+- Use snake_case for methods, variables, signals, and input actions.
+- Use stable lowercase snake_case strings for story flags, inventory IDs, event IDs, and spawn IDs.
+- Keep `res://` paths lowercase and case-exact for Linux compatibility.
+- Consider a split when a code file exceeds 200 lines, but split only at a real ownership boundary.
+
+The current primary boundary is deliberate: `GameplayDirector` is the runtime facade, `StoryProgressionController` owns guarded progression and loop transitions, and `ChaseSequenceController` owns pursuit, recovery, and ending behavior.
 
 ## Typed GDScript
 
 - Type public methods, signals, exported values, member state, and return values.
-- Avoid `Variant`/untyped dictionaries at public boundaries unless serialization requires them.
-- Use enums for finite states and constants for tuning limits.
-- Treat nullable node/resource references explicitly and fail with clear errors.
+- Avoid untyped dictionaries at public boundaries unless serialization requires a value container.
+- Use enums for finite states and constants for layout/tuning invariants.
+- Cast scene instances and nullable node lookups explicitly.
+- Keep node ownership visible; do not hide scene dependencies in generic service locators.
+
+## Scene and Service Ownership
+
+| Owner | Allowed responsibilities | Must not own |
+|---|---|---|
+| Autoload | cross-scene state, routing, audio service, persisted settings | scene nodes, local animations, story choreography |
+| Gameplay facade | runtime assembly, zone observation, delegation | detailed puzzle UI or chase internals |
+| Story controller | prompts, guards, flags/items, narrative completion, memory-loop swaps | player movement or enemy physics |
+| Chase controller | entity lifecycle, failure recovery, chase lighting/audio, ending reveal | general story interactions |
+| Player | movement, look, flashlight, input locks, comfort effects | story stage decisions |
+| Interactable | local enabled/cooldown state and semantic call | unrelated global progression |
 
 ## Node Access
 
 - Cache stable child references with `@onready`.
 - Never call `get_node()` repeatedly in `_process()` or `_physics_process()`.
-- Use exported `NodePath`/typed node references for designer-owned connections.
-- Use groups only for true many-to-many discovery, not as a service locator.
+- Use typed references or exported `NodePath` values for designer-owned connections.
+- Use groups only for true discovery such as the active player, not as a service locator.
+- Construct runtime nodes once during setup; avoid per-frame allocation.
 
-## Scene Ownership
+## Signals and Asynchrony
 
-- Autoloads own cross-scene data/services only.
-- Level controllers own level events, local props, and scene sequencing.
-- Player scripts own movement and player input, not story event choreography.
-- An interactable owns its local state transition and reports semantic results.
-- Avoid cyclic references between autoloads and scene nodes.
+- Prefer typed signals for completed facts such as `objective_changed` and `transition_finished`.
+- Connect during initialization and rely on node lifetime for disconnection.
+- Do not emit success signals when a guard rejects a mutation.
+- Protect tweens, timers, transitions, chase recovery, and UI cooldowns with explicit busy/idempotency flags.
+- After `await`, confirm referenced nodes still exist before mutating them.
 
-## Signals
+## Physics and Navigation
 
-- Prefer typed signals for state changes and UI updates.
-- Connect once during scene initialization and disconnect with node lifetime.
-- Signal names describe completed facts: `objective_changed`, `item_added`, `checkpoint_restored`.
-- Do not emit a signal for a mutation that failed its guard.
-
-## Physics and Frame Work
-
-- Movement runs in `_physics_process(delta)` and uses `move_and_slide()` correctly.
-- Normalize combined movement input before applying speed.
-- Apply timers, fades, and animation using delta, Timer, AnimationPlayer, or Tween.
-- Disable processing for inactive hallway variants and dormant entities.
-- Prefer signals/timers over polling when behavior is event-driven.
-
-## Input and Accessibility
-
-- Read actions from the Input Map; never hard-code keys in gameplay scripts.
-- Keep sensitivity, FOV, volume, flicker, shake, and bob values within documented bounds.
-- Centralize input-lock reasons so closing one UI cannot unlock another active lock.
-- Restore mouse capture explicitly after pause, note, failure, and scene changes.
-
-## Error Handling
-
-- Use guard clauses for invalid state, missing requirements, duplicate events, and busy transitions.
-- Do not swallow errors or leave debug prints in release code.
-- Use `push_error()` for broken authoring contracts and player-facing feedback for valid locked states.
-- Treat resource-load failure as blocking during tests.
+- Run character movement in `_physics_process(delta)` and call `move_and_slide()` once per movement step.
+- Normalize combined input before applying speed.
+- Use collision layers from `project.godot`; do not hard-code ad hoc layer semantics in documentation only.
+- Create or configure `NavigationAgent3D` during setup, and check the map iteration before requesting path points.
+- Keep fallback movement bounded by authored world limits.
+- Preserve the tested chase ordering: player walk 2.0 < entity 3.0 < player sprint 3.1.
 
 ## Interaction and Progression
 
-- Prompt lookup is read-only.
-- Pickups, puzzle solutions, event IDs, checkpoints, and capture are idempotent.
-- Gates validate prerequisites before consuming items or advancing stages.
-- Snapshot data contains values only—never live nodes, callables, or tweens.
+- Prompt lookup must remain read-only.
+- Validate prerequisites before consuming inventory or advancing stage.
+- Make pickups, puzzle solutions, event completion, checkpoint creation, and capture recovery idempotent.
+- Store values only in checkpoint snapshots—never live nodes, resources, callables, tweens, or signals.
+- Display strings are presentation, never identifiers.
+- Keep the `GameState.Stage` progression monotonic.
 
-## Assets
+## Input Locks and UI
 
-- Prefer primitive meshes, procedural materials, simple SVG, and generated audio.
-- Record every committed asset in `docs/asset-credits.md`.
-- Do not add unclear copyrighted media, paid plugins, or unnecessary large binaries.
-- Keep import settings needed for deterministic assets; ignore generated cache directories.
+- Read gameplay input through actions defined in `project.godot`.
+- Use independent lock reasons (`pause`, `settings`, `note`, `radio`, `hallway`, `fail`, `ending`) so one UI cannot release another lock.
+- Restore mouse capture explicitly when the final lock clears.
+- Set pause-capable UI to `PROCESS_MODE_ALWAYS`.
+- Keep valid locked-state feedback player-facing; reserve `push_error()` for broken authoring contracts.
 
-## Tests and Verification
+## Settings Contract
 
-- Run the narrowest state/scene test after each coherent edit.
-- Before every commit, run Godot headless import as applicable, `git diff --check`, staged secret scan, and inspect staged names.
-- Automated tests cover positive and negative guards, duplicate interaction, and reset behavior.
-- Manual evidence is mandatory for navigation, collision feel, lighting, audio, and 15–20 minute pacing.
-- Never weaken an assertion to make a regression disappear.
+All setters clamp or normalize at `SettingsManager`, not only at slider widgets.
 
-## Git
+| Setting | Default | Allowed range or values |
+|---|---:|---|
+| Mouse sensitivity | 0.08 | 0.01–0.25 |
+| Field of view | 74 | 60–95 degrees |
+| Master volume | 0 dB | −40 to +6 dB |
+| Music/chase volume | −10 dB | −40 to +6 dB |
+| SFX volume | −4 dB | −40 to +6 dB |
+| Ambience volume | −8 dB | −40 to +6 dB |
+| Flicker | on | boolean |
+| Comfort head bob | on | boolean |
+| Camera shake | on | boolean |
+| Film grain/scanlines | on | boolean |
+| Fullscreen | off | boolean |
 
-- Use small Conventional Commits with imperative messages under 72 characters.
-- Do not mix unrelated code, docs, tests, or refactors.
-- Never commit cache, tools, logs, credentials, or local CK workspace support.
+Settings save to `user://room407.cfg` when the settings panel closes. Checkpoints are intentionally process-local and must not be added to that file without a deliberate save-system design.
+
+## Audio and Visual Assets
+
+- Prefer primitive meshes, project-authored shaders/SVG, and generated audio.
+- Record every committed or generated asset source in `asset-credits.md`.
+- Do not add media with unclear copyright or license terms.
+- Keep procedural audio inputs positive and respect the 16 MiB cache cap.
+- Keep Compatibility-renderer shader syntax and test the shader through editor import.
+- Do not claim that the project MIT license relicenses Godot Engine or its third-party components.
+
+## Error Handling
+
+- Use guard clauses for missing prerequisites, duplicates, invalid inputs, and active transitions.
+- Propagate scene-load failures and broken resource paths through clear errors.
+- Do not swallow errors, weaken assertions, or leave debug prints in release paths.
+- Treat `ResourceLoader.exists()` and scene instantiation failures as blocking when routing.
+- Keep valid player mistakes, such as a wrong radio code, in the UI instead of engine errors.
+
+## Tests and Evidence
+
+- Run the narrowest relevant check first, then the complete seven-check runner for shared contracts.
+- Automated progression tests must cover success, early rejection, duplicate rejection, and recovery where applicable.
+- Keep expected success markers and assertion prefixes synchronized with `run-headless-tests.ps1`.
+- Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.
+- A headless pass is not evidence of physical input traversal, visual/audio balance, audible output, settings persistence across relaunch, or 15–20 minute pacing.
+- Record manual evidence separately; never convert an unobserved design target into a verified claim.
+
+## Documentation and Git
+
+- Verify every code path, class name, node path, setting, command, and test claim against current source before documenting it.
+- Add references to the source or test that supports non-obvious claims.
+- Normalize documentation as UTF-8 and reject mojibake.
+- Keep commits focused and use Conventional Commit messages without AI attribution.
+- Never commit `.godot/`, `.tmp/`, `.artifacts/`, credentials, exported binaries, or a local Godot executable.
 - Never force-push `main`.
+
+## References
+
+- [`project.godot`](../project.godot)
+- [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
+- [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
+- [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
+- [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
+- [Architecture](architecture.md)
+- [Testing matrix](testing.md)

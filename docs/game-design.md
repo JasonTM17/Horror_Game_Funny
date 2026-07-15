@@ -1,153 +1,163 @@
 # ROOM 407: THE LAST SHIFT — Game Design
 
+## Overview
+
+ROOM 407 is a short first-person psychological horror game about returning to a condemned apartment block that remembers the protagonist's childhood. The player explores, interprets clues, solves two guarded puzzles, and escapes; there is no combat.
+
+This document separates implemented design from validation. The intended blind-run duration is 15–20 minutes, but no recorded manual pacing run currently proves that target.
+
 ## Core Fantasy
 
 You are the only night worker inside a condemned apartment block. A routine call asks you to inspect Room 407, but the fourth floor remembers you better than you remember it.
 
 The player is vulnerable, observant, and capable of escaping—not fighting. Fear comes from anticipation, spatial contradiction, sound outside the field of view, and familiar objects appearing where they should not.
 
-## Player Experience Goals
+## Player Experience Targets
 
-- Finish a blind first playthrough in 15–20 minutes.
-- Understand the main story without reading every optional note.
+- Complete a blind first playthrough in 15–20 minutes.
+- Understand the main story without reading optional material.
 - Feel tension rise in distinct waves rather than through constant pursuit.
-- Solve two readable environmental puzzles without brute-force frustration.
-- Trust the game to restore a fair checkpoint after capture.
-- Reach a clear ending that reframes the night shift.
+- Solve the fuse and radio interactions without brute-force frustration.
+- Trust capture recovery to return to a fair checkpoint.
+- Reach an ending that clearly reframes the night shift.
+
+These are design targets. Duration, clarity, comfort, and subjective tension still need manual observation.
 
 ## Story
 
-At 23:47, a student covering a night shift at an old apartment block receives a call from the building manager. The manager asks for a check on Room 407, despite records showing that the fourth floor was sealed after a child disappeared years ago.
+At 23:47, a student covering a night shift at an old apartment block receives a call from the building manager. The manager asks for a check on Room 407, despite the fourth floor having been sealed after a child disappeared years ago.
 
-The building begins normally. On the fourth floor, clocks return to 00:07, room numbers reverse, a radio repeats the protagonist's voice, and a distant silhouette watches from the end of the corridor. Three objects—a burned family photograph, a cassette, and a red toy rabbit—reveal that the protagonist lived in Room 407 as a child.
+Clocks point to 00:07, room numbers repeat, a radio carries the protagonist's voice, and an apparition watches from the corridor. A burned photograph, cassette, and red toy rabbit reveal that the protagonist lived in Room 407 as a child.
 
-Room 407 is a buried memory rather than an ordinary apartment. After recovering the last clue, the protagonist faces the entity and escapes a deforming corridor. The lobby outside is abandoned and decayed. There was no current night shift; the call was the memory drawing the protagonist back.
+The final clue starts the escape. At the exit, the current gameplay scene constructs an abandoned-lobby reveal: a condemned desk, a 2007 condemnation notice, and a notice that no night staff were assigned. A credits overlay identifies the game, design/development attribution, Godot version, procedural art/audio/shader provenance, and project source license.
 
 ## Gameplay Loop
 
-1. Explore a bounded area.
-2. Read a clue or observe an environmental change.
+1. Explore a bounded corridor section.
+2. Read a clue or observe an authored change.
 3. Find a task item.
 4. Use it at a guarded interaction point.
-5. Trigger a one-shot horror event.
-6. Observe a changed space.
-7. Unlock the next area.
+5. Trigger a one-shot horror or narrative beat.
+6. Observe a changed hallway.
+7. Unlock the next gate.
 8. Survive the final chase.
-9. Reach the ending and credits.
+9. Reach the abandoned-lobby reveal and credits.
 
-These are beats in one uninterrupted playable space, not separate stages. There is
-no loading screen between them; a corner, elevator, or blackout hides the director's
-reconfiguration. There is no combat. The final entity is the only sustained physical threat.
+All beats occupy one `gameplay.tscn` runtime. Memory-loop changes happen while a full-screen blackout curtain is opaque; the controller reconfigures the hallway and, on the first two loops, returns the player to the memory start during that hidden midpoint. These are not loading-screen scene transitions.
 
-## Pacing
+## Pacing Targets
 
 | Chapter | Target | Main beats |
 |---|---:|---|
-| Lobby at 23:47 | 2–3 min | movement, phone, duty log, fourth-floor key |
-| Fourth-floor blackout | 3–4 min | fuse search, power restoration, door slam, silhouette |
-| Distorted memory loop | 4–5 min | three variants, three memories, radio code |
-| Room 407 | 3–4 min | impossible space, final clue, entity reveal |
+| Lobby at 23:47 | 2–3 min | phone, logbook, fourth-floor key |
+| Fourth-floor blackout | 3–4 min | fuse search, power restoration, first anomaly |
+| Distorted memory loop | 4–5 min | three memories, two loop returns, radio code |
+| Room 407 | 3–4 min | recording, drawing, final clue |
 | Chase and ending | 2–3 min | guided escape, capture recovery, reveal, credits |
 
-A strong event is followed by 30–60 seconds of lower intensity. Walking distance never substitutes for authored content.
+These values are authored pacing goals, not measured results. A complete keyboard-and-mouse run must record actual chapter and total times before release claims use them as evidence.
 
-## Controls
-
-- Move and look.
-- Sprint.
-- Interact and pick up task items.
-- Toggle flashlight.
-- Review current objective.
-- Pause and adjust settings.
-
-Crouch is deferred because no required puzzle or chase route depends on it.
-
-## Level Progression
+## Progression
 
 ### Lobby
 
-The desk, phone, logbook, and key teach interaction without a tutorial modal. The floor exit stays locked until the player answers the phone and takes the duty key.
+The phone and logbook teach interaction. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
 
 ### Fourth Floor
 
-The hallway is dark but navigable. A maintenance clue points to a fuse in a drawer. Installing it restores selected lights, slams a door, and reveals a silhouette at a safe distance.
+The player can inspect an empty fuse box for feedback, collect the spare fuse, and install it once. Installation advances the story only after the item guard passes; the power sequence then stabilizes before the next door opens.
 
 ### Memory Hallway
 
-Three variants reuse one structural shell:
-
-- Intact corridor with correct numbering and cold fluorescent light.
-- Reversed room numbers, moved props, and intermittent radio noise.
-- Stained corridor, blocked side route, the toy in an impossible location, and red guidance light.
-
-Transitions happen behind a closed sight line. Each pass adds a new story beat and a different form of scare.
-
-### Room 407
-
-The interior is larger than its exterior. A child-sized room, family evidence, and the final clue connect the protagonist to the disappearance. A quiet inspection window precedes the lighting failure and entity reveal.
-
-### Chase and Ending
-
-The player follows light and sound through a short distorted route. One false path is clearly dangerous rather than arbitrarily fatal. Capture returns to the chase checkpoint. The successful exit loads the abandoned-lobby reveal and credits.
-
-## Puzzle Design
-
-### Fuse Box
-
-- Find one fuse using maintenance signage and an environmental light cue.
-- Empty-box interaction gives useful feedback.
-- Installation consumes the fuse exactly once.
-- Power, objective, and the following event update atomically.
-
-### Radio Code
-
-- A clock and the photograph establish `00:07`.
-- The radio accepts four bounded digits: `0007`.
-- Wrong answers produce static and a short cooldown.
-- Three failures unlock a subtitle hint about the stopped clock.
-- The correct answer unlocks Room 407 only after all three memories are collected.
-
-## Memory Items
+Three memory objects are ordered and idempotent:
 
 | Item | Meaning | Progress effect |
 |---|---|---|
-| Burned photograph | The protagonist lived in 407 | reinforces the 00:07 clue |
-| Cassette | The radio voice is the protagonist | changes radio playback |
-| Red toy rabbit | The missing child identity | completes the room prerequisite |
+| Burned photograph | The protagonist lived near Room 407 | reveals the stopped 00:07 clock clue |
+| Cassette | The radio voice belongs to the protagonist | triggers the turn-away apparition |
+| Red toy rabbit | The missing-child identity is personal | completes the loop prerequisite |
 
-Every pickup is idempotent and represented by a stable item ID rather than display text.
+The hallway controller exposes four visual roots: the initial corridor and three progressively distorted variants. Blackouts hide their visibility swap and loop repositioning.
 
-## Horror Principles
+### Radio Code
 
-- Audio precedes visible threat.
-- Silence is an authored event.
-- Familiar props move when the player is not looking.
-- A turn-away apparition occurs once.
-- Lighting misdirects without making the route unreadable.
-- Strong scares vary in form and never rely on repeated full-screen faces.
-- Volume spikes, gore, and rapid flicker are avoided.
+- The input accepts at most four numeric digits.
+- Submission requires exactly four digits.
+- The correct code is `0007`.
+- A wrong code displays static feedback and temporarily disables entry and submission.
+- Stepping away and reopening during the cooldown keeps input disabled until the same cooldown expires.
+- Three failures reveal the stopped-clock hint.
+- Solving the UI begins a narrative sequence; Room 407 unlocks only when that sequence finishes and sets `radio_solved`.
 
-## Entity
+### Room 407
 
-Scripted apparitions handle most of the game. The chase entity uses dormant, appear, stalk, search, chase, lost-target, and despawn states. It cannot spawn within immediate capture range, chase outside its authored area, or remain duplicated after checkpoint reload.
+The family recording must finish before the drawing can be inspected. Both facts are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
+
+### Chase and Ending
+
+Chase start dims every named corridor light to eight percent of its previous energy while leaving red guide lights in the route. The entity uses `DORMANT`, `APPEAR`, `STALK`, `SEARCH`, `CHASE`, `LOST_TARGET`, and `DESPAWN` states with a runtime `NavigationAgent3D` over the continuous corridor navigation region.
+
+Configured speed values are:
+
+| Actor mode | Speed |
+|---|---:|
+| Player walk | 2.0 |
+| Entity | 3.0 |
+| Player sprint | 3.1 |
+
+The automated layout test proves the scalar relationship `walk < entity < sprint` and verifies that the entity reaches `STALK`. It does not prove route readability, full physical traversal, collision feel, or human chase fairness; those remain manual checks.
+
+The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, builds the abandoned-lobby reveal, locks player input, stops the chase, holds the in-world view for three seconds, and opens the credits overlay in the same gameplay scene.
 
 ## Failure and Recovery
 
-Checkpoints exist before Room 407 and at chase start. Capture locks player input,
-stops chase audio, fades out, restores serializable state in the same gameplay scene,
-and moves the player to one safe marker. Persistent save across application restarts
-is outside the required scope.
+Checkpoints are created at the Room 407 entrance and chase start. On capture, the controller:
 
-## Accessibility
+1. locks player input;
+2. stops and hides the entity and chase drone;
+3. shows the fail overlay;
+4. restores the process-local `GameState` snapshot;
+5. repositions the existing player and entity at the chase marker;
+6. restarts the chase and unlocks input.
 
-- Bounded mouse sensitivity and field of view.
-- Master, music, SFX, and ambience volumes.
-- Fullscreen/windowed mode.
-- Toggles for head bob, camera shake, and film grain.
-- Reduced flicker intensity.
-- English subtitles for every important phone, radio, and story line.
-- Interaction feedback that does not rely on color alone.
+Retreating beyond the authored chase boundary requests this same recovery instead of disabling pursuit for the remainder of the run.
 
-## Completion Definition
+The boot menu exposes Continue when a checkpoint exists in the current process. Checkpoints are not written to disk and cannot survive an application restart.
 
-The game is complete only when a fresh run reaches ending and credits in the target duration, every mandatory gate resists out-of-order interaction, capture restores a valid checkpoint, and the final verification report records both automated and manual evidence.
+## Settings and Accessibility
+
+- Mouse sensitivity: 0.01–0.25, default 0.08.
+- Field of view: 60–95 degrees, default 74.
+- Master, music/chase, SFX, and ambience: −40 to +6 dB.
+- Fullscreen toggle.
+- Toggles for light flicker, comfort head bob, camera shake, and film grain/scanlines.
+- Text prompts, objectives, notes, radio feedback, and narrative subtitles.
+- Pause-menu access to the same settings panel as the boot menu.
+
+Settings save to `user://room407.cfg` when the panel closes. Automated tests inspect controls and selected clamps; save/relaunch persistence and audible results still require manual evidence.
+
+## Completion Evidence Required
+
+Automated checks cover progression guards, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase speed ordering, ending success, and the reveal node.
+
+Release validation still needs a recorded manual run covering:
+
+- complete F5 boot-to-credits traversal with physical inputs;
+- chapter and total pacing times;
+- collision and door passage feel;
+- navigation behavior during a real chase;
+- darkness, flicker, grain, and red-guide-light readability;
+- master/music/SFX/ambience balance and audible output;
+- mouse capture, pause/settings behavior, and comfort toggles;
+- settings persistence after save, quit, and relaunch.
+
+## References
+
+- [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
+- [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
+- [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
+- [`progression-test.gd`](../tests/progression-test.gd)
+- [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
+- [Testing matrix](testing.md)
+- [Known limitations](limitations.md)
