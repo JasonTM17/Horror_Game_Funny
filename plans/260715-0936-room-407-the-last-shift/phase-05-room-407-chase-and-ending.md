@@ -1,17 +1,18 @@
 ---
 phase: 5
-title: "Room 407 Chase and Ending"
-status: pending
+title: Room 407 Chase and Ending
+status: completed
 priority: P1
-dependencies: [4]
-effort: "large"
+dependencies:
+  - 4
+effort: large
 ---
 
 # Phase 5: Room 407 Chase and Ending
 
 ## Overview
 
-Complete the main path with the impossible Room 407 reveal, final clue, two in-memory checkpoints, explicit enemy state machine, bounded chase, capture/fade/reload, ending reveal, credits, and replay.
+Complete the main path with the impossible Room 407 reveal, final clue, an in-memory checkpoint, explicit enemy state machine, bounded chase, capture/recovery, ending reveal, credits, and replay inside the same continuous gameplay scene.
 
 ## Context Links
 
@@ -28,7 +29,10 @@ Complete the main path with the impossible Room 407 reveal, final clue, two in-m
 
 ## Architecture
 
-Room407 and Chase are separate scenes. Checkpoint snapshot is plain data owned by `GameState`; `SceneRouter` replaces the scene before restoration. Enemy state changes are explicit and navigation is active only in chase. Ending is an authored scene sequence, not a video file.
+Room407 and Chase are continuous zones in `gameplay.tscn`. Checkpoint snapshot is
+plain data owned by `GameState`; recovery resets the player to a safe marker without
+breaking the night-shift flow. Enemy state changes are explicit and navigation is
+active only in chase. Ending is an authored in-world sequence, not a video file.
 
 ## File Inventory
 
