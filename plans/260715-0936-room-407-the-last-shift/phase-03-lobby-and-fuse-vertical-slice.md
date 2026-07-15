@@ -1,10 +1,11 @@
 ---
 phase: 3
-title: "Lobby and Fuse Vertical Slice"
-status: pending
+title: Lobby and Fuse Vertical Slice
+status: in-progress
 priority: P1
-dependencies: [2]
-effort: "large"
+dependencies:
+  - 2
+effort: large
 ---
 
 # Phase 3: Lobby and Fuse Vertical Slice

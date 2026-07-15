@@ -67,7 +67,7 @@ func _spawn_player() -> void:
 func _spawn_story_objects() -> void:
 	_add_story("phone", Vector3(-1.8, 0.55, 8.8), "Answer the phone", Color(0.16, 0.12, 0.1))
 	_add_story("logbook", Vector3(1.8, 0.42, 8.8), "Sign the night log", Color(0.25, 0.18, 0.12))
-	_add_door("floor_door", Vector3(0, 1.25, -8.0), "phone_answered", "", 92.0)
+	_add_door("floor_door", Vector3(0, 1.25, -8.0), "log_signed", "", 92.0)
 	_add_story("fuse_pickup", Vector3(2.3, 0.45, -24.0), "Take the spare fuse", Color(0.74, 0.55, 0.2))
 	_add_story("fuse_box", Vector3(-2.8, 1.15, -34.0), "Open the fuse box", Color(0.2, 0.22, 0.24))
 	_add_story("memory_photo", Vector3(-2.4, 0.6, -47.0), "Inspect the burned photograph", Color(0.28, 0.18, 0.12))
