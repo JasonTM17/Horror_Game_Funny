@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-@export var speed := 1.9
+@export var speed := 3.25
 @export var detection_range := 24.0
 var target: Node3D
 var active := false
@@ -43,6 +43,8 @@ func _physics_process(delta: float) -> void:
 		_los_timer = 0.2
 		_target_visible = _has_line_of_sight()
 	if state == State.APPEAR and _state_time > 0.7:
+		_transition_to(State.STALK)
+	if state == State.STALK and _state_time > 1.0:
 		_transition_to(State.CHASE)
 	if state == State.LOST_TARGET and _state_time > 1.6:
 		_transition_to(State.SEARCH)
@@ -93,7 +95,7 @@ func _transition_to(next_state: State) -> void:
 		return
 	var allowed := {
 		State.DORMANT: [State.APPEAR, State.DESPAWN],
-		State.APPEAR: [State.CHASE, State.DESPAWN],
+		State.APPEAR: [State.STALK, State.DESPAWN],
 		State.STALK: [State.CHASE, State.SEARCH, State.DESPAWN],
 		State.SEARCH: [State.CHASE, State.LOST_TARGET, State.DESPAWN],
 		State.CHASE: [State.SEARCH, State.LOST_TARGET, State.DESPAWN],

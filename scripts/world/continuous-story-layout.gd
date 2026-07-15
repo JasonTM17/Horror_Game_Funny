@@ -5,8 +5,8 @@ const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
 const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
 
 static func build(director: Node3D) -> void:
-	_add_story(director, "phone", Vector3(-1.8, 0.55, WorldLayout.LOBBY_PROP_Z), "Answer the phone", Color(0.16, 0.12, 0.1))
-	_add_story(director, "logbook", Vector3(1.8, 0.42, WorldLayout.LOBBY_PROP_Z), "Sign the night log", Color(0.25, 0.18, 0.12))
+	_add_story(director, "phone", Vector3(-1.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.25), "Answer the phone", Color(0.16, 0.12, 0.1))
+	_add_story(director, "logbook", Vector3(1.8, 1.12, WorldLayout.LOBBY_PROP_Z - 0.25), "Sign the night log", Color(0.25, 0.18, 0.12))
 	_add_door(director, "floor_door", Vector3(0, 1.25, WorldLayout.FLOOR_DOOR_Z), "log_signed", 92.0)
 	_add_story(director, "fuse_pickup", Vector3(2.3, 0.45, WorldLayout.FUSE_PICKUP_Z), "Take the spare fuse", Color(0.74, 0.55, 0.2))
 	_add_story(director, "fuse_box", Vector3(-2.8, 1.15, WorldLayout.FUSE_BOX_Z), "Open the fuse box", Color(0.2, 0.22, 0.24))
