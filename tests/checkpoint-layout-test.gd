@@ -29,6 +29,8 @@ func _ready() -> void:
 	if not _require(not gameplay.has_node("Room407Wall"), "full-width Room407 wall blocks the route"): return
 	if not _require(gameplay.has_node("floor_door") and gameplay.has_node("power_door") and gameplay.has_node("room_door"), "guarded doors missing"): return
 	if not _require(gameplay.has_node("Ceiling") and gameplay.has_node("NightDeskBase"), "continuous corridor dressing missing"): return
+	for observation_id in ["desk_clock", "floor_notice", "memory_echo", "room_bed_observation", "room_wardrobe_observation"]:
+		if not _require(gameplay.has_node(observation_id), "%s observation prop missing" % observation_id): return
 	var world_environment: WorldEnvironment
 	for child in gameplay.get_children():
 		if child is WorldEnvironment:
