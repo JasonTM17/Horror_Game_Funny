@@ -31,7 +31,7 @@ function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expecte
     if ($exitCode -ne 0) {
         Write-Error "$Name failed with exit code $exitCode. See $log"
     }
-    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|ObjectDB instances were leaked|Leaked instance:" -Quiet) {
+    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|PHYSICAL_ROUTE_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|ObjectDB instances were leaked|Leaked instance:" -Quiet) {
         Write-Error "$Name reported an engine or progression error. See $log"
     }
     if ($Expected -and -not (Select-String -Path $log -Pattern $Expected -SimpleMatch -Quiet)) {
@@ -51,6 +51,7 @@ try {
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--script", "res://tests/game-state-test.gd", "--quit-after", "20") "game-state" "GAME_STATE_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/progression-test.tscn", "--quit-after", "1200") "progression" "PROGRESSION_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/checkpoint-layout-test.tscn", "--quit-after", "1200") "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/physical-route-smoke-test.tscn", "--quit-after", "1800") "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-audio-test.tscn", "--quit-after", "60") "settings-audio" "SETTINGS_AUDIO_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-write-test.tscn", "--quit-after", "60") "settings-persistence-write" "SETTINGS_PERSISTENCE_WRITE_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-read-test.tscn", "--quit-after", "60") "settings-persistence-read" "SETTINGS_PERSISTENCE_READ_OK"
