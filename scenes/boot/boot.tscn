@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[node name="Boot" type="Node"]
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.008, 0.012, 0.02, 1)
+
+[node name="Title" type="Label" parent="."]
+offset_left = 260.0
+offset_top = 218.0
+offset_right = 700.0
+offset_bottom = 322.0
+theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
+theme_override_font_sizes/font_size = 28
+text = "ROOM 407\nTHE LAST SHIFT"
+horizontal_alignment = 1
+vertical_alignment = 1

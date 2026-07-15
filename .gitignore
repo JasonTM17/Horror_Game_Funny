@@ -1,0 +1,21 @@
+# Godot imports and editor state
+.godot/
+.import/
+
+# Local verification artifacts and temporary files
+.artifacts/
+.tmp/
+exports/
+builds/
+*.tmp
+*.log
+
+# Local export configuration (not required to run the source project)
+export.cfg
+export_presets.cfg
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
