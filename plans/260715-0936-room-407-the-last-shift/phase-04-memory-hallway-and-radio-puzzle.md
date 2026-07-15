@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: Memory Hallway and Radio Puzzle
-status: in-progress
+status: completed
 priority: P1
 dependencies:
   - 3
