@@ -17,6 +17,8 @@ func _ready() -> void:
 	if not _require(await _wait_for_flag("phone_briefing_complete"), "phone briefing should complete"): return
 	if not _require(director.handle_story_action("desk_clock", player), "desk clock should be readable after the briefing"): return
 	if not _require(await _wait_for_flag("desk_clock_observation_complete"), "desk clock observation should complete"): return
+	if not _require(director.handle_story_action("lobby_register", player), "night register should be readable"): return
+	if not _require(await _wait_for_flag("lobby_register_observation_complete"), "night register observation should complete"): return
 	if not _require(director.handle_story_action("logbook", player), "logbook should grant key"): return
 	if not _require(not director.handle_story_action("radio", player), "radio must wait for memories"): return
 	GameState.set_flag("floor_reached")
@@ -66,6 +68,8 @@ func _ready() -> void:
 	if not _require(await _wait_for_flag("room_bed_observation_complete"), "room bed observation should complete"): return
 	if not _require(director.handle_story_action("room_wardrobe_observation", player), "wardrobe observation should unlock"): return
 	if not _require(await _wait_for_flag("room_wardrobe_observation_complete"), "wardrobe observation should complete"): return
+	if not _require(director.handle_story_action("room_family_table", player), "family table observation should unlock"): return
+	if not _require(await _wait_for_flag("room_family_table_observation_complete"), "family table observation should complete"): return
 	if not _require(director.handle_story_action("final_clue", player), "final clue should open note"): return
 	director.on_note_closed()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return

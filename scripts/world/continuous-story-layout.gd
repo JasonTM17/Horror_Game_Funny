@@ -7,6 +7,7 @@ const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
 static func build(director: Node3D) -> void:
 	_add_story(director, "phone", Vector3(-1.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.25), "Answer the phone", Color(0.16, 0.12, 0.1))
 	_add_story(director, "desk_clock", Vector3(0.0, 1.18, WorldLayout.LOBBY_PROP_Z - 0.42), "Read the stopped desk clock", Color(0.22, 0.25, 0.28))
+	_add_story(director, "lobby_register", Vector3(2.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.18), "Read the night register", Color(0.29, 0.21, 0.14))
 	_add_story(director, "logbook", Vector3(1.8, 1.12, WorldLayout.LOBBY_PROP_Z - 0.25), "Sign the night log", Color(0.25, 0.18, 0.12))
 	_add_door(director, "floor_door", Vector3(0, 1.25, WorldLayout.FLOOR_DOOR_Z), "log_signed", 92.0)
 	_add_story(director, "floor_notice", Vector3(-2.8, 1.15, WorldLayout.FLOOR_DOOR_Z - 8.0), "Read the maintenance notice", Color(0.32, 0.3, 0.24))
@@ -24,6 +25,7 @@ static func build(director: Node3D) -> void:
 	_add_story(director, "room_drawing", Vector3(2.4, 0.6, WorldLayout.ROOM_DRAWING_Z), "Inspect the wall drawing", Color(0.35, 0.12, 0.1))
 	_add_story(director, "room_bed_observation", Vector3(-2.4, 1.0, -404.0), "Search beneath the child's bed", Color(0.26, 0.14, 0.15))
 	_add_story(director, "room_wardrobe_observation", Vector3(2.2, 1.25, -447.0), "Inspect the wardrobe", Color(0.24, 0.12, 0.09))
+	_add_story(director, "room_family_table", Vector3(-2.6, 1.35, -462.0), "Inspect the family table", Color(0.3, 0.16, 0.1))
 	_add_story(director, "final_clue", Vector3(0, 0.5, WorldLayout.FINAL_CLUE_Z), "Read the child's note", Color(0.32, 0.26, 0.19))
 	_add_story(director, "exit", Vector3(0, 1.0, WorldLayout.EXIT_Z), "Run for the lobby", Color(0.18, 0.22, 0.24))
 

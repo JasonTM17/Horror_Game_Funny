@@ -43,7 +43,7 @@ func get_prompt(action_id: String, _actor: Node) -> String:
 		return observation_prompt
 	if action_id == "phone" and not GameState.has_flag("phone_answered"):
 		return "[E] Answer the ringing phone"
-	if action_id == "logbook" and GameState.has_flag("phone_briefing_complete") and GameState.has_flag("desk_clock_observation_complete") and not GameState.has_flag("log_signed"):
+	if action_id == "logbook" and GameState.has_flag("phone_briefing_complete") and GameState.has_flag("desk_clock_observation_complete") and GameState.has_flag("lobby_register_observation_complete") and not GameState.has_flag("log_signed"):
 		return "[E] Sign the night log"
 	if action_id == "fuse_pickup" and GameState.has_flag("floor_notice_observation_complete") and not GameState.has_item("spare_fuse"):
 		return "[E] Take the spare fuse"
@@ -140,7 +140,7 @@ func _answer_phone() -> bool:
 	return true
 
 func _sign_logbook() -> bool:
-	if not GameState.has_flag("phone_briefing_complete") or not GameState.has_flag("desk_clock_observation_complete") or GameState.has_flag("log_signed"):
+	if not GameState.has_flag("phone_briefing_complete") or not GameState.has_flag("desk_clock_observation_complete") or not GameState.has_flag("lobby_register_observation_complete") or GameState.has_flag("log_signed"):
 		return false
 	GameState.set_flag("log_signed")
 	GameState.add_item("floor_key")
@@ -248,13 +248,14 @@ func _open_final_clue(actor: Node) -> bool:
 
 func _on_narrative_finished(flag: String) -> void:
 	match flag:
-		"desk_clock_observation_complete": GameState.set_objective("Sign the night log and take the fourth-floor key.")
+		"desk_clock_observation_complete": GameState.set_objective("Read the night register, then sign the night log.")
+		"lobby_register_observation_complete": GameState.set_objective("Sign the night log and take the fourth-floor key.")
 		"phone_briefing_complete": GameState.set_objective("Sign the night log and take the fourth-floor key.")
 		"floor_notice_observation_complete": GameState.set_objective("Find the spare fuse at the end of the dark corridor.")
 		"power_stable": GameState.set_objective("Follow the humming lights into the changed hallway.")
 		"radio_solved": GameState.set_objective("Room 407 is open. Do not look behind the door.")
 		"room_record_heard": GameState.set_objective("Inspect the drawing, then search the bed and wardrobe.")
-		"room_bed_observation_complete", "room_wardrobe_observation_complete": GameState.set_objective("The last note is waiting at the back of the impossible room.")
+		"room_bed_observation_complete", "room_wardrobe_observation_complete", "room_family_table_observation_complete": GameState.set_objective("The last note is waiting at the back of the impossible room.")
 		"chase_ready":
 			GameState.set_objective("RUN. Follow the red lights to the lobby exit.")
 			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
