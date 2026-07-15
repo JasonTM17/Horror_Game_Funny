@@ -13,6 +13,7 @@ signal flashlight_changed(enabled: bool)
 
 var _locks: Dictionary = {}
 var _pitch := -8.0
+var _head_rest_position := Vector3.ZERO
 var _bob_time := 0.0
 var _flashlight_on := true
 var _step_time := 0.0
@@ -21,6 +22,8 @@ var _shake_strength := 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_head_rest_position = head.position
+	head.rotation.x = deg_to_rad(_pitch)
 	_apply_settings()
 	SettingsManager.setting_changed.connect(_on_setting_changed)
 
@@ -93,15 +96,14 @@ func _toggle_pause() -> void:
 
 func _update_head_bob(delta: float, moving: bool) -> void:
 	if not SettingsManager.comfort_head_bob:
-		head.position.y = move_toward(head.position.y, 0.7, delta * 4.0)
+		head.position = head.position.move_toward(_head_rest_position, delta * 4.0)
 		return
 	if moving and is_on_floor():
 		_bob_time += delta * (10.0 if Input.is_action_pressed("sprint") else 7.0)
-		head.position.y = 0.7 + sin(_bob_time * 2.0) * 0.018
-		head.position.x = sin(_bob_time) * 0.012
+		head.position.y = _head_rest_position.y + sin(_bob_time * 2.0) * 0.018
+		head.position.x = _head_rest_position.x + sin(_bob_time) * 0.012
 	else:
-		head.position.y = move_toward(head.position.y, 0.7, delta * 3.0)
-		head.position.x = move_toward(head.position.x, 0.0, delta * 3.0)
+		head.position = head.position.move_toward(_head_rest_position, delta * 3.0)
 
 func _update_camera_shake(delta: float) -> void:
 	if _shake_remaining > 0.0 and SettingsManager.camera_shake_enabled:
