@@ -35,7 +35,7 @@ static func _add_story(director: Node3D, id: String, position: Vector3, label: S
 	item.name = id
 	item.position = position
 	item.setup(director, id, label)
-	item.collision_layer = 9
+	item.collision_layer = 5
 	director.add_child(item)
 	PROP_VISUALS.build(item, id, color)
 	var shape := CollisionShape3D.new()
@@ -51,7 +51,7 @@ static func _add_door(director: Node3D, id: String, position: Vector3, locked_fl
 	door.open_angle = angle
 	door.locked_flag = locked_flag
 	door.prompt_text = "Door"
-	door.collision_layer = 9
+	door.collision_layer = 5
 	director.add_child(door)
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -70,7 +70,7 @@ static func _add_loop_gate(director: Node3D) -> void:
 	gate.name = "hallway_loop"
 	gate.position = Vector3(0, 1.25, WorldLayout.LOOP_GATE_Z)
 	gate.setup(director, "hallway_loop", "Follow the impossible corner")
-	gate.collision_layer = 9
+	gate.collision_layer = 5
 	director.add_child(gate)
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()

@@ -20,7 +20,9 @@ func _ready() -> void:
 	if not _require(is_equal_approx(head.position.y, EXPECTED_HEAD_HEIGHT), "head bob changed the authored eye height from %.2f to %.3f" % [EXPECTED_HEAD_HEIGHT, head.position.y]): return
 	if not _require(is_equal_approx(rad_to_deg(head.rotation.x), EXPECTED_INITIAL_PITCH), "initial camera pitch was not applied to Head"): return
 	if not _require(_has_physical_e_binding(), "interact action is not bound to the physical E key"): return
+	if not _require(interaction.ray.collision_mask == 4, "interaction ray does not use the named Interactable physics layer"): return
 	if not await _verify_production_interaction(player, interaction): return
+	if not _verify_objective_review(): return
 	if not _verify_pause_and_flashlight(player): return
 	if not _verify_comfort_head_bob_restores_authored_origin(player, head): return
 
@@ -34,6 +36,7 @@ func _ready() -> void:
 
 func _verify_production_interaction(player: CharacterBody3D, interaction: Node) -> bool:
 	var phone := _gameplay.get_node("phone") as StoryInteractable
+	if not _require((phone.collision_layer & 4) != 0 and (phone.collision_layer & 8) == 0, "phone collider is not assigned to the named Interactable layer"): return false
 	player.global_position = Vector3(phone.global_position.x, 0.02, phone.global_position.z + 1.35)
 	player.rotation = Vector3.ZERO
 	player.velocity = Vector3.ZERO
@@ -46,6 +49,16 @@ func _verify_production_interaction(player: CharacterBody3D, interaction: Node) 
 	interact_event.pressed = true
 	interaction._unhandled_input(interact_event)
 	return _require(GameState.has_flag("phone_answered"), "production interact handler did not answer the phone")
+
+func _verify_objective_review() -> bool:
+	var hud := _gameplay.get_node("HUD")
+	if not _require(hud.has_method("get_objective_focus_time"), "HUD does not consume the objective review action"): return false
+	var focus_before: float = hud.get_objective_focus_time()
+	var objective_event := InputEventAction.new()
+	objective_event.action = "show_objective"
+	objective_event.pressed = true
+	hud._unhandled_input(objective_event)
+	return _require(hud.get_objective_focus_time() > focus_before, "Tab did not refresh objective visibility")
 
 func _verify_pause_and_flashlight(player: CharacterBody3D) -> bool:
 	var pause_event := InputEventAction.new()

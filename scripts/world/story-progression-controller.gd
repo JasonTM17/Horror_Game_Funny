@@ -248,9 +248,7 @@ func _open_final_clue(actor: Node) -> bool:
 
 func _on_narrative_finished(flag: String) -> void:
 	match flag:
-		"desk_clock_observation_complete": GameState.set_objective("Read the night register, then sign the night log.")
-		"lobby_register_observation_complete": GameState.set_objective("Sign the night log and take the fourth-floor key.")
-		"phone_briefing_complete": GameState.set_objective("Sign the night log and take the fourth-floor key.")
+		"phone_briefing_complete", "desk_clock_observation_complete", "lobby_register_observation_complete": _refresh_lobby_objective()
 		"floor_notice_observation_complete": GameState.set_objective("Find the spare fuse at the end of the dark corridor.")
 		"power_stable": GameState.set_objective("Follow the humming lights into the changed hallway.")
 		"radio_solved": GameState.set_objective("Room 407 is open. Do not look behind the door.")
@@ -265,6 +263,14 @@ func _on_narrative_finished(flag: String) -> void:
 		"memory_echo_3":
 			GameState.set_objective("The corridor is collapsing around the radio signal.")
 			_run_loop_transition(_pending_memory_actor, 3, false)
+
+func _refresh_lobby_objective() -> void:
+	if not GameState.has_flag("desk_clock_observation_complete"):
+		GameState.set_objective("Read the stopped desk clock and night register, then sign the night log.")
+	elif not GameState.has_flag("lobby_register_observation_complete"):
+		GameState.set_objective("Read the night register, then sign the night log.")
+	else:
+		GameState.set_objective("Sign the night log and take the fourth-floor key.")
 
 func _run_loop_transition(actor: Node, iteration: int, teleport_to_start: bool) -> void:
 	loop_transitioning = true

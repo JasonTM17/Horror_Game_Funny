@@ -16,10 +16,12 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("lobby_register", player), "night register must stay gated before the phone briefing"): return
 	if not _require(director.handle_story_action("phone", player), "phone should answer"): return
 	if not _require(await _wait_for_flag("phone_briefing_complete"), "phone briefing should complete"): return
+	if not _require(GameState.objective == "Read the stopped desk clock and night register, then sign the night log.", "phone objective skipped locked lobby observations"): return
 	if not _require(not director.handle_story_action("phone", player), "phone answer must be one-shot"): return
 	if not _require(not director.handle_story_action("logbook", player), "logbook must wait for both lobby observations"): return
 	if not _require(director.handle_story_action("desk_clock", player), "desk clock should be readable after the briefing"): return
 	if not _require(await _wait_for_flag("desk_clock_observation_complete"), "desk clock observation should complete"): return
+	if not _require(GameState.objective == "Read the night register, then sign the night log.", "desk clock objective did not advance to the register"): return
 	if not _require(director.handle_story_action("lobby_register", player), "night register should be readable"): return
 	if not _require(await _wait_for_flag("lobby_register_observation_complete"), "night register observation should complete"): return
 	if not _require(not director.handle_story_action("lobby_register", player), "night register observation must be one-shot"): return
