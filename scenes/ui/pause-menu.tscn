@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause-menu.gd" id="1_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings-panel.tscn" id="2_settings"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 script = ExtResource("1_pause")
@@ -29,14 +30,23 @@ text = "RESUME"
 
 [node name="Restart" type="Button" parent="Panel"]
 offset_left = 55.0
-offset_top = 150.0
+offset_top = 198.0
 offset_right = 265.0
-offset_bottom = 198.0
+offset_bottom = 246.0
 text = "RESTART SHIFT"
 
 [node name="Menu" type="Button" parent="Panel"]
 offset_left = 55.0
-offset_top = 210.0
+offset_top = 258.0
 offset_right = 265.0
-offset_bottom = 258.0
+offset_bottom = 306.0
 text = "MAIN MENU"
+
+[node name="Settings" type="Button" parent="Panel"]
+offset_left = 55.0
+offset_top = 150.0
+offset_right = 265.0
+offset_bottom = 188.0
+text = "SETTINGS"
+
+[node name="SettingsPanel" parent="." instance=ExtResource("2_settings")]

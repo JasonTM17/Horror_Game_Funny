@@ -1,7 +1,6 @@
 extends Node
 
 func _ready() -> void:
-	GameState.reset_run()
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var panel := ColorRect.new()
@@ -21,21 +20,32 @@ func _ready() -> void:
 	subtitle.add_theme_color_override("font_color", Color(0.48, 0.55, 0.62))
 	panel.add_child(subtitle)
 	var start := Button.new()
+	start.name = "Start"
 	start.text = "START SHIFT"
 	start.position = Vector2(92, 320)
 	start.size = Vector2(220, 52)
 	start.add_theme_font_size_override("font_size", 18)
 	start.pressed.connect(_start_shift)
 	panel.add_child(start)
+	var continue_shift := Button.new()
+	continue_shift.name = "Continue"
+	continue_shift.text = "CONTINUE CHECKPOINT"
+	continue_shift.position = Vector2(92, 378)
+	continue_shift.size = Vector2(220, 42)
+	continue_shift.visible = not GameState.checkpoint.is_empty()
+	continue_shift.pressed.connect(_continue_shift)
+	panel.add_child(continue_shift)
 	var settings := Button.new()
+	settings.name = "Settings"
 	settings.text = "SETTINGS"
-	settings.position = Vector2(92, 385)
+	settings.position = Vector2(92, 433)
 	settings.size = Vector2(220, 42)
 	settings.pressed.connect(_show_settings)
 	panel.add_child(settings)
 	var quit := Button.new()
+	quit.name = "Quit"
 	quit.text = "QUIT"
-	quit.position = Vector2(92, 440)
+	quit.position = Vector2(92, 488)
 	quit.size = Vector2(220, 42)
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	panel.add_child(quit)
@@ -44,7 +54,11 @@ func _ready() -> void:
 	settings_panel.name = "SettingsPanel"
 
 func _start_shift() -> void:
+	GameState.reset_run()
 	SceneRouter.change_scene("res://scenes/gameplay/gameplay.tscn")
+
+func _continue_shift() -> void:
+	SceneRouter.reload_checkpoint()
 
 func _show_settings() -> void:
 	var settings_panel := get_node_or_null("SettingsPanel")

@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal panel_closed
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
@@ -33,8 +35,16 @@ func open_panel() -> void:
 	$Panel/Close.grab_focus()
 
 func close_panel() -> void:
+	if not visible:
+		return
 	SettingsManager.save_settings()
 	visible = false
+	panel_closed.emit()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("pause_game"):
+		get_viewport().set_input_as_handled()
+		close_panel()
 
 func _on_sensitivity(value: float) -> void:
 	SettingsManager.set_mouse_sensitivity(value)
