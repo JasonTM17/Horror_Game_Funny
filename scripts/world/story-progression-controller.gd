@@ -38,7 +38,7 @@ func get_prompt(action_id: String, _actor: Node) -> String:
 	if action_id == "fuse_pickup" and not GameState.has_item("spare_fuse"):
 		return "[E] Take the spare fuse"
 	if action_id == "fuse_box" and not GameState.has_flag("fuse_installed"):
-		return "[E] Install the fuse"
+		return "[E] Install the fuse" if GameState.has_item("spare_fuse") else "[E] Inspect the empty fuse box"
 	if action_id == "memory_photo" and loop_iteration == 0 and not GameState.has_flag(action_id):
 		return "[E] " + _memory_label(action_id)
 	if action_id == "memory_cassette" and loop_iteration == 1 and not GameState.has_flag(action_id):
@@ -142,8 +142,12 @@ func _take_fuse() -> bool:
 	return true
 
 func _install_fuse() -> bool:
-	if not GameState.has_item("spare_fuse") or GameState.has_flag("fuse_installed"):
+	if GameState.has_flag("fuse_installed"):
 		return false
+	if not GameState.has_item("spare_fuse"):
+		GameState.set_subtitle("One fuse slot is empty. A spare should be stored farther down the corridor.")
+		AudioManager.play_tone("empty_fuse_box", 76.0, 0.18, -22.0)
+		return true
 	GameState.consume_item("spare_fuse")
 	GameState.set_flag("fuse_installed")
 	GameState.advance_stage(GameState.Stage.FLOOR4_POWERED)

@@ -67,6 +67,17 @@ func stop_tone(id: String) -> void:
 		player.stream = null
 	_cache.erase(id)
 
+func stop_all() -> void:
+	for player_value in _players.values():
+		var player := player_value as AudioStreamPlayer
+		if is_instance_valid(player):
+			player.stop()
+			player.stream = null
+			player.free()
+	_players.clear()
+	_cache.clear()
+	_sample_bytes = 0
+
 func _get_tone(id: String, frequency: float, duration: float) -> AudioStreamWAV:
 	if _cache.has(id):
 		return _cache[id]

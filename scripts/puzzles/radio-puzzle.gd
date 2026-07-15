@@ -6,6 +6,8 @@ var panel: Panel
 var entry: LineEdit
 var result: Label
 var failures := 0
+var submit_button: Button
+var _accepting_input := true
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -17,6 +19,10 @@ func open(owner: Node, actor: Node) -> void:
 	player = actor
 	entry.text = ""
 	result.text = "The voice repeats: zero, zero, zero..."
+	_accepting_input = true
+	entry.editable = true
+	if submit_button != null:
+		submit_button.disabled = false
 	visible = true
 	entry.grab_focus()
 	if player != null and player.has_method("set_input_locked"):
@@ -47,12 +53,12 @@ func _build_ui() -> void:
 	entry.text_changed.connect(_on_text_changed)
 	entry.text_submitted.connect(func(_text: String) -> void: _submit())
 	panel.add_child(entry)
-	var submit := Button.new()
-	submit.text = "TUNE"
-	submit.position = Vector2(32, 172)
-	submit.size = Vector2(140, 42)
-	submit.pressed.connect(_submit)
-	panel.add_child(submit)
+	submit_button = Button.new()
+	submit_button.text = "TUNE"
+	submit_button.position = Vector2(32, 172)
+	submit_button.size = Vector2(140, 42)
+	submit_button.pressed.connect(_submit)
+	panel.add_child(submit_button)
 	var cancel := Button.new()
 	cancel.text = "STEP AWAY"
 	cancel.position = Vector2(188, 172)
@@ -79,16 +85,35 @@ func _unhandled_input(event: InputEvent) -> void:
 		close()
 
 func _submit() -> void:
+	if not _accepting_input:
+		return
+	if entry.text.length() != 4:
+		result.text = "The radio needs exactly four digits."
+		return
 	if entry.text == "0007":
 		if director != null and director.has_method("on_radio_solved"):
 			director.on_radio_solved()
 		close()
 		return
 	failures += 1
-	result.text = "Wrong. The voice laughs."
+	result.text = "Wrong. Static swallows the channel."
 	if failures >= 3:
 		result.text = "Hint: the clock stopped at 00:07."
+	_accepting_input = false
+	entry.editable = false
+	submit_button.disabled = true
+	AudioManager.play_tone("radio_wrong_static", 96.0, 0.45, -18.0)
+	_finish_wrong_feedback()
+
+func _finish_wrong_feedback() -> void:
+	await get_tree().create_timer(0.55).timeout
+	if not is_inside_tree() or not visible:
+		return
 	entry.text = ""
+	entry.editable = true
+	submit_button.disabled = false
+	_accepting_input = true
+	entry.grab_focus()
 
 func close() -> void:
 	visible = false

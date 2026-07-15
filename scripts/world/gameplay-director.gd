@@ -50,8 +50,7 @@ func _ready() -> void:
 	AudioManager.start_drone("building_ambience", 43.0, -34.0, "Ambience")
 
 func _exit_tree() -> void:
-	AudioManager.stop_tone("building_ambience")
-	AudioManager.stop_tone("chase_drone")
+	AudioManager.stop_all()
 
 func _process(_delta: float) -> void:
 	if player == null or (_chase != null and _chase.ending):
