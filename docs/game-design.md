@@ -61,15 +61,15 @@ These values are authored pacing goals, not measured results. A complete keyboar
 
 ### Lobby
 
-The phone and logbook teach interaction. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
+The phone and logbook teach interaction. The player must also read the stopped desk clock before the logbook becomes valid; its 00:07 clue seeds the later radio puzzle. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
 
 ### Fourth Floor
 
-The player can inspect an empty fuse box for feedback, collect the spare fuse, and install it once. Installation advances the story only after the item guard passes; the power sequence then stabilizes before the next door opens.
+After crossing the first barrier, a maintenance notice establishes why the floor is closed and points toward the fuse locker. The player must read it, inspect an empty fuse box if desired, collect the spare fuse, and install it once. Installation advances the story only after the item guard passes; the power sequence then stabilizes before the next door opens.
 
 ### Memory Hallway
 
-Three memory objects are ordered and idempotent:
+Three memory objects are ordered and idempotent. After each object returns its memory, the player follows a new environmental message before the loop gate will accept the next turn; the third echo opens the radio route after the final blackout.
 
 | Item | Meaning | Progress effect |
 |---|---|---|
@@ -91,7 +91,7 @@ The hallway controller exposes four visual roots: the initial corridor and three
 
 ### Room 407
 
-The family recording must finish before the drawing can be inspected. Both facts are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
+The family recording must finish before the drawing can be inspected. The player then searches the child's bed and wardrobe for two physical clues; all four observations are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
 
 ### Chase and Ending
 

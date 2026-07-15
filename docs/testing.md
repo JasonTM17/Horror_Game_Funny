@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
 
-The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
+The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
 
 ## Exact Seven-Check Matrix
 
@@ -55,12 +55,12 @@ The runner fails on a non-zero Godot exit, a missing expected marker, or matchin
 `progression-test.gd` instantiates the production gameplay scene and calls its public story facade. Narrative duration is reduced only for test execution. It verifies:
 
 - fresh-run ending and early logbook rejection;
-- phone briefing, logbook, fuse pickup/install, and power stabilization;
-- ordered photo, cassette, and rabbit collection;
+- phone briefing, stopped-clock observation, logbook, floor-notice observation, fuse pickup/install, and power stabilization;
+- ordered photo, cassette, and rabbit collection with one completed environmental echo required after each memory;
 - first, second, and final blackout transition completion;
 - duplicate memory rejection;
 - radio UI opening, wrong-code cooldown/disabled submit state, close/reopen cooldown preservation, cooldown recovery, correct `0007`, and `radio_solved` completion;
-- Room 407 recording, drawing, note, and chase readiness;
+- Room 407 recording, drawing, bed/wardrobe observations, note, and chase readiness;
 - chase stage, capture recovery marker, and no duplicate entity after recovery;
 - successful ending gate, `ENDING` stage, `AbandonedLobbyFloor` reveal node, and delayed credits appearance.
 

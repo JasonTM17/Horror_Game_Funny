@@ -18,6 +18,8 @@ All notable changes to this project are documented here.
 ### Changed
 
 - Split progression, chase, recovery, and ending responsibilities out of the gameplay facade.
+- Added authored observation beats inside the continuous route: the stopped desk clock, floor notice, three memory echoes, and two Room 407 searches now gate the next story step with readable narrative feedback.
+- Raised bounded ambient, lobby focus, corridor pool, flashlight, and chase-guide lighting floors after real Compatibility-renderer captures; the route remains dark without losing its main silhouettes.
 - Tuned chase speed to 3.0 units/second against player walk 2.0 and sprint 3.1 units/second.
 - Expanded progression coverage to exercise radio wrong/correct UI behavior, chase recovery, ending success, and the abandoned-lobby reveal.
 - Expanded settings/audio coverage to assert buses, clamped values, expected controls, pause-menu Settings, and in-memory Continue visibility.
@@ -30,7 +32,8 @@ All notable changes to this project are documented here.
 - Added an in-world observation window before the ending credits cover the abandoned-lobby reveal.
 - Converted chase retreat beyond the authored route into checkpoint recovery instead of silently disabling the entity.
 - Isolated headless test settings from the real Godot user profile and made leak warnings fail the runner.
-- Released procedural audio players on the deferred queue so teardown no longer leaks WAV playback objects.
+- Released procedural audio players synchronously and added a short audio-server drain in the regression fixture so WAV playback objects do not leak during shutdown.
+- Captured both Godot log files and console stderr in the headless runner so engine leak warnings cannot be hidden by a clean log file.
 
 ### Known Validation Gaps
 
