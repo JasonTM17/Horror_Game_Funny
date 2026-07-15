@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: Audio Visual UI and Accessibility
-status: in-progress
+status: completed
 priority: P1
 dependencies:
   - 5
