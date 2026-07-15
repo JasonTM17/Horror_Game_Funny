@@ -2,7 +2,7 @@
 
 ## Overview
 
-The repository has one PowerShell runner that executes twelve Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, visual-effects contracts, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
+The repository has one PowerShell runner that executes twelve Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
 
 ## Run the Suite
 
@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
 
-The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. Writer and reader checks share this temporary profile, and guaranteed teardown removes it after success or failure. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
+The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. Because Godot mirrors `print()` output to both sources, a combined artifact can contain two identical pacing lines even though the runtime emitted once. Writer and reader checks share this temporary profile, and guaranteed teardown removes it after success or failure. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
 
 ## Recorded Environment
 
@@ -49,8 +49,8 @@ This inventory records the current Windows verification machine. It is reproduci
 | 2 | `menu` / `test-menu.log` | `scenes/boot/boot.tscn` | boot scene loads under its configured `--quit-after 8` smoke limit | button navigation with physical input, visual layout |
 | 3 | `gameplay` / `test-gameplay.log` | `scenes/gameplay/gameplay.tscn` | continuous runtime scene constructs and survives the smoke window | full route traversal or progression |
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
-| 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | director-level guarded progression, blackout completion, radio filtering/Escape/cooldowns/hint, final-note gate, entity-proximity capture recovery, staged ending and reveal | physical input, player-driven chase traversal, presentation |
-| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, `STALK`, speed ordering, retreat recovery, authored distances | navigation quality under real play, collision feel, route readability |
+| 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, staged ending/reveal, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, presentation |
+| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, `STALK`, speed ordering, retreat recovery, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, fresh-run pacing |
 | 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | E/raycast interaction, complete route, puzzles, physical keyboard/mouse, timing, chase feel |
 | 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look feel, full traversal |
 | 9 | `visual-effects` / `test-visual-effects.log` | `visual-effects-test.tscn`; `--quit-after 180` | overlay shader/material and dither/VHS/fear uniforms exist; chase/ending fear targets and film-grain visibility toggle respond | rendered pixels, readability, comfort, GPU performance, monitor gamma |
@@ -76,6 +76,36 @@ The runner fails on a non-zero Godot exit, a missing expected marker, or matchin
 
 The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, checkpoint-layout uses 1200, player-input uses 600, and visual-effects uses 180. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
 
+Pacing assertions extend the existing `progression` and `checkpoint-layout` checks. The suite remains exactly twelve checks; there is no separate thirteenth pacing check.
+
+## Pacing Telemetry Contract
+
+The scene-local `PlaythroughPacingTelemetry` begins after gameplay runtime composition. It snapshots eligibility once, so only a fresh session whose initial stage is `LOBBY` is eligible. It records the first occurrence of each boundary in the order actually observed:
+
+```text
+lobby, floor4_dark, floor4_powered, memory_loop,
+room_407, chase, ending, credits
+```
+
+Visible credits trigger finalization. The telemetry disconnects from `GameState.stage_changed`, freezes the report, and prints one runtime JSON line prefixed `PLAYTHROUGH_PACING: `. It does not persist a file or render a UI. `GameplayDirector.get_playthrough_pacing_report()` returns a recursive copy, preventing caller mutation of both top-level fields and nested targets.
+
+The node inherits gameplay pause behavior. Monotonic `NOTIFICATION_PAUSED`/`NOTIFICATION_UNPAUSED` timestamps accumulate pause duration while normal active-time processing is suspended. Reports include `wall_clock_seconds`, `active_gameplay_seconds`, and `paused_seconds`; active time is clamped to at most unpaused wall time.
+
+| Report chapter | Boundaries | Target seconds |
+|---|---|---:|
+| `opening` | `lobby` → `floor4_dark` | 120–180 |
+| `floor4` | `floor4_dark` → `memory_loop` | 180–240 |
+| `memory_loop` | `memory_loop` → `room_407` | 240–300 |
+| `room407` | `room_407` → `chase` | 180–240 |
+| `chase_ending` | `chase` → visible `credits` | 120–180 |
+| total | initial `lobby` → visible `credits` active time | 900–1200 |
+
+The total target is independent of the chapter verdicts. A missing boundary pair yields a `null` chapter duration and appears in `missing_milestones`; it is not represented as zero. Checkpoint and otherwise incomplete runs keep `within_target` `null`. A complete eligible compressed headless run is valid telemetry but returns `within_target: false`. A report with every milestone but an out-of-order actual sequence remains invalid and incomplete.
+
+## Recorded Automated Evidence
+
+The final twelve-check suite passes after the telemetry and adversarial capture updates. The focused progression path also passed three consecutive runs with 3.66–3.67 active seconds, 3.72–3.74 wall seconds, 0.06 paused seconds, `complete: true`, `boundary_order_valid: true`, and `within_target: false`. Focused checkpoint/layout passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing.
+
 ## Synthetic Actions Versus Physical Input
 
 The automation reaches production code, but it does not inject operating-system keyboard or mouse events:
@@ -99,8 +129,10 @@ Physical keyboard/mouse traversal, event delivery, mouse capture, and input feel
 - duplicate memory rejection;
 - radio UI opening, Escape close/unlock and reopen, non-digit filtering, wrong-code cooldown/disabled submit state, rejection of `0007` during cooldown, close/reopen cooldown preservation, three-failure hint, cooldown recovery, accepted `0007`, and `radio_solved` completion;
 - Room 407 recording, drawing, bed/wardrobe/family-table observations, final-note gate, direct note-close callback, and chase readiness;
-- chase stage, entity placement 0.7 units from the player, proximity-triggered capture recovery through physics processing, the chase respawn marker, and no duplicate entity after recovery;
-- successful ending gate, `ENDING` stage, `AbandonedLobbyFloor` reveal node, and delayed credits appearance.
+- production-threshold chase start, an attached-navigation entity positioned 0.05 units horizontally within capture range and 1.1 units above the floor, proximity recovery through two scheduled physics frames, the chase respawn marker, and no duplicate entity after recovery;
+- successful ending gate, `ENDING` stage, `AbandonedLobbyFloor` reveal node, delayed credits appearance, one finalized pacing report, duplicate-ending stability, and recursive report-copy isolation;
+- a deliberate paused interval is excluded from active gameplay while remaining in monotonic wall and pause totals; and
+- the compressed fresh route records every boundary in actual order, produces complete chapter durations, and is correctly rejected as shorter than 15–20 minutes.
 
 The test manipulates UI fields and calls methods directly. It synthesizes Escape for the radio handler but does not submit that event through the operating system or scene input queue. For the capture case it injects the entity position, advances physics, and lets production proximity logic request failure; it does not call `request_failure()` directly. It does not walk a player-driven chase route.
 
@@ -118,6 +150,9 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 - the entity reaches `STALK` after `APPEAR`;
 - entity 3.0 is faster than walk 2.0 and slower than sprint 3.1;
 - retreat beyond the chase boundary requests recovery and restores the chase marker;
+- a restored Room 407 session is incomplete and ineligible, keeps `within_target` `null`, and represents missing chapter durations as `null`;
+- visible credits finalize that restored report, and a subsequent Replay/Menu-style `GameState.reset_run()` cannot mutate it;
+- an all-milestone fixture with deliberately invalid occurrence order remains incomplete, reports `boundary_order_valid: false`, and rejects its negative chapter span as `null`;
 - representative story props retain recognizable child parts (phone handset, clock digits, book title, rabbit ears, radio dial, and family-table plate);
 - memory-loop distance is at least 180 units, chase distance at least 280, and total corridor length at least 850.
 
@@ -194,7 +229,7 @@ Each run overwrites these machine-local files:
 .artifacts/test-settings-persistence-read.log
 ```
 
-Use the console summary for quick status and the matching log for diagnosis. Logs are generated artifacts, not committed proof. Preserve a dated external test report if release evidence must survive cleanup.
+Use the console summary for quick status and the matching log for diagnosis. A pacing payload begins with `PLAYTHROUGH_PACING: ` and contains eligibility, completeness, actual order validity, milestone/chapter times, active/wall/paused totals, target metadata, and verdicts. The combined progression log contains two identical copies because it concatenates engine and console streams; the runtime emission itself is single. Logs are generated artifacts, not committed proof. Preserve a dated external test report if release evidence must survive cleanup.
 
 ## Required Manual Matrix
 
@@ -202,8 +237,8 @@ No current automated check fully verifies the following. Record each result, env
 
 | Area | Manual procedure | Evidence required |
 |---|---|---|
-| Intended flow | Press F5, use physical keyboard/mouse, reach credits without method calls | complete capture or timestamped trace |
-| Pacing | Record lobby, floor, memory, Room 407, chase, and total times | chapter timings; compare with 15-20 minute target |
+| Intended flow | Start a fresh shift with F5, use physical keyboard/mouse, reach credits without method calls | complete capture or timestamped trace |
+| Pacing | Record a fresh blind/new-player run and preserve the `PLAYTHROUGH_PACING: ` payload emitted at the same run's credits | capture plus eligible/complete/order-valid payload; compare chapter durations and active total with the 900–1200 second target |
 | Physical traversal | Walk/sprint through every closed/open door, loop return, Room 407, and chase route | no snag/bypass report and capture |
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
 | Visual balance | Check corridor darkness, flashlight, blackout, flicker, grain, red guide lights, and ending reveal | screenshots/video on target hardware |
@@ -219,6 +254,7 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
+- [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`physical-route-smoke-test.gd`](../tests/physical-route-smoke-test.gd)
 - [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)

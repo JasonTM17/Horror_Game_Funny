@@ -4,7 +4,7 @@
 
 ROOM 407 is a short first-person psychological horror game about returning to a condemned apartment block that remembers the protagonist's childhood. The player explores, interprets clues, solves two guarded puzzles, and escapes; there is no combat.
 
-This document separates implemented design from validation. The intended blind-run duration is 15–20 minutes, but no recorded manual pacing run currently proves that target.
+This document separates implemented design from validation. Runtime telemetry now measures fresh Lobby-to-credits timing, but no recorded physical F5 blind run currently proves the intended 15–20 minute target.
 
 ## Core Fantasy
 
@@ -55,7 +55,9 @@ All beats occupy one `gameplay.tscn` runtime. Memory-loop changes happen while a
 | Room 407 | 3–4 min | recording, drawing, final clue |
 | Chase and ending | 2–3 min | guided escape, capture recovery, reveal, credits |
 
-These values are authored pacing goals, not measured results. A complete keyboard-and-mouse run must record actual chapter and total times before release claims use them as evidence.
+Runtime pacing instrumentation records actual first-occurrence milestone timestamps for fresh Lobby-to-credits sessions, separates active gameplay from wall-clock and paused time, derives the five chapter durations, and emits one `PLAYTHROUGH_PACING: ` JSON payload when visible credits appear. Checkpoint-start, incomplete, and out-of-order sessions receive no total pacing verdict.
+
+These values remain authored goals, not release proof. Only a dated physical F5 blind keyboard-and-mouse boot-to-credits capture paired with the payload from that same run can establish the 15–20 minute target.
 
 ## Progression
 
@@ -138,12 +140,12 @@ Settings save to `user://room407.cfg` when the panel closes. Automated tests ins
 
 ## Completion Evidence Required
 
-Automated checks cover progression guards, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase speed ordering, ending success, and the reveal node.
+Automated checks cover progression guards, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase speed ordering, ending success, and the reveal node. They also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, and deliberate rejection of compressed or out-of-order evidence.
 
 Release validation still needs a recorded manual run covering:
 
-- complete F5 boot-to-credits traversal with physical inputs;
-- chapter and total pacing times;
+- complete F5 boot-to-credits traversal with physical inputs and a same-run capture;
+- the same run's eligible, complete, order-valid telemetry payload with chapter and 900–1200 second active-total evidence;
 - collision and door passage feel;
 - navigation behavior during a real chase;
 - darkness, flicker, grain, and red-guide-light readability;
@@ -156,6 +158,7 @@ Release validation still needs a recorded manual run covering:
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)

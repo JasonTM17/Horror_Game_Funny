@@ -4,7 +4,7 @@
 
 ROOM 407 uses one boot scene, one continuous gameplay scene, typed GDScript controllers, four autoload services, procedural world construction, and composed UI scenes. The configured runtime is Godot 4.7.1 using the Compatibility renderer.
 
-The gameplay scene file contains only a `Node3D` with `GameplayDirector`. At runtime, the facade builds the corridor, navigation region, story interactables, player, UI, events, hallway variants, progression controller, and chase controller.
+The gameplay scene file contains only a `Node3D` with `GameplayDirector`. At runtime, the facade builds the corridor, navigation region, story interactables, player, UI, events, hallway variants, progression controller, and chase controller, then starts a scene-local pacing component after composition is complete.
 
 ## Runtime Flow
 
@@ -27,6 +27,7 @@ F6 is editor current-scene execution and can skip the boot scene. The memory loo
 | `GameplayDirector` | Runtime facade; assembles the scene, spawns player/UI, watches zone boundaries, and delegates public story/chase calls |
 | `StoryProgressionController` | Interaction prompts, story guards, inventory/flags, narrative completion, memory-loop transitions, radio/note UI, checkpoints, and ending prerequisites |
 | `ChaseSequenceController` | Entity creation, chase start, corridor-light failure, capture recovery, abandoned-lobby reveal, and ending overlay |
+| `PlaythroughPacingTelemetry` | Scene-local eligibility snapshot, first-occurrence milestone order, pause-aware timing, target evaluation, visible-credits finalization, and one runtime JSON line |
 | `DynamicHallwayController` | Four visibility-switched corridor variants and memory-driven dressing changes |
 | `HorrorEventDirector` | Idempotent, local visual/audio events and apparitions |
 | `NarrativeSequencer` | Timed subtitle lines and completion flags |
@@ -76,6 +77,34 @@ LOBBY
 
 Stable lowercase IDs, not display text, identify flags, inventory items, and completed events.
 
+## Pacing Telemetry Data Flow and Lifecycle
+
+`GameplayDirector` creates `PlaythroughPacingTelemetry` after the world, player/UI, story controller, and chase controller are composed. It calls `begin(fresh_run, GameState.stage)`, then connects `ChaseSequenceController.credits_shown` to `record_credits()`. Eligibility is snapshotted once: only a fresh run whose initial stage is `LOBBY` can produce pacing verdicts. A Continue/checkpoint session remains ineligible even if it later reaches credits.
+
+```text
+runtime composition complete
+  -> begin(fresh_run, initial_stage)
+  -> record the initial stage and subscribe to GameState.stage_changed
+  -> append each stage's first occurrence in the order actually observed
+  -> ending overlay becomes visible and emits credits_shown
+  -> record credits, disconnect the stage signal, freeze totals, print one JSON line
+```
+
+The expected boundary order is:
+
+```text
+lobby -> floor4_dark -> floor4_powered -> memory_loop
+      -> room_407 -> chase -> ending -> credits
+```
+
+Boundaries are de-duplicated at first occurrence but are not sorted afterward. `complete` therefore requires both no `missing_milestones` and a valid actual order. Missing boundary pairs produce `null` chapter durations, not zero. Ineligible or incomplete runs keep the total `within_target` verdict `null`; a complete eligible run evaluates the independent 900–1200 second total. Chapter verdicts use opening 120–180, floor 4 180–240, memory loop 240–300, Room 407 180–240, and chase/ending 120–180 seconds.
+
+The telemetry node keeps inherited pause behavior. Its normal `_process()` accumulation stops with paused gameplay, while `NOTIFICATION_PAUSED` and `NOTIFICATION_UNPAUSED` use monotonic tick timestamps to accumulate pause intervals. The report exposes wall-clock, active-gameplay, and paused totals; active time is clamped so it cannot exceed unpaused wall time (`wall - paused`) even under a heavily loaded or compressed headless frame.
+
+`GameplayDirector.get_playthrough_pacing_report()` returns a recursive duplicate, so callers cannot change the live report or nested targets. Visible-credits finalization disconnects the stage signal and makes the current instance immutable through duplicate ending calls and replay/menu reset signals; changing scenes frees that instance, and a new gameplay scene creates a new one.
+
+Finalization prints exactly one runtime line prefixed `PLAYTHROUGH_PACING: ` followed by JSON. There is no report file, autoload persistence, or UI. A runner artifact can show two identical lines because `run-headless-tests.ps1` concatenates the engine log and captured console output, not because the runtime emitted twice.
+
 ## Hidden Hallway Transitions
 
 `HallwayTransitionLayer` owns a full-screen black curtain and one transition lock. During a transition it:
@@ -116,7 +145,7 @@ Capture recovery happens inside the existing gameplay scene. It restores the che
 
 The boot menu's Continue path is different: when a checkpoint exists in the current process, it calls `SceneRouter.reload_checkpoint()`, which restores state and reloads the snapshot's scene path. During story-controller setup, completed memory flags derive the active hallway variant before control returns to the player. Because `GameState` is not written to disk, Continue disappears after application restart.
 
-Ending success remains in the gameplay scene. The chase controller stops the entity/audio, builds abandoned-lobby geometry and labels near the player, locks input, holds a three-second observation window, and then instantiates `ending-overlay.tscn`. Replay and Main Menu perform explicit scene changes.
+Ending success remains in the gameplay scene. The chase controller stops the entity/audio, builds abandoned-lobby geometry and labels near the player, locks input, holds a three-second observation window, and then instantiates `ending-overlay.tscn`. After `show_ending()` makes that overlay visible, the controller emits `credits_shown`, which finalizes pacing. Replay and Main Menu perform explicit scene changes.
 
 ## Settings and Audio
 
@@ -164,9 +193,9 @@ Create a focused `.gd` script and `.tscn` harness under `tests/`, print one uniq
 
 The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; layout, navigation, restored hallway, chase state/speed, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps; first-run bus defaults; audio teardown; in-memory Continue visibility; and settings persistence across two Godot processes.
+Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, chase state/speed, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps; first-run bus defaults; audio teardown; in-memory Continue visibility; and settings persistence across two Godot processes.
 
-The movement checks teleport between focused gates and the input check positions the player at selected production targets. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
+The movement checks teleport between focused gates and the input check positions the player at selected production targets. The telemetry checks extend progression and checkpoint/layout; they do not add a thirteenth runner check. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify a same-run physical capture, monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
 ## References
 
@@ -174,6 +203,7 @@ The movement checks teleport between focused gates and the input check positions
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)

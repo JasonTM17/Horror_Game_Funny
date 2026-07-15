@@ -2,7 +2,7 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes; that pacing target still requires a recorded manual playthrough.
+The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
 
 ## Requirements
 
@@ -48,13 +48,14 @@ The pause menu includes Settings. Mouse sensitivity, field of view, four audio l
 - Chase speed of 3.0 units/second versus player walk 2.0 and sprint 3.1 units/second.
 - Corridor-light failure at chase start, checkpoint recovery, an abandoned-lobby reveal, and a credits overlay.
 - A three-second in-world ending reveal before the credits overlay appears.
+- Pause-aware playthrough pacing telemetry for fresh Lobby runs, finalized when the visible credits appear.
 - Boot-menu Continue when an in-memory checkpoint exists.
 
 Checkpoints are process-local. Restarting the application clears gameplay progress; settings are the only persisted user data.
 
 ## Architecture
 
-F5 loads `boot.tscn`, then enters the single continuous `gameplay.tscn`. `GameplayDirector` builds the procedural world and composes the player, UI, story, hallway, horror-event, chase, and ending controllers at runtime. Four autoloads own process state, scene routing, generated audio, and persisted settings; story controllers reach them through the director facade and stable flag/item IDs.
+F5 loads `boot.tscn`, then enters the single continuous `gameplay.tscn`. `GameplayDirector` builds the procedural world and composes the player, UI, story, hallway, horror-event, chase, ending, and scene-local pacing components at runtime. Four autoloads own process state, scene routing, generated audio, and persisted settings; story controllers reach them through the director facade and stable flag/item IDs. The pacing facade returns a deep copy so callers cannot mutate the live report.
 
 `AudioManager` creates the Music, SFX, Ambience, and Chase buses before `SettingsManager` applies either saved values or the first-run defaults. This keeps a fresh profile at the configured bus levels instead of Godot's implicit 0 dB for every created bus. See [Architecture](docs/architecture.md) for controller boundaries, data flow, and extension points.
 
@@ -75,9 +76,19 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
 
 The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import and scene construction; state/checkpoint and guarded progression; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
+The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
 
 These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible output or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+
+## Capture a Pacing Payload
+
+Start a fresh shift with **F5**, not Continue, and complete it with physical keyboard and mouse input while recording the run. When the credits become visible, preserve the single console line beginning with:
+
+```text
+PLAYTHROUGH_PACING: {JSON payload}
+```
+
+Keep that exact payload with the same-run boot-to-credits capture. The game does not save the report to a file or show it in the UI. A headless runner artifact can contain two identical lines because it concatenates the engine log and captured console output; the runtime still emitted once. Even an eligible, complete, in-target payload is instrumentation, not proof of physical traversal, capture behavior, chase feel, presentation, audio, or Settings behavior.
 
 ## Assets
 
@@ -87,8 +98,8 @@ No gameplay captures are committed. Add only verified in-engine captures under `
 
 ## Known Limitations
 
-- No recorded manual F5 boot-to-credits pass currently verifies the complete physical route.
-- The 15–20 minute duration is an authored target, not a measured playthrough result.
+- No recorded manual F5 boot-to-credits pass with its same-run telemetry payload currently verifies the complete physical route.
+- The 15–20 minute duration is an instrumented authored target, not a recorded physical-playthrough result.
 - Audible audio/mix balance, live chase navigation and fairness, and target-display visual balance remain manually unverified.
 - Checkpoints last only for the current application process; only settings persist to disk.
 - No export preset, release binary, or platform package is committed or release-tested.

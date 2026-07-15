@@ -19,6 +19,7 @@
 - The runner has twelve headless checks: editor import, boot load, gameplay load, game state, progression, checkpoint/layout, targeted physical-route movement, player-input integration, visual-effects contracts, settings/audio, persistence write, and persistence read.
 - Every runner invocation uses a unique Godot user-data profile under `.tmp/`; the writer and reader share it, then guaranteed teardown removes it. Automated settings changes do not touch the normal game profile.
 - Progression automation calls gameplay and radio widget methods directly. It covers radio Escape/unlock, non-digit filtering, cooldown persistence, the three-failure hint, final-note gating, and an entity-proximity capture recovery after injected positioning. It does not type, click, close the final note through physical input, or run a player-driven chase.
+- Production pacing telemetry observes progression stages and visible credits. Progression automation verifies pause exclusion, actual ordered milestones, complete chapter reporting, finalization/deep-copy behavior, and that its compressed run is outside the 15–20 minute target. Checkpoint/layout automation verifies resumed sessions are incomplete and ineligible with a `null` verdict, remain immutable after reset, and reject out-of-order data. These checks validate instrumentation semantics only; they do not validate real input, blind-player behavior, or human pacing.
 - The physical-route smoke synthesizes the mapped forward action through `Input.action_press()`, then reaches the production player's `Input.get_vector()` and physics path. It proves three locked/open door passages plus selected threshold gates, but it teleports between gates, sets flags, and calls doors directly. It does not prove physical W/E delivery, E/raycast interaction, the complete route, puzzle input, chase feel, or pacing.
 - The player-input integration check confirms a physical E binding exists, then passes constructed `InputEventAction` objects directly to production handlers. It covers the phone interaction ray, objective review, pause/flashlight locks, note Escape/unlock, door spam and close/reopen cycles, and authored head-position restoration. It does not inject operating-system keyboard/mouse events or prove input latency and feel.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
@@ -27,6 +28,8 @@
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, or frame pacing on target hardware.
 
 ## Manual Evidence Still Required
+
+Runtime pacing telemetry is implemented, but no dated physical F5 run currently proves the pacing target. Required evidence is a fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload; compressed automation and checkpoint-start reports are not substitutes.
 
 The following are targets or implemented features, not manually verified release claims:
 
@@ -64,4 +67,5 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
+- [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [Godot Engine license](https://godotengine.org/license/)
