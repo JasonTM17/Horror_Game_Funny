@@ -1,6 +1,13 @@
 class_name ContinuousWorldBuilder
 extends RefCounted
 
+const CHASE_BARRIERS := [
+	{"z": -570.0, "blocked_center_x": -1.4, "blocked_probe_x": -1.4, "blocked_width": 4.8, "bypass_x": 2.35, "safe_min_x": 1.8, "safe_max_x": 3.35, "label": "RIGHT"},
+	{"z": -650.0, "blocked_center_x": 1.4, "blocked_probe_x": 1.4, "blocked_width": 4.8, "bypass_x": -2.35, "safe_min_x": -3.35, "safe_max_x": -1.8, "label": "LEFT"},
+	{"z": -730.0, "blocked_center_x": -1.4, "blocked_probe_x": -1.4, "blocked_width": 4.8, "bypass_x": 2.35, "safe_min_x": 1.8, "safe_max_x": 3.35, "label": "RIGHT"},
+]
+const CHASE_NAV_SEGMENT_COUNT := 13
+
 static func build(parent: Node3D) -> void:
 	var world := WorldEnvironment.new()
 	var environment := Environment.new()
@@ -47,9 +54,19 @@ static func build(parent: Node3D) -> void:
 	var lobby_task_light := LevelGeometry.add_light(parent, Vector3(0, 2.25, WorldLayout.LOBBY_PROP_Z - 0.5), Color(0.92, 0.58, 0.34), 2.0, 5.5)
 	lobby_task_light.name = "LobbyTaskLight"
 	LevelGeometry.add_light(parent, Vector3(0, 2.6, WorldLayout.FINAL_CLUE_Z), Color(0.52, 0.12, 0.1), 1.6, 8.0)
-	for chase_z in [-540.0, -585.0, -630.0, -675.0, -720.0, -765.0, -800.0]:
+	for chase_z in [-540.0, -610.0, -690.0, -770.0, -800.0]:
 		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 1.05, 9.0)
 		guide_light.name = "ChaseGuideLight"
+	for index: int in CHASE_BARRIERS.size():
+		var barrier: Dictionary = CHASE_BARRIERS[index]
+		var bypass_light := LevelGeometry.add_light(
+			parent,
+			Vector3(float(barrier["bypass_x"]), 2.35, float(barrier["z"]) + 1.8),
+			Color(0.9, 0.045, 0.025),
+			1.35,
+			8.0
+		)
+		bypass_light.name = "ChaseBypassLight%02d" % index
 	_add_navigation_surface(parent)
 
 static func _add_elevator_dressing(parent: Node3D) -> void:
@@ -97,6 +114,39 @@ static func _add_chase_dressing(parent: Node3D) -> void:
 		LevelGeometry.add_visual_box(parent, "ChaseWallScar%02d" % scar_index, Vector3(side * 3.73, 1.35, z), Vector3(0.13, 2.3, 2.6), Color(0.055, 0.035, 0.04))
 		LevelGeometry.add_visual_box(parent, "ChaseBrokenFrame%02d" % scar_index, Vector3(side * 3.35, 2.15, z - 1.2), Vector3(0.18, 2.8, 0.22), Color(0.11, 0.055, 0.05))
 		scar_index += 1
+	for index: int in CHASE_BARRIERS.size():
+		var barrier: Dictionary = CHASE_BARRIERS[index]
+		var barrier_position := Vector3(float(barrier["blocked_center_x"]), 1.3, float(barrier["z"]))
+		var barrier_body := LevelGeometry.add_box(
+			parent,
+			"ChaseBarrier%02d" % index,
+			barrier_position,
+			Vector3(float(barrier["blocked_width"]), 2.6, 1.2),
+			Color(0.07, 0.025, 0.03)
+		)
+		barrier_body.collision_layer = 1
+		LevelGeometry.add_visual_box(
+			parent,
+			"ChaseBarrierFrame%02d" % index,
+			barrier_position + Vector3(0, 1.35, 0),
+			Vector3(float(barrier["blocked_width"]) + 0.12, 0.16, 1.34),
+			Color(0.15, 0.035, 0.04)
+		)
+		var cue := LevelGeometry.add_label(
+			parent,
+			"GO " + str(barrier["label"]),
+			Vector3(float(barrier["bypass_x"]), 2.15, float(barrier["z"]) + 2.35),
+			Color(0.95, 0.12, 0.08)
+		)
+		cue.name = "ChaseBypassCue%02d" % index
+		cue.font_size = 20
+		LevelGeometry.add_visual_box(
+			parent,
+			"ChaseBypassMarker%02d" % index,
+			Vector3(float(barrier["bypass_x"]), 0.015, float(barrier["z"]) + 1.8),
+			Vector3(1.35, 0.03, 0.2),
+			Color(0.58, 0.025, 0.02)
+		)
 
 static func _add_partition(parent: Node3D, name: String, z: float, color: Color) -> void:
 	LevelGeometry.add_box(parent, name + "Left", Vector3(-2.65, 2.0, z), Vector3(2.7, 4.0, 0.25), color)
@@ -107,12 +157,22 @@ static func _add_navigation_surface(parent: Node3D) -> void:
 	var region := NavigationRegion3D.new()
 	region.name = "ContinuousCorridorNavigation"
 	var navigation_mesh := NavigationMesh.new()
-	navigation_mesh.vertices = PackedVector3Array([
-		Vector3(-3.45, 0.02, WorldLayout.PLAYER_START_Z + 4.0),
-		Vector3(3.45, 0.02, WorldLayout.PLAYER_START_Z + 4.0),
-		Vector3(3.45, 0.02, WorldLayout.EXIT_Z - 10.0),
-		Vector3(-3.45, 0.02, WorldLayout.EXIT_Z - 10.0)
-	])
-	navigation_mesh.add_polygon(PackedInt32Array([0, 1, 2, 3]))
+	var sections: Array[Dictionary] = [{"z": WorldLayout.PLAYER_START_Z + 4.0, "min_x": -3.45, "max_x": 3.45}]
+	for barrier: Dictionary in CHASE_BARRIERS:
+		var barrier_z := float(barrier["z"])
+		sections.append({"z": barrier_z + 3.0, "min_x": -3.45, "max_x": 3.45})
+		sections.append({"z": barrier_z + 1.0, "min_x": float(barrier["safe_min_x"]), "max_x": float(barrier["safe_max_x"])})
+		sections.append({"z": barrier_z - 1.0, "min_x": float(barrier["safe_min_x"]), "max_x": float(barrier["safe_max_x"])})
+		sections.append({"z": barrier_z - 3.0, "min_x": -3.45, "max_x": 3.45})
+	sections.append({"z": WorldLayout.EXIT_Z - 10.0, "min_x": -3.45, "max_x": 3.45})
+	var vertices := PackedVector3Array()
+	for section: Dictionary in sections:
+		vertices.append(Vector3(float(section["min_x"]), 0.02, float(section["z"])))
+		vertices.append(Vector3(float(section["max_x"]), 0.02, float(section["z"])))
+	navigation_mesh.vertices = vertices
+	for section_index in range(sections.size() - 1):
+		var start_index := section_index * 2
+		var end_index := (section_index + 1) * 2
+		navigation_mesh.add_polygon(PackedInt32Array([start_index, start_index + 1, end_index + 1, end_index]))
 	region.navigation_mesh = navigation_mesh
 	parent.add_child(region)

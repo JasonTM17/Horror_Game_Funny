@@ -77,7 +77,50 @@ func _ready() -> void:
 	if not _require(flashlight_base_energy >= 3.0 and player.flashlight.spot_range >= 20.0, "flashlight regressed below the navigation readability floor"): return
 	var navigation_region := gameplay.get_node_or_null("ContinuousCorridorNavigation") as NavigationRegion3D
 	if not _require(navigation_region != null and navigation_region.navigation_mesh != null, "chase navigation surface missing"): return
-	if not _require(navigation_region.navigation_mesh.get_polygon_count() == 1, "continuous navigation polygon missing"): return
+	if not _require(navigation_region.navigation_mesh.get_polygon_count() == ContinuousWorldBuilder.CHASE_NAV_SEGMENT_COUNT, "chase navigation topology did not include every bypass segment"): return
+	var chase_barriers: Array = ContinuousWorldBuilder.CHASE_BARRIERS
+	if not _require(chase_barriers.size() == 3, "chase barrier count drifted from the authored route"): return
+	await get_tree().physics_frame
+	var navigation_map := gameplay.get_world_3d().navigation_map
+	if not _require(navigation_map.is_valid() and NavigationServer3D.map_get_iteration_id(navigation_map) > 0, "chase navigation map did not synchronize"): return
+	var route_start := Vector3(0, 0.02, WorldLayout.CHASE_TRIGGER_Z - 4.0)
+	var route_end := Vector3(0, 0.02, WorldLayout.EXIT_Z + 8.0)
+	var chase_path := NavigationServer3D.map_get_path(navigation_map, route_start, route_end, true)
+	if not _require(chase_path.size() >= chase_barriers.size() * 2 + 2, "chase navigation path did not expose the authored bypass turns"): return
+	if not _require(chase_path[0].distance_to(route_start) < 0.25 and chase_path[-1].distance_to(route_end) < 0.25, "chase navigation path did not reach the authored start and exit (actual %s -> %s, expected %s -> %s)" % [chase_path[0], chase_path[-1], route_start, route_end]): return
+	for index: int in chase_barriers.size():
+		var barrier: Dictionary = chase_barriers[index]
+		var barrier_z := float(barrier["z"])
+		var blocked_x := float(barrier["blocked_probe_x"])
+		var bypass_x := float(barrier["bypass_x"])
+		if index > 0:
+			var previous_bypass_x := float((chase_barriers[index - 1] as Dictionary)["bypass_x"])
+			if not _require(previous_bypass_x * bypass_x < 0.0, "chase bypass lanes do not alternate at barrier %d" % index): return
+		var barrier_body := gameplay.get_node_or_null("ChaseBarrier%02d" % index) as StaticBody3D
+		if not _require(barrier_body != null and barrier_body.collision_layer == 1 and barrier_body.get_child_count() > 0, "chase barrier %d has no physical collision body" % index): return
+		var blocked_query := PhysicsRayQueryParameters3D.create(Vector3(blocked_x, 1.0, barrier_z + 2.0), Vector3(blocked_x, 1.0, barrier_z - 2.0), 1)
+		var blocked_hit := gameplay.get_world_3d().direct_space_state.intersect_ray(blocked_query)
+		if not _require(blocked_hit.get("collider") == barrier_body, "chase barrier %d does not block its authored lane" % index): return
+		var bypass_query := PhysicsRayQueryParameters3D.create(Vector3(bypass_x, 1.0, barrier_z + 2.0), Vector3(bypass_x, 1.0, barrier_z - 2.0), 1)
+		var bypass_hit := gameplay.get_world_3d().direct_space_state.intersect_ray(bypass_query)
+		if not _require(bypass_hit.is_empty(), "chase barrier %d blocks its safe bypass lane" % index): return
+		var cue := gameplay.get_node_or_null("ChaseBypassCue%02d" % index) as Label3D
+		var marker := gameplay.get_node_or_null("ChaseBypassMarker%02d" % index) as MeshInstance3D
+		var bypass_light := gameplay.get_node_or_null("ChaseBypassLight%02d" % index) as OmniLight3D
+		var expected_lane := "RIGHT" if bypass_x > 0.0 else "LEFT"
+		var cue_position := Vector3(bypass_x, 2.15, barrier_z + 2.35)
+		var guide_position := Vector3(bypass_x, 0.015, barrier_z + 1.8)
+		if not _require(cue != null and cue.text == "GO " + expected_lane and cue.position.distance_to(cue_position) < 0.05, "chase barrier %d has an incorrect safe-lane label or position" % index): return
+		if not _require(cue.modulate.r > cue.modulate.g * 2.0 and cue.modulate.r > cue.modulate.b * 2.0, "chase barrier %d text cue is not visibly red" % index): return
+		if not _require(marker != null and marker.position.distance_to(guide_position) < 0.05, "chase barrier %d floor marker does not align with its safe lane" % index): return
+		if not _require(bypass_light != null and bypass_light.position.distance_to(Vector3(bypass_x, 2.35, barrier_z + 1.8)) < 0.05, "chase barrier %d guide light does not align with its safe lane" % index): return
+		if not _require(bypass_light.light_color.r > bypass_light.light_color.g * 4.0 and bypass_light.light_color.r > bypass_light.light_color.b * 4.0, "chase barrier %d guide light is not visibly red" % index): return
+		var path_uses_bypass := false
+		for path_point: Vector3 in chase_path:
+			if absf(path_point.z - barrier_z) <= 3.5 and path_point.x * bypass_x > 0.5:
+				path_uses_bypass = true
+				break
+		if not _require(path_uses_bypass, "chase navigation path ignored bypass lane %d" % index): return
 	for barrier_z in [WorldLayout.FLOOR_DOOR_Z, WorldLayout.POWER_DOOR_Z, WorldLayout.ROOM_DOOR_Z]:
 		for x in [0.0, 3.0]:
 			var query := PhysicsRayQueryParameters3D.create(Vector3(x, 1.0, barrier_z + 2.0), Vector3(x, 1.0, barrier_z - 2.0), 1)
@@ -95,6 +138,7 @@ func _ready() -> void:
 	gameplay._chase.start()
 	var chase_entity: CharacterBody3D = gameplay._chase.entity
 	if not _require(is_instance_valid(chase_entity), "production chase controller did not create its entity"): return
+	if not _verify_chase_bypass_clearance(gameplay, player, chase_entity, chase_barriers): return
 	if not _verify_entity_presence_cue(chase_entity, "chase start"): return
 	chase_entity.global_position = player.global_position + Vector3(0, 0, 18.0)
 	var appear_origin := chase_entity.global_position
@@ -118,6 +162,29 @@ func _ready() -> void:
 	if not _require(absf(chase_entity.velocity.length() - chase_entity.speed) < 0.05, "chase state does not use its authored speed"): return
 	if not _require(chase_entity.speed > player.walk_speed, "enemy cannot catch a walking player"): return
 	if not _require(chase_entity.speed < player.walk_speed * player.sprint_multiplier, "enemy makes a full sprint escape impossible"): return
+	var traversal_player_position := player.global_position
+	var traversal_entity_position := chase_entity.global_position
+	var traversal_last_seen: Vector3 = chase_entity._last_target_position
+	player.global_position = Vector3(0, 0.02, -580.0)
+	chase_entity.global_position = Vector3(0, 0.02, -563.0)
+	chase_entity._last_target_position = player.global_position
+	chase_entity._target_visible = true
+	chase_entity._los_timer = 0.0
+	chase_entity.state = chase_entity.State.CHASE
+	chase_entity.active = true
+	var crossed_first_barrier := false
+	var max_bypass_offset := 0.0
+	for _frame in 315:
+		await get_tree().physics_frame
+		max_bypass_offset = maxf(max_bypass_offset, absf(chase_entity.global_position.x))
+		if chase_entity.global_position.z < -571.0:
+			crossed_first_barrier = true
+	if not _require(crossed_first_barrier and max_bypass_offset > 0.5, "chase entity stuck at the first physical obstruction instead of navigating the bypass (state=%s, position=%s, last_seen=%s, max_x=%.2f)" % [chase_entity.state, chase_entity.global_position, chase_entity._last_target_position, max_bypass_offset]): return
+	if not _require(chase_entity.active and chase_entity.state == chase_entity.State.CHASE and not gameplay._chase.recovering, "chase obstruction caused an immediate failure, despawn, or state downgrade"): return
+	player.global_position = traversal_player_position
+	chase_entity.global_position = traversal_entity_position
+	chase_entity._last_target_position = traversal_last_seen
+	chase_entity._los_timer = 0.0
 	var pause_position := chase_entity.global_position
 	var pause_state_time: float = float(chase_entity._state_time)
 	get_tree().paused = true
@@ -228,6 +295,52 @@ func _verify_entity_presence_cue(entity: CharacterBody3D, phase: String) -> bool
 	if not _require(cue.bus == "SFX" and cue.max_distance > 0.0 and cue.max_distance <= 18.0, "%s cue is not bounded or routed through SFX" % phase): return false
 	if not _require(cue.stream != null and AudioManager._cache_ids.has(EXPECTED_ENTITY_PRESENCE_CUE_ID), "%s cue has no stream or cache ownership" % phase): return false
 	return true
+
+func _verify_chase_bypass_clearance(gameplay: Node3D, player: Node3D, entity: CharacterBody3D, barriers: Array) -> bool:
+	var player_collider := player.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	var entity_collider := entity.get_node_or_null("EntityCollider") as CollisionShape3D
+	var player_capsule: CapsuleShape3D = player_collider.shape as CapsuleShape3D if player_collider != null else null
+	var entity_capsule: CapsuleShape3D = entity_collider.shape as CapsuleShape3D if entity_collider != null else null
+	if not _require(player_capsule != null and entity_capsule != null, "chase clearance fixtures are not capsule-shaped"): return false
+	var max_capsule_radius := maxf(player_capsule.radius, entity_capsule.radius)
+	var left_wall := gameplay.get_node_or_null("LeftWall") as StaticBody3D
+	var right_wall := gameplay.get_node_or_null("RightWall") as StaticBody3D
+	var left_wall_box := _body_box_shape(left_wall)
+	var right_wall_box := _body_box_shape(right_wall)
+	if not _require(left_wall_box != null and right_wall_box != null, "corridor walls have no box collision for clearance checks"): return false
+	var left_wall_inner_x := left_wall.global_position.x + left_wall_box.size.x * 0.5
+	var right_wall_inner_x := right_wall.global_position.x - right_wall_box.size.x * 0.5
+	for index: int in barriers.size():
+		var barrier: Dictionary = barriers[index]
+		var barrier_body := gameplay.get_node_or_null("ChaseBarrier%02d" % index) as StaticBody3D
+		var barrier_box := _body_box_shape(barrier_body)
+		if not _require(barrier_box != null, "chase barrier %d has no box collision for clearance checks" % index): return false
+		var safe_min_x := float(barrier["safe_min_x"])
+		var safe_max_x := float(barrier["safe_max_x"])
+		var obstacle_clearance: float
+		var wall_clearance: float
+		var obstacle_edge := 0.0
+		if float(barrier["bypass_x"]) > 0.0:
+			obstacle_edge = barrier_body.global_position.x + barrier_box.size.x * 0.5
+			obstacle_clearance = safe_min_x - obstacle_edge
+			wall_clearance = right_wall_inner_x - safe_max_x
+		else:
+			obstacle_edge = barrier_body.global_position.x - barrier_box.size.x * 0.5
+			obstacle_clearance = obstacle_edge - safe_max_x
+			wall_clearance = safe_min_x - left_wall_inner_x
+		var required_edge_clearance := max_capsule_radius + 0.08
+		var required_lane_width := max_capsule_radius * 2.0 + 0.4
+		if not _require(obstacle_clearance >= required_edge_clearance and wall_clearance >= required_edge_clearance, "chase bypass %d lacks capsule edge clearance" % index): return false
+		if not _require(safe_max_x - safe_min_x >= required_lane_width, "chase bypass %d navigation lane is narrower than both production capsules" % index): return false
+	return true
+
+func _body_box_shape(body: StaticBody3D) -> BoxShape3D:
+	if body == null:
+		return null
+	for child in body.get_children():
+		if child is CollisionShape3D and child.shape is BoxShape3D:
+			return child.shape as BoxShape3D
+	return null
 
 func _entity_presence_players() -> Array[AudioStreamPlayer3D]:
 	AudioManager._prune_spatial_players()
