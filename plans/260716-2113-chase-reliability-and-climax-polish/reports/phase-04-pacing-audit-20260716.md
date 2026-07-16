@@ -14,7 +14,7 @@ The route uses one continuous corridor and deliberately revisits the memory star
 - Radio (`z=-325`) → Room 407 recording/drawing/three physical observations (`z=-385` to `-462`) → final clue (`z=-475`).
 - Chase exit (`z=-800`) and the two-step ending epilogue.
 
-The minimum forward/backtrack distance for this authored order is approximately **1,450 metres**. This estimate includes the two memory resets and the fuse-box return; it excludes optional drawer/false-door inspection, wrong radio attempts, camera/look-around time, collision correction, pauses, and chase recovery.
+The minimum forward/backtrack distance for this authored order is approximately **1,390 metres** (about 1.4 km). This estimate includes the two memory resets and the fuse-box return; it excludes optional drawer/false-door inspection, wrong radio attempts, camera/look-around time, collision correction, pauses, and chase recovery.
 
 ## Voice timing evidence
 
@@ -23,7 +23,7 @@ The 19 mandatory narrative/observation groups on the critical path contain 76 ma
 At the authored player walk speed (`2.6 m/s`), the route lower bound is approximately:
 
 ```text
-1,450 m / 2.6 m/s + 293.53 s = 851.2 s ≈ 14m 11s
+1,390 m / 2.6 m/s + 293.53 s = 828.15 s ≈ 13m 48s
 ```
 
 That is intentionally below the 15-minute release floor because the calculation removes all human interaction overhead. A blind player must stop to read/aim/interact, solve the radio, watch blackout transitions, orient after loop returns, and react to the chase. Those behaviors are expected to supply the remaining time without adding empty waits. Continuous sprinting is not a target play style and produces a shorter theoretical result.
@@ -33,4 +33,3 @@ That is intentionally below the 15-minute release floor because the calculation 
 - **Accepted:** authored pacing has enough meaningful spatial traversal and voiced beats to plausibly land in the 15–20 minute target during a blind first run.
 - **Not accepted as release proof:** source arithmetic alone does not prove player-facing duration, readability, collision feel, or chapter distribution.
 - **Open gate:** capture a real F5 boot-to-credits run, collect its same-run telemetry, and embed representative PNG screenshots plus an optimized GIF in the release documentation.
-
