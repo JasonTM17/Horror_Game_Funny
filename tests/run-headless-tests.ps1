@@ -7,7 +7,12 @@ $env:TEMP = Join-Path (Get-Location) ".tmp"
 $env:TMP = $env:TEMP
 $testProfile = Join-Path $env:TEMP ("godot-user-" + [guid]::NewGuid().ToString("N"))
 
-function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expected = "") {
+function Invoke-GodotCheck(
+    [string[]]$Arguments,
+    [string]$Name,
+    [string]$Expected = "",
+    [string]$PostScript = ""
+) {
     $log = Join-Path ".artifacts" ("test-" + $Name + ".log")
     $engineLog = Join-Path $testProfile ("engine-" + $Name + ".log")
     $consoleLog = Join-Path $testProfile ("console-" + $Name + ".log")
@@ -15,6 +20,18 @@ function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expecte
     $ErrorActionPreference = "Continue"
     & $Godot @Arguments --log-file $engineLog 2>&1 | Tee-Object -FilePath $consoleLog
     $exitCode = $LASTEXITCODE
+    $postEngineLog = ""
+    $postConsoleLog = ""
+    if ($PostScript) {
+        $postEngineLog = Join-Path $testProfile ("engine-" + $Name + "-post.log")
+        $postConsoleLog = Join-Path $testProfile ("console-" + $Name + "-post.log")
+        & $Godot --headless --path (Get-Location).Path --script $PostScript --log-file $postEngineLog 2>&1 |
+            Tee-Object -FilePath $postConsoleLog
+        $postExitCode = $LASTEXITCODE
+        if ($postExitCode -ne 0) {
+            $exitCode = $postExitCode
+        }
+    }
     $ErrorActionPreference = $previousErrorActionPreference
     $combinedOutput = @()
     if (Test-Path -LiteralPath $engineLog) {
@@ -22,6 +39,12 @@ function Invoke-GodotCheck([string[]]$Arguments, [string]$Name, [string]$Expecte
     }
     if (Test-Path -LiteralPath $consoleLog) {
         $combinedOutput += Get-Content -LiteralPath $consoleLog
+    }
+    if ($postEngineLog -and (Test-Path -LiteralPath $postEngineLog)) {
+        $combinedOutput += Get-Content -LiteralPath $postEngineLog
+    }
+    if ($postConsoleLog -and (Test-Path -LiteralPath $postConsoleLog)) {
+        $combinedOutput += Get-Content -LiteralPath $postConsoleLog
     }
     $combinedOutput | Set-Content -LiteralPath $log
     if ($exitCode -ne 0) {
@@ -46,7 +69,7 @@ try {
     New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
     New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
 
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--editor", "--quit") "editor-import"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--editor", "--quit") "editor-import" "PROJECT_SETTINGS_STABILITY_OK" "res://tests/project-settings-stability-test.gd"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/boot/boot.tscn", "--quit-after", "8") "menu"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/gameplay/gameplay.tscn", "--quit-after", "20") "gameplay"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--script", "res://tests/game-state-test.gd", "--quit-after", "20") "game-state" "GAME_STATE_TEST_OK"
