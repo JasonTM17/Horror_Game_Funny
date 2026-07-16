@@ -3,7 +3,17 @@
 [ext_resource type="Script" path="res://scripts/ui/settings-panel.gd" id="1_settings"]
 
 [node name="SettingsPanel" type="CanvasLayer"]
+layer = 100
 script = ExtResource("1_settings")
+
+[node name="ModalBlocker" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.004, 0.006, 0.01, 0.82)
 
 [node name="Panel" type="Panel" parent="."]
 offset_left = 80.0
@@ -150,6 +160,17 @@ offset_right = 740.0
 offset_bottom = 294.0
 text = "Film grain / scanlines"
 
+[node name="SaveStatus" type="Label" parent="Panel"]
+visible = false
+offset_left = 38.0
+offset_top = 350.0
+offset_right = 742.0
+offset_bottom = 398.0
+theme_override_colors/font_color = Color(0.92, 0.42, 0.34, 1)
+theme_override_font_sizes/font_size = 14
+text = "SAVE FAILED. Settings remain active for this session."
+autowrap_mode = 2
+
 [node name="Reset" type="Button" parent="Panel"]
 offset_left = 38.0
 offset_top = 416.0
@@ -163,3 +184,11 @@ offset_top = 416.0
 offset_right = 452.0
 offset_bottom = 462.0
 text = "SAVE & CLOSE"
+
+[node name="CloseWithoutSaving" type="Button" parent="Panel"]
+visible = false
+offset_left = 472.0
+offset_top = 416.0
+offset_right = 742.0
+offset_bottom = 462.0
+text = "CLOSE WITHOUT SAVING"

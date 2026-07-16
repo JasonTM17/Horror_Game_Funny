@@ -13,7 +13,11 @@ func _ready() -> void:
 	SettingsManager.set_camera_shake_enabled(false)
 	SettingsManager.set_film_grain_enabled(false)
 	SettingsManager.set_fullscreen_enabled(false)
-	SettingsManager.save_settings()
+	var save_error := SettingsManager.save_settings()
+	if save_error != OK:
+		push_error("SETTINGS_PERSISTENCE_ASSERT: writer failed to save room407.cfg: %s" % error_string(save_error))
+		get_tree().quit(2)
+		return
 	if not FileAccess.file_exists(SettingsManager.CONFIG_PATH):
 		push_error("SETTINGS_PERSISTENCE_ASSERT: writer did not create room407.cfg")
 		get_tree().quit(2)

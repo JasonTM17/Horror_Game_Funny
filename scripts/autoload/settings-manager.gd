@@ -1,6 +1,7 @@
 extends Node
 
 signal setting_changed(name: String, value: Variant)
+signal settings_save_failed(path: String, error: Error)
 
 const CONFIG_PATH := "user://room407.cfg"
 var mouse_sensitivity: float = 0.08
@@ -81,7 +82,7 @@ func reset_defaults() -> void:
 	set_film_grain_enabled(true)
 	set_fullscreen_enabled(false)
 
-func save_settings() -> void:
+func save_settings(config_path: String = CONFIG_PATH) -> Error:
 	var config := ConfigFile.new()
 	config.set_value("controls", "mouse_sensitivity", mouse_sensitivity)
 	config.set_value("display", "field_of_view", field_of_view)
@@ -94,7 +95,10 @@ func save_settings() -> void:
 	config.set_value("accessibility", "camera_shake_enabled", camera_shake_enabled)
 	config.set_value("accessibility", "film_grain_enabled", film_grain_enabled)
 	config.set_value("display", "fullscreen_enabled", fullscreen_enabled)
-	config.save(CONFIG_PATH)
+	var save_error := config.save(config_path)
+	if save_error != OK:
+		settings_save_failed.emit(config_path, save_error)
+	return save_error
 
 func load_settings() -> void:
 	var config := ConfigFile.new()

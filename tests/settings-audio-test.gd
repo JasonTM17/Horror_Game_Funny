@@ -1,9 +1,7 @@
 extends Node
 
 const SETTINGS_SCENE := preload("res://scenes/ui/settings-panel.tscn")
-const PAUSE_SCENE := preload("res://scenes/ui/pause-menu.tscn")
-const BOOT_SCENE := preload("res://scenes/boot/boot.tscn")
-const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
+const MENU_SETTINGS_REGRESSION := preload("res://tests/menu-settings-regression.gd")
 
 func _ready() -> void:
 	await get_tree().process_frame
@@ -19,7 +17,7 @@ func _ready() -> void:
 	var panel := SETTINGS_SCENE.instantiate()
 	add_child(panel)
 	await get_tree().process_frame
-	for node_path in ["Panel/Music", "Panel/Sfx", "Panel/Ambience", "Panel/Fullscreen", "Panel/CameraShake", "Panel/FilmGrain", "Panel/Reset"]:
+	for node_path in ["Panel/Music", "Panel/Sfx", "Panel/Ambience", "Panel/Fullscreen", "Panel/CameraShake", "Panel/FilmGrain", "Panel/Reset", "Panel/SaveStatus", "Panel/CloseWithoutSaving"]:
 		if not _require(panel.has_node(node_path), "%s control missing" % node_path): return
 	AudioManager.stop_all()
 	var cache_id := "audio_variant_fixture"
@@ -135,36 +133,15 @@ func _ready() -> void:
 	if not _require(AudioManager.get_child_count() == 0, "audio teardown deferred a player past shutdown"): return
 	# The audio server releases the active playback on its mix thread after the player is freed.
 	await get_tree().create_timer(0.2).timeout
-	var pause_menu := PAUSE_SCENE.instantiate()
-	add_child(pause_menu)
-	var player := PLAYER_SCENE.instantiate()
-	add_child(player)
+	SettingsManager.reset_defaults()
+	var menu_settings_regression := MENU_SETTINGS_REGRESSION.new()
+	add_child(menu_settings_regression)
+	if not await menu_settings_regression.run(): return
+	menu_settings_regression.queue_free()
 	await get_tree().process_frame
-	if not _require(pause_menu.has_node("Panel/Settings") and pause_menu.has_node("SettingsPanel"), "pause settings entry missing"): return
-	player.set_input_locked("pause", true)
-	pause_menu._settings()
-	if not _require(pause_menu.get_node("SettingsPanel").visible and player.is_input_locked(), "pause settings did not preserve the input lock"): return
-	var escape := InputEventAction.new()
-	escape.action = "pause_game"
-	escape.pressed = true
-	pause_menu.get_node("SettingsPanel")._unhandled_input(escape)
-	if not _require(not pause_menu.get_node("SettingsPanel").visible, "Escape did not close pause settings"): return
-	if not _require(player.is_input_locked(), "closing settings cleared the pause lock"): return
-	player.set_input_locked("pause", false)
-	GameState.set_objective("Continue test")
-	GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
-	var boot_menu := BOOT_SCENE.instantiate()
-	add_child(boot_menu)
-	await get_tree().process_frame
-	var continue_button := boot_menu.find_child("Continue", true, false) as Button
-	if not _require(continue_button != null and continue_button.visible, "checkpoint continue button missing"): return
 	SettingsManager.reset_defaults()
 	print("SETTINGS_AUDIO_TEST_OK")
 	panel.queue_free()
-	pause_menu.queue_free()
-	player.queue_free()
-	boot_menu.queue_free()
-	GameState.reset_run()
 	await get_tree().process_frame
 	get_tree().quit()
 
