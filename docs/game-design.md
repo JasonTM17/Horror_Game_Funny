@@ -65,11 +65,15 @@ These values remain authored goals, not release proof. Only a dated physical F5 
 
 The phone and logbook teach interaction. The player must read the stopped desk clock and then the night register before the logbook becomes valid; its 00:07 clue seeds the later radio puzzle. The fourth-floor door remains gated until the phone briefing completes and the log is signed.
 
+The lobby desk also has an optional, visibly modeled drawer. Opening and closing it animates the prop, returns the scratched 00:07 detail or a clear close response, and never changes story progression. Its sweep guard asks the player to step back before motion rather than allowing the drawer to pass through the actor.
+
 ### Fourth Floor
 
 After crossing the first barrier, a maintenance notice establishes why the floor is closed and points toward the fuse locker. The player must read it, inspect an empty fuse box if desired, collect the spare fuse, and install it once. Installation advances the story only after the item guard passes; the power sequence then stabilizes before the next door opens.
 
 Crossing the threshold is a one-shot authored scare: the elevator display changes from `3` to `4`, the real floor door closes behind the player, and a distant, non-colliding arrival apparition appears before the display burns back to `--`. The fourth-floor shell uses alternating procedural wall panels, lights, and notices to make the route feel occupied without adding a second level or scene.
+
+The painted elevator-side false door is optional. Trying it returns a clear explanation that the handle is painted onto the panel; the panel stays fixed and does not gate or advance progression.
 
 ### Memory Hallway
 
@@ -142,16 +146,16 @@ Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user:/
 
 ## Completion Evidence Required
 
-Automated checks cover progression guards, fourth-floor/Room 407 scare dressing, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. They also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
+Automated checks cover progression guards, fourth-floor/Room 407 scare dressing, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. The existing physical-route check also exercises the optional drawer and painted door through the production ray, including structural visibility/alignment, feedback/cooldowns, drawer sweep and animation safety, unchanged story state, and spatial-audio/lock cleanup. Checks also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
 
 Release validation still needs a recorded manual run covering:
 
 - complete F5 boot-to-credits traversal with physical inputs and a same-run capture;
 - the same run's eligible, complete, order-valid telemetry payload with chapter and 900–1200 second active-total evidence;
-- collision and door passage feel;
+- collision plus door and drawer-sweep clearance feel;
 - navigation behavior during a real chase;
-- darkness, flicker, grain, and red-guide-light readability;
-- master/music/SFX/ambience balance and audible output;
+- darkness, flicker, grain, red-guide-light readability, and optional-prop visibility;
+- master/music/SFX/ambience balance and audible output, including optional interaction tones;
 - mouse capture, pause/settings behavior, and comfort toggles;
 - physical Settings-panel save/close behavior and fullscreen transition on target hardware.
 

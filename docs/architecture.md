@@ -37,7 +37,7 @@ F6 is editor current-scene execution and can skip the boot scene. The memory loo
 
 ## World Construction
 
-`ContinuousWorldBuilder` creates the shared environment, 870-unit corridor shell, partitions, Room 407 dressing, lights, guide lights, and navigation region. The authored dressing includes the fourth-floor elevator display/false-door set, the real arrival-door closure and timed apparition, Room 407 wallpaper/height marks/ceiling ribs, and alternating chase wall scars. `ContinuousStoryLayout` creates the story objects and guarded doors. `LevelGeometry` is the low-level box, label, material, and light factory.
+`ContinuousWorldBuilder` creates the shared environment, 870-unit corridor shell, partitions, Room 407 dressing, lights, guide lights, and navigation region. The authored dressing includes the fourth-floor elevator display/visible false-door panel, the real arrival-door closure and timed apparition, Room 407 wallpaper/height marks/ceiling ribs, and alternating chase wall scars. `ContinuousStoryLayout` creates the story objects, guarded doors, mesh-backed lobby drawer, and an interaction body aligned to that false-door panel. `LevelGeometry` is the low-level box, label, material, and light factory.
 
 The navigation surface is a real `NavigationRegion3D` named `ContinuousCorridorNavigation`. Its `NavigationMesh` contains a four-vertex polygon spanning the playable corridor. This is created directly in code rather than baked from imported meshes.
 
@@ -64,6 +64,8 @@ Player interaction ray
 ```
 
 Prompt lookup is read-only. Mutating actions guard prerequisites first. `DoorInteractable` additionally rejects player-operated opening and closing while the actor is within its designer-tunable 1.5 m horizontal motion sweep. The check happens before cooldown, signal, item, unlock, or tween mutation. Accepted motion acquires a per-door reason-scoped movement lock and releases it when the tween finishes or the door leaves the tree; event-driven closure can omit an actor and therefore does not claim that player lock. Story stages are monotonic:
+
+`DrawerInteractable` and `AtmosphericDoorInteractable` are state-neutral local branches from the same production ray. The visible lobby drawer translates open and closed, rejects actors inside its 1.45 m sweep, holds a movement-only lock during its tween, and releases that lock on completion or teardown. The collider aligned to the painted false-door panel returns clear fixed-door feedback behind a bounded cooldown. Each owns a per-instance spatial tone stopped during teardown; neither calls the director or mutates `GameState`.
 
 ```text
 LOBBY
@@ -170,8 +172,8 @@ These are the current extension points verified against the source and headless 
 
 1. Add a stable lowercase ID through `_add_story()` or `_add_door()` in `continuous-story-layout.gd`.
 2. Keep the player ray on collision mask value `4`, the named Interactable physics bit. Existing story props and doors use collision layer value `5` (`World` value `1` plus `Interactable` value `4`), so the player capsule sees their solid world collision while the interaction ray can acquire them.
-3. Use `StoryInteractable` for director-routed actions, `DoorInteractable` for animated guarded doors, or `PickupInteractable` for a direct inventory pickup. Each target must retain a `CollisionShape3D` and implement the `get_prompt()` / `interact()` contract inherited from `Interactable`.
-4. Add a production-ray assertion to `player-input-integration-test.gd`; use `physical-route-smoke-test.gd` as well when the object must block or clear player movement.
+3. Use `StoryInteractable` for director-routed actions, `DoorInteractable` for animated guarded doors, `PickupInteractable` for a direct inventory pickup, or a state-neutral `Interactable` subclass for optional local feedback. Each target must retain a `CollisionShape3D` and implement the `get_prompt()` / `interact()` contract inherited from `Interactable`.
+4. Add a production-ray assertion to `player-input-integration-test.gd`; use `physical-route-smoke-test.gd` as well when the object must block or clear player movement. The existing environmental helper demonstrates sweep, cooldown, state-neutrality, and spatial-audio teardown coverage inside that check.
 
 ### Story Beat
 
@@ -198,7 +200,7 @@ Create a focused `.gd` script and `.tscn` harness under `tests/`, print one uniq
 
 The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-Together they verify import, canonical `project.godot` serialization, and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, entity-parented SFX cue start/recovery/teardown, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam, 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; all 70 manifest-backed English voice resources and sequencing/fallback contracts; and settings persistence across two Godot processes.
+Together they verify import, canonical `project.godot` serialization, and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, entity-parented SFX cue start/recovery/teardown, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam, 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; optional drawer/painted-door visibility alignment, ray acquisition, cooldown, mapped feedback, drawer motion safety, unchanged story state, and spatial-tone/lock teardown; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; all 70 manifest-backed English voice resources and sequencing/fallback contracts; and settings persistence across two Godot processes.
 
 The movement checks teleport between focused gates and the input check positions the player at selected production targets. The telemetry checks extend progression and checkpoint/layout; they do not add a thirteenth runner check. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify a same-run physical capture, monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
@@ -211,8 +213,11 @@ The movement checks teleport between focused gates and the input check positions
 - [`chase-entity.gd`](../scripts/world/chase-entity.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
+- [`continuous-story-layout.gd`](../scripts/world/continuous-story-layout.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`door-interactable.gd`](../scripts/interaction/door-interactable.gd)
+- [`drawer-interactable.gd`](../scripts/interaction/drawer-interactable.gd)
+- [`atmospheric-door-interactable.gd`](../scripts/interaction/atmospheric-door-interactable.gd)
 - [`player-controller.gd`](../scripts/player/player-controller.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
 - [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
@@ -224,6 +229,7 @@ The movement checks teleport between focused gates and the input check positions
 - [`pause-menu.gd`](../scripts/ui/pause-menu.gd)
 - [`boot-menu.gd`](../scripts/ui/boot-menu.gd)
 - [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
+- [`environmental-interaction-route-verifier.gd`](../tests/environmental-interaction-route-verifier.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
 - [`menu-settings-regression.gd`](../tests/menu-settings-regression.gd)
 - [Testing matrix](testing.md)

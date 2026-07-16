@@ -51,6 +51,7 @@ The pause menu includes Settings. Mouse sensitivity, field of view, four audio l
 - An atomic fourth-floor key pickup/consumption with a permanent run-local door unlock; the installed fuse is consumed once and cannot reappear after backtracking.
 - A radio-completion checkpoint at `room_entrance` before the Room 407 threshold, a fourth-floor elevator display/real-door arrival beat, and a timed non-colliding apparition.
 - Procedural fourth-floor dressing, Room 407 height-mark/room dressing, and a pre-chase manifestation that clears before the chase entity starts.
+- Optional, state-neutral environmental interactions: a visible lobby desk drawer animates open and closed with sweep-safe movement locking and a positional tone, while the painted fourth-floor false door stays fixed and returns explicit feedback with its own positional tone.
 - A three-second in-world ending reveal before the credits overlay appears.
 - Pause-aware playthrough pacing telemetry for fresh Lobby runs, finalized when the visible credits appear.
 - Boot-menu Continue when an in-memory checkpoint exists.
@@ -82,9 +83,11 @@ The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progres
 
 The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import, canonical `project.godot` serialization, and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam, the 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; the chase entity's parented SFX cue at start/recovery plus teardown; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
 
+The existing `physical-route` check also covers the optional drawer and painted door: structural visibility/alignment, production-ray acquisition, mapped feedback, cooldown/spam behavior, drawer sweep rejection and movement-only locking, open/close animation, unchanged story state, and spatial-tone/lock cleanup on teardown. These remain headless contract assertions, not rendered-visual, audible-mix, or physical-input evidence.
+
 The suite also covers progression/scare/chase invariants, audio cache variants/LRU/live-player teardown, all 70 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible voice quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
-The fresh post-voice hardening run on 2026-07-16 passed all 12 checks in 60.3 seconds, produced 12 canonical logs and 10 required markers, contained zero scanned failure lines, and left zero temporary Godot profiles. This is automated contract evidence only; the physical and perceptual gates above remain open.
+The fresh post-environmental-interaction run on 2026-07-16 passed all 12 checks in 64.7 seconds, produced 12 canonical logs and 10 required markers, contained zero scanned failure lines, and left zero temporary Godot profiles. This is automated contract evidence only; the physical and perceptual gates above remain open.
 
 ## Capture a Pacing Payload
 

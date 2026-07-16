@@ -51,7 +51,7 @@ This inventory records the current Windows verification machine. It is reproduci
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, staged ending/reveal, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, presentation |
 | 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, entity-parented SFX cue at start/recovery plus teardown, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, audible cue/mix quality, fresh-run pacing |
-| 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | E/raycast interaction, complete route, puzzles, physical keyboard/mouse, timing, chase feel |
+| 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | optional drawer/painted-door visibility alignment, production-ray acquisition, mapped feedback/cooldowns, drawer sweep/animation lock safety, unchanged story state, and spatial-tone/lock teardown; production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | rendered optional-prop quality, audible tone/mix quality, OS-delivered E/W, complete route, puzzles, timing, chase feel |
 | 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; unsafe open/close inside the 1.5 m sweep has no state side effect; safe tweens hold only movement and release it; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look/door feel, full traversal |
 | 9 | `visual-effects` / `test-visual-effects.log` | `visual-effects-test.tscn`; `--quit-after 180` | overlay shader/material and dither/VHS/fear uniforms exist; chase/ending fear targets and film-grain visibility toggle respond | rendered pixels, readability, comfort, GPU performance, monitor gamma |
 | 10 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn`; `--quit-after 600` | buses and first-run default levels, selected clamps, parameter/loop-aware audio variants, LRU/live-stream protection, spatial teardown, controls, pause/boot modal focus and launcher return, save-failure retry/discard, audio teardown, in-memory Continue; all 70 voice cues/imports and exact sequence groups, SFX/pause/single-voice contracts, real-cue pause/resume, external-subtitle interruption, replacement, fallback, queue duplicate/order/reentrancy, unscaled long-cue hold, malformed-manifest rejection, and teardown; voice and menu regressions run as nested helpers | audible voice/effects quality, mix balance, and physical UI navigation |
@@ -105,13 +105,13 @@ The total target is independent of the chapter verdicts. A missing boundary pair
 
 ## Recorded Automated Evidence
 
-The fresh post-voice hardening run on 2026-07-16 passed all twelve checks in 60.3 seconds with 12 logs, 10 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.59 s` active, `6.83 s` wall, and `0.23 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused and canonical runs remain historical evidence only (see the dated plan reports).
+The fresh post-environmental-interaction run on 2026-07-16 passed all twelve checks in 64.7 seconds with 12 logs, 10 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.68 s` active, `6.96 s` wall, and `0.26 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused and canonical runs remain historical evidence only (see the dated plan reports).
 
 ## Synthetic Actions Versus Physical Input
 
 The automation reaches production code, but it does not inject operating-system keyboard or mouse events:
 
-- `physical-route-smoke-test.gd` calls `Input.action_press("move_forward")` and `Input.action_release("move_forward")`. The production controller then reads the action through `Input.get_vector()` and moves with `move_and_slide()`, but no physical W key is pressed.
+- `physical-route-smoke-test.gd` calls `Input.action_press("move_forward")` / `Input.action_release("move_forward")` for route movement. Its optional-interaction helper also constructs an `interact` action and passes it directly to the production interaction handler after forcing the production ray update. The normal controller, ray, and interactables run, but Windows delivers no physical W or E key.
 - `player-input-integration-test.gd` confirms that `interact` has an E-key binding, then constructs `InputEventAction` objects and passes them directly to production `_unhandled_input()` methods. This exercises the production ray, locks, door logic, and UI handlers without proving that Windows delivered E, F, Tab, or Escape from hardware.
 - `progression-test.gd` calls story methods and radio widget methods directly. It does not type into the `LineEdit`, click buttons, or close the final note through a real device.
 
@@ -161,9 +161,19 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 
 These are structural and numeric assertions. They do not move a player capsule through every doorway or prove that a `NavigationAgent3D` follows the route correctly under player-driven pursuit.
 
-## Production Movement and Door Coverage
+## Production Movement, Door, and Optional Interaction Coverage
 
-`physical-route-smoke-test.gd` instantiates the production gameplay scene and production `CharacterBody3D`. It presses the mapped `move_forward` action across physics frames, which reaches the player controller's normal `Input.get_vector()` and `move_and_slide()` path. It verifies:
+`physical-route-smoke-test.gd` instantiates the production gameplay scene and production `CharacterBody3D`. Its nested `environmental-interaction-route-verifier.gd` first exercises optional targets through the production ray and interaction handler. It verifies:
+
+- the closed drawer face remains outside the opaque desk and the false-door collider aligns with the visible panel;
+- the production ray acquires both targets at authored stances;
+- the drawer rejects its unsafe sweep stance without motion or a player lock, then opens and closes with one response per accepted mapped action;
+- active drawer motion blocks mapped movement with a movement-only lock, suppresses interaction spam, remains in ray range when open, and releases the lock after motion;
+- the painted door returns clear feedback, remains fixed, suppresses spam during its cooldown, and accepts interaction again afterward;
+- neither optional target changes story state; and
+- both spatial tones own live audio/cache entries, while target teardown removes those entries and releases an active drawer lock.
+
+The route portion then presses the mapped `move_forward` action across physics frames, which reaches the player controller's normal `Input.get_vector()` and `move_and_slide()` path. It verifies:
 
 - the floor, power, and Room 407 doors remain closed without their prerequisite flags;
 - the capsule receives forward movement but stops at each locked door;
@@ -173,7 +183,7 @@ These are structural and numeric assertions. They do not move a player capsule t
 - the Room 407 threshold creates the expected gameplay-scene checkpoint snapshot; and
 - the chase threshold rejects premature entry, then starts once `chase_ready` and creates a valid entity.
 
-The harness teleports between focused gates, sets prerequisite flags, and calls `door.interact()` directly. It does not press E through the production raycast, solve the complete puzzles, traverse every meter, exercise a player-driven chase, or measure 15-20 minute pacing.
+The harness teleports between focused targets and gates, forces ray updates, passes a constructed interaction action directly to the production handler, sets prerequisite flags, and calls guarded route doors directly. It does not deliver operating-system E/W input, solve the complete puzzles, traverse every meter, exercise a player-driven chase, judge rendered visibility or audible tone balance, or measure 15-20 minute pacing.
 
 ## Player Input Integration Coverage
 
@@ -277,6 +287,9 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`chase-entity.gd`](../scripts/world/chase-entity.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`physical-route-smoke-test.gd`](../tests/physical-route-smoke-test.gd)
+- [`environmental-interaction-route-verifier.gd`](../tests/environmental-interaction-route-verifier.gd)
+- [`drawer-interactable.gd`](../scripts/interaction/drawer-interactable.gd)
+- [`atmospheric-door-interactable.gd`](../scripts/interaction/atmospheric-door-interactable.gd)
 - [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
 - [`player-flashlight.gd`](../scripts/player/player-flashlight.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
