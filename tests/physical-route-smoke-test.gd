@@ -1,6 +1,7 @@
 extends Node
 
 const GAMEPLAY_SCENE := preload("res://scenes/gameplay/gameplay.tscn")
+const ENVIRONMENTAL_INTERACTION_VERIFIER := preload("res://tests/environmental-interaction-route-verifier.gd")
 
 func _ready() -> void:
 	GameState.reset_run()
@@ -12,6 +13,10 @@ func _ready() -> void:
 	gameplay._narrative.voice_over_enabled = false
 	var player := gameplay.player as CharacterBody3D
 
+	var environmental_verifier := ENVIRONMENTAL_INTERACTION_VERIFIER.new()
+	if not await environmental_verifier.verify(self, gameplay, player):
+		get_tree().quit(2)
+		return
 	if not await _verify_door_gate(gameplay, player, "floor_door", "log_signed"): return
 	if not await _cross_trigger_without_flag(player, WorldLayout.FLOOR_TRIGGER_Z, "floor_reached", true): return
 	var floor_door := gameplay.get_node("floor_door") as DoorInteractable
