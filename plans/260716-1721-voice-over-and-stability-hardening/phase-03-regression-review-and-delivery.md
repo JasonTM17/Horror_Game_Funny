@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: Regression Review and Delivery
-status: pending
+status: complete
 dependencies:
   - 2
 ---
@@ -29,4 +29,3 @@ dependencies:
 - Scan for secrets, model weights, WAV intermediates, caches, and generated
   user profiles.
 - Commit and push each coherent green cluster to `origin/main`; never force.
-

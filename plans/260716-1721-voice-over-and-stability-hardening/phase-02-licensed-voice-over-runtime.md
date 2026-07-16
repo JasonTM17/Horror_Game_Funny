@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Licensed Voice-over Runtime
-status: pending
+status: complete
 dependencies:
   - 1
 ---
@@ -37,4 +37,3 @@ dependencies:
   beneath the agreed compact asset budget.
 - Playback wait time is at least the cue duration plus readable padding.
 - Pause, replacement, queue completion, and scene teardown are deterministic.
-

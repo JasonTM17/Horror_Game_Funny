@@ -60,7 +60,7 @@ Checkpoints are process-local. Restarting the application clears gameplay progre
 
 F5 loads `boot.tscn`, then enters the single continuous `gameplay.tscn`. `GameplayDirector` builds the procedural world and composes the player, UI, story, hallway, horror-event, chase, ending, and scene-local pacing components at runtime. Four autoloads own process state, scene routing, generated audio, and persisted settings; story controllers reach them through the director facade and stable flag/item IDs. The pacing facade returns a deep copy so callers cannot mutate the live report.
 
-`AudioManager` creates the Music, SFX, Ambience, and Chase buses before `SettingsManager` applies either saved values or the first-run defaults. Its generated PCM cache keys every sample-rendering parameter and loop mode, caps data at 16 MiB with LRU eviction, protects streams held by regular/spatial players, and tears down spatial players synchronously. `VisualEffectsLayer` owns the Compatibility shader; the flashlight uses a bounded, pause-safe pulse. See [Architecture](docs/architecture.md) for controller boundaries, data flow, and extension points.
+`AudioManager` creates the Music, SFX, Ambience, and Chase buses before `SettingsManager` applies either saved values or the first-run defaults. Its generated PCM cache keys every sample-rendering parameter and loop mode, caps data at 16 MiB with LRU eviction, protects streams held by regular/spatial players, and tears down spatial players synchronously. `NarrativeSequencer` adds a scene-local, pause-aware voice player whose exact manifest match follows the SFX level and falls back to the subtitle/dialogue tick when a cue is unavailable. `VisualEffectsLayer` owns the Compatibility shader; the flashlight uses a bounded, pause-safe pulse. See [Architecture](docs/architecture.md) for controller boundaries, data flow, and extension points.
 
 ## Test
 
@@ -81,7 +81,7 @@ The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progres
 
 The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
 
-The suite also covers progression/scare/chase invariants, audio cache variants/LRU/live-player teardown, pause-safe flashlight bounds, modal focus return, and visible save failures; the Settings regression helper runs inside `settings-audio` and does not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible output or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+The suite also covers progression/scare/chase invariants, audio cache variants/LRU/live-player teardown, all 70 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible voice quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
 ## Capture a Pacing Payload
 
@@ -110,7 +110,7 @@ The generated Markdown includes an unchecked human-review matrix. The capture pa
 
 ## Assets
 
-There is no committed `assets/` directory or third-party art/audio pack. Corridor geometry, props, materials, labels, and 16-bit mono PCM cues are generated at runtime; `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
+There is no third-party art or recorded-sound pack. Corridor geometry, props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 70 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
 
 No gameplay captures are committed. Add only verified in-engine captures under `docs/screenshots/` after a manual visual pass; do not present concept art as gameplay. See [Asset credits and provenance](docs/asset-credits.md).
 
@@ -142,17 +142,20 @@ Keep changes focused, use Conventional Commit messages, and do not commit `.godo
 | `scenes/player/` | Player scene and configured movement values |
 | `scenes/ui/` | HUD, pause/settings, fail, and ending overlays |
 | `scripts/autoload/` | Game state, scene routing, audio, and settings services |
+| `scripts/audio/` | Manifest-backed story voice playback and fallback |
 | `scripts/interaction/` | Door, pickup, and story interaction contracts |
 | `scripts/player/` | Movement, flashlight, and interaction ray logic |
 | `scripts/puzzles/` | Radio puzzle UI and validation |
 | `scripts/ui/` | Runtime UI, transitions, and visual effects |
 | `scripts/world/` | World construction, progression, horror events, navigation, chase, and ending logic |
+| `assets/audio/voice-over/` | Generated English OGG cues, Godot import sidecars, and cue manifest |
 | `shaders/` | Project-authored Compatibility canvas shader |
 | `tests/` | Native GDScript checks and PowerShell runner |
+| `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
 | `docs/` | Design, architecture, standards, testing, provenance, and limitations |
 | `plans/` | Project planning and historical verification artifacts |
 
-There is no committed `assets/` directory. Geometry and audio are generated at runtime; the project-authored icon is `icon.svg` at the repository root.
+Geometry and procedural effects are generated at runtime. The only committed audio assets are the manifest-backed English voice cues under `assets/audio/voice-over/`; the project-authored icon is `icon.svg` at the repository root.
 
 ## References
 

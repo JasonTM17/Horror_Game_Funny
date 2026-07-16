@@ -3,7 +3,7 @@ title: Voice-over and Stability Hardening
 description: >-
   Fix reproducible release-blocking defects and add licensed English story
   voice-over synchronized with the existing subtitle flow.
-status: in-progress
+status: complete
 priority: P1
 branch: main
 tags:
@@ -27,9 +27,9 @@ default voice language for this slice; localization is separate scope.
 
 | Phase | Name | Status |
 |---|---|---|
-| 1 | [Reproduction and project stability](./phase-01-reproduction-and-project-stability.md) | In progress |
-| 2 | [Licensed voice-over runtime](./phase-02-licensed-voice-over-runtime.md) | Pending |
-| 3 | [Regression, review, and delivery](./phase-03-regression-review-and-delivery.md) | Pending |
+| 1 | [Reproduction and project stability](./phase-01-reproduction-and-project-stability.md) | Complete |
+| 2 | [Licensed voice-over runtime](./phase-02-licensed-voice-over-runtime.md) | Complete |
+| 3 | [Regression, review, and delivery](./phase-03-regression-review-and-delivery.md) | Complete |
 
 ## Acceptance Criteria
 
@@ -62,9 +62,14 @@ default voice language for this slice; localization is separate scope.
 ## Commit Sequence
 
 1. `fix(config): keep project settings stable in Godot editor`
-2. `feat(audio): add licensed story voice-over playback`
-3. `test(audio): cover voice sequencing and fallback`
-4. `docs: document voice provenance and QA evidence`
+2. `fix(player): delay initial flashlight flicker`
+3. `feat(audio): add licensed story voice-over playback`
+4. `test(audio): cover voice sequencing and fallback`
+5. `docs: document voice provenance and QA evidence`
+
+## Evidence
+
+- [Voice-over and stability QA](./reports/260716-1849-voice-over-qa.md)
 
 ## Risks and Rollback
 
@@ -74,4 +79,3 @@ default voice language for this slice; localization is separate scope.
   disks before/after generation.
 - If a cue fails to import, the runtime must degrade to subtitle timing rather
   than aborting the narrative queue.
-

@@ -24,7 +24,7 @@
 - The player-input integration check confirms a physical E binding exists, then passes constructed `InputEventAction` objects directly to production handlers. It covers the phone interaction ray, objective review, pause/flashlight locks, note Escape/unlock, door spam and close/reopen cycles, and authored head-position restoration. It does not inject operating-system keyboard/mouse events or prove input latency and feel.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
 - The visual-effects check verifies the overlay shader/material, dither/VHS/fear uniforms, chase/ending fear targets, and the film-grain visibility toggle. It does not inspect rendered pixels, readability, comfort, monitor gamma, or GPU performance.
-- The settings/audio test verifies buses, selected clamps, controls, pause/boot modal focus and launcher return, visible save-failure retry/discard behavior, parameter-complete loop-aware audio cache variants, LRU/live-stream protection, exact byte accounting, spatial player lifetime/teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes and check the returned save error. The nested `menu-settings-regression.gd` helper does not add a thirteenth runner check. No headless check verifies audible output, physical panel interaction, or target-device fullscreen behavior.
+- The settings/audio test verifies buses, selected clamps, controls, pause/boot modal focus and launcher return, visible save-failure retry/discard behavior, parameter-complete loop-aware audio cache variants, LRU/live-stream protection, exact byte accounting, spatial player lifetime/teardown, in-memory Continue, all 70 voice resources, exact cue/subtitle fallback, voice-duration holds, queue ordering/duplicates, pause/resume, and teardown. Separate persistence checks save and restore all 11 values across two processes and check the returned save error. Nested voice and menu helpers do not add runner checks. No headless check verifies audible performance, intelligibility, mix quality, physical panel interaction, or target-device fullscreen behavior.
 - The player-input check verifies bounded flashlight energy, reset when disabled/hidden, and `PROCESS_MODE_PAUSABLE` pause freeze. It does not prove rendered flicker comfort, monitor gamma, or physical pause timing.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, audible mix, or frame pacing on target hardware.
 
@@ -42,7 +42,7 @@ The following are targets or implemented features, not manually verified release
 - live `NavigationAgent3D` behavior and chase fairness under player control;
 - corridor-light failure and red-guide-light readability during the chase;
 - visual balance for flashlight, fog, blackout, flicker, grain, and ending reveal;
-- audible phone, ambience, radio, footsteps, chase, fail, and ending balance;
+- audible narration/character voice, phone, ambience, radio, footsteps, chase, fail, and ending balance;
 - mouse capture, pause/settings behavior, fullscreen, and comfort toggles;
 - physical Settings-panel save/close behavior and target-device fullscreen transition.
 
@@ -50,9 +50,9 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 
 ## Content and Presentation Scope
 
-- Geometry, materials, labels, shader effects, and audio are intentionally procedural and asset-light. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
+- Geometry, materials, labels, shader effects, and sound effects are intentionally procedural and asset-light. The exception is the committed generated English story voice set. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
 - The project contains no committed screenshots or gameplay-capture directory.
-- Voice acting, external hero props, crouch, and a secondary ending are deferred.
+- Generated English narration/character delivery is implemented for every sequenced story line; human-performed acting, external hero props, crouch, and a secondary ending remain out of scope. Voice quality and mix still require a physical listening pass.
 - The radio, subtitles, and credits use runtime UI/default theme behavior rather than committed font assets.
 - The current story and credits are English-only.
 

@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: Reproduction and Project Stability
-status: in-progress
+status: complete
 dependencies: []
 ---
 
@@ -27,4 +27,3 @@ dependencies: []
 - Isolated reproduction diff explains every changed line.
 - `editor-import` exits zero and leaves the project-setting checksum unchanged.
 - Full worktree returns clean after the check.
-
