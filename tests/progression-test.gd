@@ -206,9 +206,17 @@ func _ready() -> void:
 	director._process(0.0)
 	if not _require(GameState.stage == GameState.Stage.CHASE, "chase stage missing"): return
 	if not _require(is_instance_valid(director._chase.entity), "chase entity missing before capture test"): return
-	# Center the capsule above the floor and let the scheduled production physics
-	# path evaluate navigation, movement, collision recovery, and proximity.
-	director._chase.entity.global_position = player.global_position + Vector3(0, 1.1, 0.05)
+	var entity_body := director._chase.entity.get_node_or_null("EntityBody") as MeshInstance3D
+	var entity_collider := director._chase.entity.get_node_or_null("EntityCollider") as CollisionShape3D
+	if not _require(entity_body != null and is_equal_approx(entity_body.position.y, 1.25), "production enemy mesh is not centered above the floor"): return
+	if not _require(entity_collider != null and is_equal_approx(entity_collider.position.y, 1.2), "production enemy collider is not centered above the floor"): return
+	if not _require(absf(director._chase.entity.global_position.y - player.global_position.y) < 0.05, "production enemy root no longer follows the floor plane"): return
+	director._chase.entity.appear_duration = 0.01
+	director._chase.entity.stalk_duration = 0.01
+	if not _require(await _wait_for_entity_state(director._chase.entity, director._chase.entity.State.CHASE), "production enemy never armed its capture state"): return
+	# Keep the root on the floor plane so proximity exercises the same production
+	# mesh, collider, navigation, and recovery path used during gameplay.
+	director._chase.entity.global_position = player.global_position + Vector3(0, 0, 0.05)
 	director._chase.entity.velocity = Vector3.ZERO
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -321,6 +329,13 @@ func _wait_for_radio(radio_ui: Variant, max_frames := 120) -> bool:
 func _wait_for_node(parent: Node, node_name: String, max_frames := 120) -> bool:
 	for _frame in max_frames:
 		if parent.has_node(node_name):
+			return true
+		await get_tree().process_frame
+	return false
+
+func _wait_for_entity_state(entity: CharacterBody3D, expected_state: int, max_frames := 120) -> bool:
+	for _frame in max_frames:
+		if entity.state == expected_state:
 			return true
 		await get_tree().process_frame
 	return false

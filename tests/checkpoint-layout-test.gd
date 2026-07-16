@@ -95,10 +95,89 @@ func _ready() -> void:
 	gameplay.add_child(chase_entity)
 	chase_entity.setup(player, gameplay)
 	chase_entity.start_chase()
-	await get_tree().create_timer(0.8).timeout
-	if not _require(chase_entity.state == chase_entity.State.STALK, "enemy never reaches stalk state"): return
+	var appear_origin := chase_entity.global_position
+	for _frame in 18:
+		await get_tree().physics_frame
+	if not _require(chase_entity.state == chase_entity.State.APPEAR, "enemy skipped its warning appearance"): return
+	if not _require(chase_entity.global_position.distance_to(appear_origin) < 0.01 and is_zero_approx(chase_entity.velocity.length()), "enemy moved during its warning appearance"): return
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.STALK), "enemy never reaches stalk state"): return
+	var stalk_origin := chase_entity.global_position
+	for _frame in 12:
+		await get_tree().physics_frame
+	var stalk_distance := chase_entity.global_position.distance_to(stalk_origin)
+	if not _require(chase_entity.state == chase_entity.State.STALK and stalk_distance > 0.05, "enemy did not visibly stalk before chasing"): return
+	if not _require(absf(chase_entity.velocity.length() - chase_entity.speed * chase_entity.stalk_speed_multiplier) < 0.05, "stalk state does not use its authored speed"): return
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.CHASE), "enemy never reaches chase state"): return
+	var chase_origin := chase_entity.global_position
+	for _frame in 12:
+		await get_tree().physics_frame
+	var measured_chase_distance := chase_entity.global_position.distance_to(chase_origin)
+	if not _require(chase_entity.state == chase_entity.State.CHASE and measured_chase_distance > stalk_distance * 1.7, "full chase is not materially faster than stalking"): return
+	if not _require(absf(chase_entity.velocity.length() - chase_entity.speed) < 0.05, "chase state does not use its authored speed"): return
 	if not _require(chase_entity.speed > player.walk_speed, "enemy cannot catch a walking player"): return
 	if not _require(chase_entity.speed < player.walk_speed * player.sprint_multiplier, "enemy makes a full sprint escape impossible"): return
+	var pause_position := chase_entity.global_position
+	var pause_state_time: float = float(chase_entity._state_time)
+	get_tree().paused = true
+	await get_tree().process_frame
+	OS.delay_msec(120)
+	await get_tree().process_frame
+	var chase_stayed_paused := chase_entity.global_position.distance_to(pause_position) < 0.01 and is_equal_approx(chase_entity._state_time, pause_state_time)
+	get_tree().paused = false
+	await get_tree().process_frame
+	if not _require(chase_stayed_paused, "chase simulation advanced while the game was paused"): return
+	var recorded_last_seen: Vector3 = chase_entity._last_target_position
+	chase_entity.lost_target_duration = 0.12
+	chase_entity.search_duration = 0.5
+	var occluder_z := (chase_entity.global_position.z + player.global_position.z) * 0.5
+	var chase_occluder := LevelGeometry.add_box(gameplay, "ChaseLosOccluder", Vector3(0, 1.5, occluder_z), Vector3(8.0, 3.0, 0.4), Color(0.01, 0.01, 0.01))
+	await get_tree().physics_frame
+	chase_entity._los_timer = 0.0
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.LOST_TARGET, 20), "occluded enemy never enters lost-target state"): return
+	player.global_position += Vector3(0, 0, -6.0)
+	if not _require(chase_entity._movement_destination().distance_to(recorded_last_seen) < 0.05, "lost enemy tracks the hidden player instead of the last seen position"): return
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.SEARCH, 30), "lost enemy never enters search state"): return
+	if not _require(chase_entity._last_target_position.distance_to(recorded_last_seen) < 0.05, "search state leaked the hidden player's position"): return
+	if not _require(is_equal_approx(chase_entity._movement_speed(), chase_entity.speed * chase_entity.search_speed_multiplier), "search state does not use its authored movement speed"): return
+	chase_occluder.queue_free()
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	player.global_position = chase_entity.global_position + Vector3(0, 0, -8.0)
+	chase_entity._los_timer = 0.0
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.CHASE, 30), "enemy did not reacquire a visible nearby player"): return
+	player.global_position = chase_entity.global_position + Vector3(0, 0, -20.0)
+	chase_entity._los_timer = 0.0
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var far_last_seen_distance: float = chase_entity._last_target_position.distance_to(chase_entity.global_position)
+	if not _require(chase_entity.state == chase_entity.State.CHASE and far_last_seen_distance >= 18.0, "bounded-search fixture did not record a far visible target (state=%s, last_seen_distance=%.2f, visible=%s)" % [chase_entity.state, far_last_seen_distance, chase_entity._target_visible]): return
+	chase_entity.max_search_cycles = 1
+	chase_entity.lost_target_duration = 0.05
+	chase_entity.search_duration = 0.05
+	var persistent_occluder_z := (chase_entity.global_position.z + player.global_position.z) * 0.5
+	var persistent_occluder := LevelGeometry.add_box(gameplay, "PersistentChaseLosOccluder", Vector3(0, 1.5, persistent_occluder_z), Vector3(8.0, 3.0, 0.4), Color(0.01, 0.01, 0.01))
+	await get_tree().physics_frame
+	chase_entity._los_timer = 0.0
+	if not _require(await _wait_for_entity_state(chase_entity, chase_entity.State.DESPAWN, 60), "persistent target loss left the enemy searching forever"): return
+	var despawn_origin := chase_entity.global_position
+	await get_tree().create_timer(0.1).timeout
+	if not _require(not chase_entity.active and not chase_entity.visible and is_zero_approx(chase_entity.velocity.length()), "despawned enemy retained active or visible chase state"): return
+	if not _require(chase_entity.global_position.distance_to(despawn_origin) < 0.01, "despawned enemy continued moving"): return
+	persistent_occluder.queue_free()
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	chase_entity.start_chase()
+	if not _require(chase_entity.active and chase_entity.visible and chase_entity.state == chase_entity.State.APPEAR, "despawned enemy did not restart cleanly"): return
+	player.global_position = Vector3(0, 0.02, WorldLayout.EXIT_Z - 8.1)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not _require(chase_entity.state == chase_entity.State.DESPAWN and not chase_entity.active and not chase_entity.visible, "exit boundary left a visible or active enemy"): return
+	var exit_despawn_origin := chase_entity.global_position
+	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_RESPAWN_Z)
+	await get_tree().create_timer(0.1).timeout
+	if not _require(chase_entity.global_position.distance_to(exit_despawn_origin) < 0.01 and not chase_entity.active, "backtracking restarted an escaped enemy without a chase reset"): return
+	chase_entity.start_chase()
+	if not _require(chase_entity.visible and chase_entity._last_target_position.distance_to(player.global_position) < 0.05, "checkpoint restart retained stale target memory"): return
 	gameplay._chase.entity = chase_entity
 	GameState.set_flag("chase_started")
 	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_TRIGGER_Z + 26.0)
@@ -144,6 +223,13 @@ func _require(condition: bool, message: String) -> bool:
 func _wait_for_node(parent: Node, node_name: String, max_frames := 30) -> bool:
 	for _frame in max_frames:
 		if parent.has_node(node_name):
+			return true
+		await get_tree().process_frame
+	return false
+
+func _wait_for_entity_state(entity: CharacterBody3D, expected_state: int, max_frames := 120) -> bool:
+	for _frame in max_frames:
+		if entity.state == expected_state:
 			return true
 		await get_tree().process_frame
 	return false
