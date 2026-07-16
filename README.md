@@ -104,9 +104,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-physical-playthrou
   -CaptureReference "D:\Captures\room407-full-run.mp4"
 ```
 
-Raw engine/console logs plus `summary.json` and `summary.md` are written below `.artifacts/manual-playthrough/<timestamp>/`. The command marks the evidence package ready only when the launched process exits normally, logs contain no engine/script/parse/leak failure, one unique same-run payload is eligible, complete, exact-order-valid, 900–1200 seconds active, within every chapter target, paired with the physical-input confirmation, and paired with a non-empty capture reference. Use `-LaunchMode ProjectRun` to launch the configured main scene directly. `-AnalyzeLog <path>` can inspect an existing log but can never make an evidence package ready.
+Raw engine/console logs plus `summary.json` and `summary.md` are written below `.artifacts/manual-playthrough/<timestamp>/`. The command marks the evidence package ready only when the repository stays clean on one unchanged branch/commit, the launched process exits normally, logs contain no engine/script/parse/leak failure, one unique same-run payload is eligible, complete, exact-order-valid, 900–1200 seconds active, within every chapter target, paired with the physical-input confirmation, and paired with a non-empty capture reference. Use `-LaunchMode ProjectRun` to launch the configured main scene directly. `-AnalyzeLog <path>` can inspect an existing log but can never make an evidence package ready.
 
-The capture path is a reference, not automated video verification. A reviewer must still watch the recording and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before closing the release gate.
+The generated Markdown includes an unchecked human-review matrix. The capture path is a reference, not automated video verification. A reviewer must still watch the recording, complete that matrix, and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before closing the release gate.
 
 ## Assets
 

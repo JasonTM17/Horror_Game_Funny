@@ -58,6 +58,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 - Disk after the clean-clone rehearsal: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
 - `46a58e8` adds the manual evidence runner without changing production code or the twelve-check contract. PowerShell parsing passed; compressed, structurally valid synthetic, and mixed-payload cases proved rejection/pass boundaries while keeping analysis mode manual-gate-ineligible.
 - `ba59df0` makes the runner report a review-required evidence package rather than claiming automatic manual-gate completion, and blocks engine/script/parse/ObjectDB-leak failure lines. A synthetic error-log fixture verified the new rejection path and was deleted afterward.
+- `05ade4b` records Godot version and repository identity, rejects a dirty or changing branch/commit, and generates nine human-review items. Dirty-worktree and clean-stable analysis cases passed while still preserving the analysis-only gate.
 - No authorized physical F5 keyboard/mouse run has recorded the complete route with a same-run eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix. Phase 7 remains in progress.
 
 ## Dependency Map
@@ -107,6 +108,7 @@ No Blender/MCP assets, binary export, persistent gameplay save, crouch, secondar
 8. `docs: record completion audit polish evidence`
 9. `test: add physical playthrough evidence runner`
 10. `fix(test): reject faulty physical evidence logs`
+11. `fix(test): bind physical evidence to clean revision`
 
 ## Implementation Steps
 

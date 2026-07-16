@@ -56,7 +56,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 - The generated-file, credential-name, high-confidence secret, credentialed-remote, tracked-binary, and tracked-file-size scans found no release blockers. No tracked file exceeds 10 MiB; `.godot`, `.artifacts`, `.tmp`, engine logs, exports, and binaries remain untracked.
 - Clean-clone rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. Later disk readings are reported separately because unrelated desktop activity can change C:; the runner left zero `godot-user-*` profiles behind.
 - A local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal. No authorized physical F5 15–20 minute boot-to-credits run has paired same-run footage with eligible, complete, actual-order-valid 900–1200 second telemetry or the chase/presentation/audio/settings matrix. Phase 8 remains in progress.
-- The non-force history now also contains `4574962` (release-parity metadata), `46a58e8` (physical evidence runner), and `ba59df0` (review-required/error-scanned evidence semantics). The runner prepares the missing evidence but does not satisfy the manual gate until an authorized recording is reviewed.
+- The non-force history now also contains `4574962` (release-parity metadata), `46a58e8` (physical evidence runner), `ba59df0` (review-required/error-scanned semantics), and `05ade4b` (clean-revision binding/review checklist). The runner prepares the missing evidence but does not satisfy the manual gate until an authorized recording is reviewed.
 
 ## Dependency Map
 

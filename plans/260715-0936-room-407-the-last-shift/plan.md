@@ -50,7 +50,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - A real local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal, and cannot prove route completion, presentation quality, audible output, or pacing.
 - Phase 1–6 status denotes completed implementation slices. Phase 7 and Phase 8 remain in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix.
 - Post-rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
-- Manual-evidence tooling commits `46a58e8` and `ba59df0` are pushed. They package a new editor F5 or direct project run, validate one unique same-session payload, reject engine/script/parse/leak failures, record capture/input/disk metadata, and always leave final manual-gate closure to review.
+- Manual-evidence tooling commits `46a58e8`, `ba59df0`, and `05ade4b` are pushed. They package a new editor F5 or direct project run, bind it to an unchanged clean revision, validate one unique same-session payload, reject engine/script/parse/leak failures, record capture/input/disk metadata, generate a human-review checklist, and always leave final manual-gate closure to review.
 
 ## Dependencies
 
@@ -104,6 +104,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 8. `fa8cc1f` — `docs: record completion audit polish evidence`
 9. `46a58e8` — `test: add physical playthrough evidence runner`
 10. `ba59df0` — `fix(test): reject faulty physical evidence logs`
+11. `05ade4b` — `fix(test): bind physical evidence to clean revision`
 
 ## Acceptance Criteria
 

@@ -41,6 +41,7 @@ All notable changes to this project are documented here.
 ### Fixed
 
 - `ba59df0` changed the physical runner from an automatic “manual gate” claim to a review-required evidence package and rejects engine/script/parse/ObjectDB-leak failures before it can report readiness.
+- `05ade4b` binds physical evidence to one clean, unchanged branch/commit and generates the human-review checklist required before release closure.
 - `1321971` enforced atomic quest-item consumption, permanent run-local fourth-floor unlock, and the pre-Room `room_entrance` checkpoint invariant.
 - `e4b8386` aligned the chase entity body with the floor and bounded lost-target search through deterministic `DESPAWN`/restart behavior.
 
