@@ -27,7 +27,7 @@ func _run_sequence(sequence: Dictionary) -> void:
 	for line in sequence.get("lines", []):
 		GameState.set_subtitle(str(line))
 		AudioManager.play_tone("dialogue_tick", 165.0, 0.08, -29.0)
-		await get_tree().create_timer(float(sequence.get("seconds_per_line", 4.5)) * duration_scale).timeout
+		await get_tree().create_timer(float(sequence.get("seconds_per_line", 4.5)) * duration_scale, false).timeout
 	GameState.set_subtitle("")
 	var completion_flag := str(sequence.get("flag", ""))
 	GameState.set_flag(completion_flag)

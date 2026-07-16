@@ -67,7 +67,7 @@ func _process(_delta: float) -> void:
 		GameState.set_flag("floor_reached")
 		GameState.advance_stage(GameState.Stage.FLOOR4_DARK)
 		GameState.set_objective("The fourth floor is dark. Find the spare fuse.")
-		AudioManager.play_tone("door_slam", 58.0, 0.32, -11.0)
+		_horror.trigger("floor_arrival")
 		_narrative.play([
 			"The elevator display skips from 3 to 4, then goes dark.",
 			"A fuse rattles somewhere beyond the dead emergency lights.",

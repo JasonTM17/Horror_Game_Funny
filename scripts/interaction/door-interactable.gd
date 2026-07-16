@@ -32,14 +32,15 @@ func interact(actor: Node) -> bool:
 		return false
 	feedback_text = ""
 	_commit_interaction(actor)
-	var target := deg_to_rad(open_angle if not is_open else 0.0)
-	var tween := create_tween()
-	AudioManager.play_spatial_tone(self, "door_motion", 118.0 if not is_open else 92.0, 0.55, -22.0)
-	tween.tween_property(self, "rotation:y", target, 0.55).set_trans(Tween.TRANS_SINE)
-	tween.finished.connect(func() -> void:
-		is_open = not is_open
-		_moving = false
-	)
+	_start_motion(not is_open, 0.55, "door_motion", 118.0 if not is_open else 92.0, -22.0)
+	return true
+
+func close_for_event(duration := 0.22) -> bool:
+	if _moving or not is_open:
+		return false
+	_moving = true
+	feedback_text = ""
+	_start_motion(false, duration, "floor_door_slam", 58.0, -11.0)
 	return true
 
 func _is_permanently_unlocked() -> bool:
@@ -54,12 +55,21 @@ func _commit_unlock() -> bool:
 		GameState.set_flag(permanent_unlock_flag)
 	return true
 
-func _reject_with_feedback(actor: Node, text: String, tone_id: String, frequency: float) -> bool:
+func _reject_with_feedback(_actor: Node, text: String, tone_id: String, frequency: float) -> bool:
 	feedback_text = text
-	_commit_interaction(actor)
 	AudioManager.play_spatial_tone(self, tone_id, frequency, 0.16, -18.0)
 	return true
 
 func _commit_interaction(actor: Node) -> void:
 	_cooldown_left = cooldown
 	interacted.emit(actor)
+
+func _start_motion(target_open: bool, duration: float, tone_id: String, frequency: float, volume_db: float) -> void:
+	var target := deg_to_rad(open_angle if target_open else 0.0)
+	var tween := create_tween()
+	AudioManager.play_spatial_tone(self, tone_id, frequency, duration, volume_db)
+	tween.tween_property(self, "rotation:y", target, duration).set_trans(Tween.TRANS_SINE)
+	tween.finished.connect(func() -> void:
+		is_open = target_open
+		_moving = false
+	)

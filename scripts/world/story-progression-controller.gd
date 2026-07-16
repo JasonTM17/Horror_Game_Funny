@@ -118,6 +118,7 @@ func on_note_closed() -> void:
 		return
 	GameState.set_flag("final_clue_seen")
 	GameState.set_objective("The lights are failing one by one. Listen before you run.")
+	_horror.trigger("room_entity_reveal")
 	_narrative.play([
 		"The note is written in your childhood handwriting.",
 		"Behind you, the family recording starts again.",

@@ -108,8 +108,15 @@ func _verify_door_spam_and_reopen(player: CharacterBody3D, interaction: Node) ->
 	var interact_event := InputEventAction.new()
 	interact_event.action = "interact"
 	interact_event.pressed = true
+	var denied_interactions := [0]
+	var denied_callback := func(_actor: Node) -> void:
+		denied_interactions[0] += 1
+	door.interacted.connect(denied_callback)
+	var denied_cooldown := door._cooldown_left
 	interaction._unhandled_input(interact_event)
-	if not _require(not door.is_open and not door._moving, "locked door started opening through production E input"): return false
+	door.interacted.disconnect(denied_callback)
+	if not _require(not door.is_open and not door._moving and is_equal_approx(door._cooldown_left, denied_cooldown), "locked door started or cooled down through production E input"): return false
+	if not _require(denied_interactions[0] == 0, "locked door emitted a successful interaction signal"): return false
 	await get_tree().create_timer(0.3).timeout
 	door.interaction_enabled = false
 	var disabled_cooldown := door._cooldown_left

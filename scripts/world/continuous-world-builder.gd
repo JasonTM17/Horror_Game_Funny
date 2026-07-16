@@ -34,6 +34,9 @@ static func build(parent: Node3D) -> void:
 	LevelGeometry.add_label(parent, "FLOOR 4", Vector3(-2.9, 2.1, WorldLayout.FLOOR_TRIGGER_Z - 12.0), Color(0.42, 0.46, 0.48))
 	LevelGeometry.add_label(parent, "407", Vector3(-1.0, 2.1, WorldLayout.ROOM_DOOR_Z - 2.0), Color(0.65, 0.3, 0.28))
 	LevelGeometry.add_label(parent, "EXIT", Vector3(0, 2.55, WorldLayout.EXIT_Z + 1.0), Color(0.85, 0.16, 0.12))
+	_add_elevator_dressing(parent)
+	_add_room_407_dressing(parent)
+	_add_chase_dressing(parent)
 	var corridor_light_index := 0
 	for z in [24.0, -18.0, -55.0, -92.0, -130.0, -170.0, -210.0, -250.0, -290.0, -330.0, -370.0, -415.0, -460.0, -505.0, -565.0, -625.0, -685.0, -745.0, -795.0]:
 		var light_energy := 3.2 if is_equal_approx(z, 24.0) else 1.25
@@ -48,6 +51,52 @@ static func build(parent: Node3D) -> void:
 		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 1.05, 9.0)
 		guide_light.name = "ChaseGuideLight"
 	_add_navigation_surface(parent)
+
+static func _add_elevator_dressing(parent: Node3D) -> void:
+	var metal := Color(0.11, 0.12, 0.14)
+	LevelGeometry.add_visual_box(parent, "ElevatorFrameLeft", Vector3(-1.32, 2.0, 0.18), Vector3(0.28, 3.7, 0.22), metal)
+	LevelGeometry.add_visual_box(parent, "ElevatorFrameRight", Vector3(1.32, 2.0, 0.18), Vector3(0.28, 3.7, 0.22), metal)
+	LevelGeometry.add_visual_box(parent, "ElevatorFrameHeader", Vector3(0, 3.72, 0.18), Vector3(2.9, 0.28, 0.22), metal)
+	LevelGeometry.add_visual_box(parent, "ElevatorDisplayHousing", Vector3(0, 3.28, 0.32), Vector3(0.72, 0.42, 0.12), Color(0.025, 0.025, 0.03))
+	var floor_arrived := GameState.has_flag("floor_reached") or bool(GameState.completed_events.get("floor_arrival", false))
+	var display_text := "--" if floor_arrived else "3"
+	var display_color := Color(0.22, 0.035, 0.025) if floor_arrived else Color(0.78, 0.6, 0.26)
+	var display := LevelGeometry.add_label(parent, display_text, Vector3(0, 3.28, 0.4), display_color)
+	display.name = "ElevatorDisplay"
+	display.font_size = 38
+	display.no_depth_test = false
+	LevelGeometry.add_visual_box(parent, "ElevatorCallPanel", Vector3(1.72, 1.45, 0.28), Vector3(0.22, 0.48, 0.12), Color(0.16, 0.16, 0.18))
+	LevelGeometry.add_visual_box(parent, "FloorFalseDoor", Vector3(3.82, 1.3, -54.0), Vector3(0.12, 2.6, 1.65), Color(0.075, 0.065, 0.07))
+
+static func _add_room_407_dressing(parent: Node3D) -> void:
+	var panel_index := 0
+	for z in [-366.0, -386.0, -406.0, -426.0, -446.0, -466.0]:
+		var panel_color := Color(0.19, 0.105, 0.11) if panel_index % 2 == 0 else Color(0.15, 0.09, 0.105)
+		LevelGeometry.add_visual_box(parent, "Room407WallpaperPanel%02d" % panel_index, Vector3(-3.82, 2.0, z), Vector3(0.1, 3.75, 15.0), panel_color)
+		LevelGeometry.add_visual_box(parent, "Room407WallpaperPanelR%02d" % panel_index, Vector3(3.82, 2.0, z), Vector3(0.1, 3.75, 15.0), panel_color.darkened(0.08))
+		panel_index += 1
+	var rib_index := 0
+	for z in [-370.0, -402.0, -434.0, -466.0]:
+		LevelGeometry.add_visual_box(parent, "Room407CeilingRib%02d" % rib_index, Vector3(0, 3.82, z), Vector3(7.45, 0.24, 0.34), Color(0.085, 0.05, 0.055))
+		LevelGeometry.add_visual_box(parent, "Room407ArchLeft%02d" % rib_index, Vector3(-3.45, 2.0, z), Vector3(0.22, 3.7, 0.34), Color(0.085, 0.05, 0.055))
+		LevelGeometry.add_visual_box(parent, "Room407ArchRight%02d" % rib_index, Vector3(3.45, 2.0, z), Vector3(0.22, 3.7, 0.34), Color(0.085, 0.05, 0.055))
+		rib_index += 1
+	for mark_index in 6:
+		var mark_y := 0.72 + float(mark_index) * 0.2
+		var mark_width := 0.38 if mark_index % 2 == 0 else 0.24
+		LevelGeometry.add_visual_box(parent, "Room407HeightMark%02d" % mark_index, Vector3(-3.73, mark_y, -414.0), Vector3(0.12, 0.035, mark_width), Color(0.64, 0.21, 0.17))
+	var warning := LevelGeometry.add_label(parent, "DON'T GROW PAST THIS LINE", Vector3(-2.65, 1.78, -414.0), Color(0.58, 0.2, 0.18))
+	warning.name = "Room407HeightWarning"
+	warning.font_size = 14
+	warning.no_depth_test = false
+
+static func _add_chase_dressing(parent: Node3D) -> void:
+	var scar_index := 0
+	for z in [-535.0, -575.0, -615.0, -655.0, -695.0, -735.0, -775.0]:
+		var side := -1.0 if scar_index % 2 == 0 else 1.0
+		LevelGeometry.add_visual_box(parent, "ChaseWallScar%02d" % scar_index, Vector3(side * 3.73, 1.35, z), Vector3(0.13, 2.3, 2.6), Color(0.055, 0.035, 0.04))
+		LevelGeometry.add_visual_box(parent, "ChaseBrokenFrame%02d" % scar_index, Vector3(side * 3.35, 2.15, z - 1.2), Vector3(0.18, 2.8, 0.22), Color(0.11, 0.055, 0.05))
+		scar_index += 1
 
 static func _add_partition(parent: Node3D, name: String, z: float, color: Color) -> void:
 	LevelGeometry.add_box(parent, name + "Left", Vector3(-2.65, 2.0, z), Vector3(2.7, 4.0, 0.25), color)

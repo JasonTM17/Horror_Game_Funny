@@ -13,6 +13,10 @@ func _ready() -> void:
 
 	if not await _verify_door_gate(gameplay, player, "floor_door", "log_signed"): return
 	if not await _cross_trigger_without_flag(player, WorldLayout.FLOOR_TRIGGER_Z, "floor_reached", true): return
+	var floor_door := gameplay.get_node("floor_door") as DoorInteractable
+	var elevator_display := gameplay.get_node("ElevatorDisplay") as Label3D
+	if not _require(not floor_door.is_open and is_zero_approx(floor_door.rotation.y), "fourth-floor crossing did not slam the real door behind the player"): return
+	if not _require(elevator_display.text != "3" and gameplay._horror.has_node("FloorArrivalApparition"), "fourth-floor crossing did not render its display/apparition beat"): return
 
 	player.global_position = Vector3(0.8, 0.02, WorldLayout.MEMORY_TRIGGER_Z - 0.6)
 	await get_tree().process_frame

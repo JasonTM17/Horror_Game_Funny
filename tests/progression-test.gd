@@ -9,7 +9,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var player: Node = gameplay.get_node("Player")
 	var director: Node = gameplay
-	director._narrative.duration_scale = 0.001
+	director._narrative.duration_scale = 0.02
+	director._horror.effect_duration_scale = 0.05
 	GameState.reset_run()
 	var pacing_before_pause: Dictionary = director.get_playthrough_pacing_report()
 	get_tree().paused = true
@@ -24,6 +25,15 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("logbook", player), "logbook must stay gated"): return
 	if not _require(not director.handle_story_action("lobby_register", player), "night register must stay gated before the phone briefing"): return
 	if not _require(director.handle_story_action("phone", player), "phone should answer"): return
+	var phone_subtitle := GameState.subtitle
+	get_tree().paused = true
+	await get_tree().process_frame
+	OS.delay_msec(160)
+	await get_tree().process_frame
+	var narrative_stayed_paused := not GameState.has_flag("phone_briefing_complete") and GameState.subtitle == phone_subtitle
+	get_tree().paused = false
+	director._narrative.duration_scale = 0.001
+	if not _require(narrative_stayed_paused, "narrative timer advanced story state while paused"): return
 	if not _require(await _wait_for_flag("phone_briefing_complete"), "phone briefing should complete"): return
 	if not _require(GameState.objective == "Read the stopped desk clock and night register, then sign the night log.", "phone objective skipped locked lobby observations"): return
 	if not _require(not director.handle_story_action("phone", player), "phone answer must be one-shot"): return
@@ -41,8 +51,9 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("logbook", player), "logbook signing must be one-shot"): return
 	var floor_door := gameplay.get_node("floor_door") as DoorInteractable
 	GameState.consume_item("floor_key")
+	var denied_cooldown := floor_door._cooldown_left
 	if not _require(floor_door.interact(player), "missing-key door attempt was not handled"): return
-	if not _require(not floor_door.is_open and not floor_door._moving and not GameState.has_flag("floor_door_unlocked"), "floor door mutated without the granted key"): return
+	if not _require(not floor_door.is_open and not floor_door._moving and is_equal_approx(floor_door._cooldown_left, denied_cooldown) and not GameState.has_flag("floor_door_unlocked"), "floor door mutated or cooled down without the granted key"): return
 	await get_tree().create_timer(0.3).timeout
 	GameState.add_item("floor_key")
 	var reentry_results: Array[bool] = []
@@ -70,6 +81,15 @@ func _ready() -> void:
 	player.global_position.z = WorldLayout.FLOOR_TRIGGER_Z - 0.1
 	director._process(0.0)
 	if not _require(GameState.has_flag("floor_reached") and GameState.stage == GameState.Stage.FLOOR4_DARK, "production floor threshold did not advance pacing stage"): return
+	var elevator_display := gameplay.get_node_or_null("ElevatorDisplay") as Label3D
+	var floor_apparition := director._horror.get_node_or_null("FloorArrivalApparition") as Node3D
+	if not _require(GameState.completed_events.has("floor_arrival") and elevator_display != null and elevator_display.text == "4", "floor threshold did not render the elevator event"): return
+	if not _require(floor_apparition != null and not _contains_collision_object(floor_apparition), "floor apparition is missing or can collide with the player"): return
+	director._horror.trigger("floor_arrival")
+	if not _require(_count_named_children(director._horror, "FloorArrivalApparition") == 1, "floor event duplicated its apparition"): return
+	await get_tree().create_timer(0.3).timeout
+	if not _require(not floor_door.is_open and not floor_door._moving and is_zero_approx(floor_door.rotation.y), "floor event did not close the real door behind the player"): return
+	if not _require(elevator_display.text == "--" and not director._horror.has_node("FloorArrivalApparition"), "floor event did not dim its display and clean up"): return
 	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must wait for the maintenance notice"): return
 	if not _require(director.handle_story_action("floor_notice", player), "floor notice should be readable"): return
 	if not _require(await _wait_for_flag("floor_notice_observation_complete"), "floor notice observation should complete"): return
@@ -169,9 +189,17 @@ func _ready() -> void:
 	if not _require(director.handle_story_action("room_family_table", player), "family table observation should unlock"): return
 	if not _require(await _wait_for_flag("room_family_table_observation_complete"), "family table observation should complete"): return
 	if not _require(not director.handle_story_action("room_family_table", player), "family table observation must be one-shot"): return
+	player.global_position.z = WorldLayout.FINAL_CLUE_Z + 1.0
 	if not _require(director.handle_story_action("final_clue", player), "final clue should open note"): return
 	director.on_note_closed()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return
+	var room_manifestation := director._horror.get_node_or_null("RoomEntityManifestation") as Node3D
+	if not _require(room_manifestation != null and room_manifestation.has_node("EyeLeft") and not _contains_collision_object(room_manifestation), "pre-chase Room 407 manifestation is missing or physical"): return
+	if not _require(room_manifestation.global_position.distance_to(player.global_position) <= 18.0, "pre-chase manifestation spawned outside its spatial cue range"): return
+	director._horror.trigger("room_entity_reveal")
+	if not _require(_count_named_children(director._horror, "RoomEntityManifestation") == 1, "pre-chase manifestation duplicated"): return
+	await get_tree().create_timer(0.35).timeout
+	if not _require(not director._horror.has_node("RoomEntityManifestation"), "pre-chase manifestation did not clean up"): return
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
 	if not _require(str(GameState.checkpoint.get("spawn_id", "")) == "chase_start", "later chase checkpoint did not supersede the room checkpoint"): return
 	player.global_position.z = WorldLayout.CHASE_TRIGGER_Z - 0.1
@@ -255,6 +283,12 @@ func _count_named_children(parent: Node, child_name: String) -> int:
 		if child.name == child_name:
 			count += 1
 	return count
+
+func _contains_collision_object(parent: Node) -> bool:
+	for child in parent.get_children():
+		if child is CollisionObject3D or _contains_collision_object(child):
+			return true
+	return false
 
 func _wait_for_flag(flag: String, max_frames := 180) -> bool:
 	for _frame in max_frames:

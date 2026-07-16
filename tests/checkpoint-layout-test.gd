@@ -10,6 +10,7 @@ func _ready() -> void:
 	GameState.set_flag("log_signed")
 	for flag in ["floor_door_unlocked", "floor_reached", "fuse_collected", "fuse_installed", "power_stable", "memory_loop_started", "memory_photo", "memory_cassette", "memory_rabbit", "memory_loop_complete", "radio_solved"]:
 		GameState.set_flag(flag)
+	GameState.mark_event_complete("floor_arrival")
 	GameState.advance_stage(GameState.Stage.MEMORY_LOOP)
 	GameState.set_objective("Restored checkpoint objective")
 	GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
@@ -40,6 +41,13 @@ func _ready() -> void:
 	if not _require(gameplay.has_node("Ceiling") and gameplay.has_node("NightDeskBase"), "continuous corridor dressing missing"): return
 	for observation_id in ["desk_clock", "lobby_register", "floor_notice", "memory_echo", "room_bed_observation", "room_wardrobe_observation", "room_family_table"]:
 		if not _require(gameplay.has_node(observation_id), "%s observation prop missing" % observation_id): return
+	for dressing_id in ["ElevatorDisplay", "ElevatorFrameLeft", "FloorFalseDoor", "Room407WallpaperPanel00", "Room407CeilingRib00", "Room407HeightMark00", "Room407HeightWarning", "ChaseWallScar00", "ChaseBrokenFrame00"]:
+		if not _require(gameplay.has_node(dressing_id), "%s authored horror dressing missing" % dressing_id): return
+	var elevator_display := gameplay.get_node("ElevatorDisplay") as Label3D
+	if not _require(elevator_display.text == "--", "checkpoint did not reconstruct the completed elevator scare state"): return
+	for safe_dressing_id in ["FloorFalseDoor", "Room407WallpaperPanel00", "Room407CeilingRib00", "ChaseWallScar00", "ChaseBrokenFrame00"]:
+		var dressing := gameplay.get_node(safe_dressing_id) as MeshInstance3D
+		if not _require(dressing != null and dressing.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "%s is not low-cost visual-only dressing" % safe_dressing_id): return
 	var prop_signatures := {
 		"phone": ["PhoneBase", "PhoneHandset", "PhoneIndicator"],
 		"desk_clock": ["ClockBody", "ClockDigits"],

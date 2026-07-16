@@ -27,6 +27,18 @@ static func add_box(parent: Node3D, name: String, position: Vector3, size: Vecto
 	body.add_child(shape)
 	return body
 
+static func add_visual_box(parent: Node3D, name: String, position: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = name
+	instance.position = position
+	var box := BoxMesh.new()
+	box.size = size
+	instance.mesh = box
+	instance.material_override = material(color)
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(instance)
+	return instance
+
 static func add_label(parent: Node3D, text: String, position: Vector3, color := Color(0.68, 0.73, 0.76)) -> Label3D:
 	var label := Label3D.new()
 	label.text = text
