@@ -26,7 +26,8 @@ F6 is editor current-scene execution and can skip the boot scene. The memory loo
 |---|---|
 | `GameplayDirector` | Runtime facade; assembles the scene, spawns player/UI, watches zone boundaries, and delegates public story/chase calls |
 | `StoryProgressionController` | Interaction prompts, story guards, inventory/flags, narrative completion, memory-loop transitions, radio/note UI, checkpoints, and ending prerequisites |
-| `ChaseSequenceController` | Entity creation, chase start, corridor-light failure, capture recovery, abandoned-lobby reveal, and ending overlay |
+| `ChaseSequenceController` | Entity creation, chase start, corridor-light failure, capture recovery, abandoned-lobby reveal, and exactly-once visible credits boundary |
+| `EndingEpilogueController` | Same-scene condemnation notice/roster props, ordered narration gates, ending prompts/actions, and credits request |
 | `PlaythroughPacingTelemetry` | Scene-local eligibility snapshot, first-occurrence milestone order, pause-aware timing, target evaluation, visible-credits finalization, and one runtime JSON line |
 | `DynamicHallwayController` | Four visibility-switched corridor variants and memory-driven dressing changes |
 | `HorrorEventDirector` | Idempotent, local visual/audio events and apparitions |

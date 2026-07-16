@@ -158,7 +158,7 @@ Keep changes focused, use Conventional Commit messages, and do not commit `.godo
 | `shaders/` | Project-authored Compatibility canvas shader |
 | `tests/` | Native GDScript checks and PowerShell runner |
 | `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
-| `docs/` | Design, architecture, standards, testing, provenance, and limitations |
+| `docs/` | PDR, roadmap, design, architecture, standards, testing, provenance, and limitations |
 | `plans/` | Project planning and historical verification artifacts |
 
 Geometry and procedural effects are generated at runtime. The only committed audio assets are the manifest-backed English voice cues under `assets/audio/voice-over/`; the project-authored icon is `icon.svg` at the repository root.
@@ -166,6 +166,8 @@ Geometry and procedural effects are generated at runtime. The only committed aud
 ## References
 
 - [Game design](docs/game-design.md)
+- [Project overview and PDR](docs/project-overview-pdr.md)
+- [Project roadmap](docs/project-roadmap.md)
 - [Architecture](docs/architecture.md)
 - [Code standards](docs/code-standards.md)
 - [Testing](docs/testing.md)
