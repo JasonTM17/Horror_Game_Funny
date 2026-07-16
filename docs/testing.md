@@ -50,7 +50,7 @@ This inventory records the current Windows verification machine. It is reproduci
 | 3 | `gameplay` / `test-gameplay.log` | `scenes/gameplay/gameplay.tscn` | continuous runtime scene constructs and survives the smoke window | full route traversal or progression |
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, staged ending/reveal, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, presentation |
-| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, entity-parented SFX cue at start/recovery plus teardown, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, audible cue/mix quality, fresh-run pacing |
+| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1600` | room spawn and Variant3 restore, barriers/doors, alternating chase obstruction collision and capsule clearance, connected navigation bypass path, real-LOS entity traversal, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, entity-parented SFX cue at start/recovery plus teardown, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | player-driven chase feel, rendered route readability, audible cue/mix quality, fresh-run pacing |
 | 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | optional drawer/painted-door visibility alignment, production-ray acquisition, mapped feedback/cooldowns, drawer sweep/animation lock safety, unchanged story state, and spatial-tone/lock teardown; production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | rendered optional-prop quality, audible tone/mix quality, OS-delivered E/W, complete route, puzzles, timing, chase feel |
 | 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; unsafe open/close inside the 1.5 m sweep has no state side effect; safe tweens hold only movement and release it; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look/door feel, full traversal |
 | 9 | `visual-effects` / `test-visual-effects.log` | `visual-effects-test.tscn`; `--quit-after 180` | overlay shader/material and dither/VHS/fear uniforms exist; chase/ending fear targets and film-grain visibility toggle respond | rendered pixels, readability, comfort, GPU performance, monitor gamma |
@@ -75,7 +75,7 @@ SETTINGS_PERSISTENCE_READ_OK
 
 The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. Menu and gameplay smoke have no success marker; editor import runs the project-settings post-script and requires its marker.
 
-The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, progression/checkpoint-layout use 1200, physical-route 1800, player-input 600, visual-effects 180, and settings-audio/persistence 60. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
+The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, progression uses 1200, checkpoint-layout 1600, physical-route 1800, player-input 600, visual-effects 180, and settings-audio/persistence 60. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
 
 Pacing assertions extend the existing `progression` and `checkpoint-layout` checks. The suite remains exactly twelve checks; there is no separate thirteenth pacing check.
 
@@ -147,7 +147,9 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 - guarded floor, power, and room doors;
 - collision rays cannot bypass closed barriers at center or side positions;
 - an opened door clears the tested passage ray;
-- `ContinuousCorridorNavigation` exists with one navigation polygon;
+- `ContinuousCorridorNavigation` exists with 13 connected convex segments that taper through three alternating bypasses and reach the exit-side endpoint;
+- every chase obstruction blocks its authored lane, retains measured player/entity capsule clearance, and aligns exact red text, floor-marker, and guide-light cues with the safe lane;
+- a production entity with live LOS traverses the first physical obstruction, deviates into the bypass, remains in `CHASE`, and does not enter failure recovery;
 - the entity remains frozen during `APPEAR`, reaches `STALK`, and records measured `STALK` and full-speed `CHASE` movement;
 - entity 3.0 is faster than walk 2.0 and slower than sprint 3.1, while pause freezes chase movement;
 - chase start creates exactly one bounded `AudioStreamPlayer3D` at the entity origin on SFX, failure removes the stale player, checkpoint recovery creates one replacement, and ending teardown removes both player and cache ownership;
@@ -159,7 +161,7 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 - representative story props retain recognizable child parts (phone handset, clock digits, book title, rabbit ears, radio dial, and family-table plate);
 - memory-loop distance is at least 180 units, chase distance at least 280, and total corridor length at least 850.
 
-These are structural and numeric assertions. They do not move a player capsule through every doorway or prove that a `NavigationAgent3D` follows the route correctly under player-driven pursuit.
+These checks now include one live `NavigationAgent3D` obstruction traversal, but they do not move the player capsule through all three chase barriers or prove rendered readability, collision feel, and fairness under a player-driven pursuit.
 
 ## Production Movement, Door, and Optional Interaction Coverage
 

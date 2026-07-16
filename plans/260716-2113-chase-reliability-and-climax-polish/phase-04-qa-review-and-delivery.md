@@ -18,13 +18,14 @@
 - [ ] Scan logs for engine/script/assert/leak failures and confirm temp-profile cleanup.
 - [ ] Run spec, quality, and adversarial review; fix accepted findings and rerun affected checks.
 - [ ] Sync documentation, plan statuses, journal/report, asset provenance, and truthful remaining gates.
+- [ ] Define final documentation media slots; before the parent game goal closes, capture real gameplay screenshots and an optimized GIF, embed them with repository-relative links, and verify they render.
 - [ ] Check C:/D:, staged secrets, branch divergence, remote URL, and commit split.
 - [ ] Push without force and verify `HEAD == origin/main == refs/heads/main`.
 
 ## Acceptance
 
 - All 12 canonical checks exit zero with required markers and no scanned failures.
+- Final game documentation includes real in-game screenshots and a readable optimized GIF; placeholders do not satisfy this gate.
 - Worktree is clean; no local tools/models/cache/secrets are tracked.
 - Commits are focused and remote parity is exact.
 - Parent goal remains in progress until physical/perceptual evidence exists.
-

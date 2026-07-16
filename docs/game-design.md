@@ -103,7 +103,9 @@ The family recording must finish before the drawing can be inspected. The player
 
 ### Chase and Ending
 
-Chase start dims every named corridor light to eight percent of its previous energy while leaving red guide lights in the route. The entity uses `DORMANT`, `APPEAR`, `STALK`, `CHASE`, `LOST_TARGET`, `SEARCH`, and `DESPAWN` states with a runtime `NavigationAgent3D` over the continuous corridor navigation region. Losing line of sight stores the last visible position; bounded search cycles revisit that position, reacquire the player when visible, or end in a hidden/stopped `DESPAWN` state. Restarting the chase resets the state, search budget, and visibility.
+Chase start dims every named corridor light to eight percent of its previous energy while leaving red guide lights in the route. Three physical barriers force a right-left-right slalom instead of a straight sprint. Each obstruction blocks one lane and exposes the safe side with matching red text, floor paint, and a local guide light. The same layout data shapes 13 connected navigation segments so the entity can pursue through the bypasses instead of clipping or stopping at the blockers.
+
+The entity uses `DORMANT`, `APPEAR`, `STALK`, `CHASE`, `LOST_TARGET`, `SEARCH`, and `DESPAWN` states with a runtime `NavigationAgent3D` over the continuous corridor navigation region. Losing line of sight stores the last visible position; bounded search cycles revisit that position, reacquire the player when visible, or end in a hidden/stopped `DESPAWN` state. Restarting the chase resets the state, search budget, and visibility.
 
 Configured speed values are:
 
@@ -113,7 +115,7 @@ Configured speed values are:
 | Entity | 3.0 |
 | Player sprint | 3.1 |
 
-The automated layout test proves the scalar relationship `walk < entity < sprint` and verifies that the entity reaches `STALK`. It does not prove route readability, full physical traversal, collision feel, or human chase fairness; those remain manual checks.
+The automated layout test proves `walk < entity < sprint`, verifies `STALK`, checks physical lane blocking and capsule clearance, confirms the path turns through all three bypasses, and drives the live-LOS entity across the first obstruction without failure or despawn. It does not prove rendered readability, player-driven traversal through all three barriers, collision feel, or human chase fairness; those remain manual checks.
 
 The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, builds the abandoned-lobby reveal, locks player input, stops the chase, holds the in-world view for three seconds, and opens the credits overlay in the same gameplay scene.
 
