@@ -137,6 +137,9 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "# Physical Playthrough Evidence",
         "",
         "- Run ID: ``$($Summary.run_id)``",
+        "- Repository commit: ``$($Summary.repository_commit_before)``",
+        "- Repository stable/clean: ``$($Summary.repository_stable)``",
+        "- Godot version: ``$($Summary.godot_version)``",
         "- Launch performed: ``$($Summary.launch_performed)``",
         "- Launch mode: ``$($Summary.launch_mode)``",
         "- Engine exit: ``$($Summary.engine_exit_code)``",
@@ -151,7 +154,20 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "",
         "## Pacing Checks",
         ""
-    ) + $checkLines
+    ) + $checkLines + @(
+        "",
+        "## Human Review Checklist",
+        "",
+        "- [ ] Recording starts at the boot menu, uses START SHIFT, and reaches visible credits.",
+        "- [ ] Physical keyboard/mouse input is visible or otherwise attributable to this run.",
+        "- [ ] Complete traversal has no soft-lock, door/collision snag, shortcut, or test-method use.",
+        "- [ ] Chase readability, capture recovery, distance, collision, and fairness are acceptable.",
+        "- [ ] Darkness, flashlight, blackout, grain/flicker, guide lights, and ending are readable and comfortable.",
+        "- [ ] Phone, ambience, footsteps, radio, chase, failure, ending, and bus balance are audible and appropriate.",
+        "- [ ] Pause, mouse capture, Settings, comfort toggles, fullscreen, save, and relaunch behavior are acceptable.",
+        "- [ ] Capture timestamps, commit, logs, and pacing payload all refer to this same run.",
+        "- [ ] Reviewer name/date/notes are attached before Phase 7 or the project goal is closed."
+    )
     $markdown | Set-Content -LiteralPath $markdownPath -Encoding UTF8
 }
 
@@ -159,6 +175,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot "project.godot"))) {
     throw "project.godot was not found below $repositoryRoot"
 }
 
+$repositoryCommitBefore = [string](git -C $repositoryRoot rev-parse HEAD)
+$repositoryBranchBefore = [string](git -C $repositoryRoot branch --show-current)
+$repositoryDirtyBefore = @(git -C $repositoryRoot status --porcelain).Count -ne 0
 $runId = (Get-Date).ToString("yyyyMMdd-HHmmss-fff")
 $evidenceDirectory = Join-Path $EvidenceRoot $runId
 New-Item -ItemType Directory -Force -Path $evidenceDirectory | Out-Null
@@ -167,11 +186,13 @@ $diskBefore = [ordered]@{ C = Get-FreeGiB "C"; D = Get-FreeGiB "D" }
 $sourceLogs = @()
 $launchPerformed = [string]::IsNullOrWhiteSpace($AnalyzeLog)
 $engineExitCode = $null
+$godotVersion = ""
 
 if ($launchPerformed) {
     if (-not (Test-Path -LiteralPath $Godot)) {
         throw "Godot executable not found: $Godot"
     }
+    $godotVersion = [string](& $Godot --version 2>&1 | Select-Object -First 1)
     $engineLog = Join-Path $evidenceDirectory "engine.log"
     $consoleLog = Join-Path $evidenceDirectory "console.log"
     $sourceLogs = @($engineLog, $consoleLog)
@@ -216,11 +237,23 @@ $captureProvided = -not [string]::IsNullOrWhiteSpace($CaptureReference)
 $logFailures = @(Get-UniqueLogFailures $sourceLogs)
 $pacingPass = $null -ne $pacingVerdict -and [bool]$pacingVerdict.passed
 $enginePassed = $launchPerformed -and $engineExitCode -eq 0 -and $logFailures.Count -eq 0
-$evidencePackageReady = $enginePassed -and $pacingPass -and [bool]$ConfirmPhysicalInput -and $captureProvided
+$repositoryCommitAfter = [string](git -C $repositoryRoot rev-parse HEAD)
+$repositoryBranchAfter = [string](git -C $repositoryRoot branch --show-current)
+$repositoryDirtyAfter = @(git -C $repositoryRoot status --porcelain).Count -ne 0
+$repositoryStable = -not $repositoryDirtyBefore -and -not $repositoryDirtyAfter -and $repositoryCommitBefore -eq $repositoryCommitAfter -and $repositoryBranchBefore -eq $repositoryBranchAfter
+$evidencePackageReady = $enginePassed -and $pacingPass -and $repositoryStable -and [bool]$ConfirmPhysicalInput -and $captureProvided
 $endedAt = (Get-Date).ToUniversalTime()
 $summary = [pscustomobject][ordered]@{
     run_id = $runId
-    repository_commit = (git -C $repositoryRoot rev-parse HEAD)
+    repository_commit_before = $repositoryCommitBefore.Trim()
+    repository_commit_after = $repositoryCommitAfter.Trim()
+    repository_branch_before = $repositoryBranchBefore.Trim()
+    repository_branch_after = $repositoryBranchAfter.Trim()
+    repository_dirty_before = $repositoryDirtyBefore
+    repository_dirty_after = $repositoryDirtyAfter
+    repository_stable = $repositoryStable
+    godot_executable = $Godot
+    godot_version = $godotVersion.Trim()
     started_at_utc = $startedAt.ToString("o")
     ended_at_utc = $endedAt.ToString("o")
     launch_performed = $launchPerformed
