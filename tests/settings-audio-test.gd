@@ -2,6 +2,7 @@ extends Node
 
 const SETTINGS_SCENE := preload("res://scenes/ui/settings-panel.tscn")
 const MENU_SETTINGS_REGRESSION := preload("res://tests/menu-settings-regression.gd")
+const VOICE_OVER_REGRESSION := preload("res://tests/voice-over-regression.gd")
 
 func _ready() -> void:
 	await get_tree().process_frame
@@ -134,6 +135,8 @@ func _ready() -> void:
 	# The audio server releases the active playback on its mix thread after the player is freed.
 	await get_tree().create_timer(0.2).timeout
 	SettingsManager.reset_defaults()
+	var voice_over_regression := VOICE_OVER_REGRESSION.new()
+	if not await voice_over_regression.run(self): return
 	var menu_settings_regression := MENU_SETTINGS_REGRESSION.new()
 	add_child(menu_settings_regression)
 	if not await menu_settings_regression.run(): return
