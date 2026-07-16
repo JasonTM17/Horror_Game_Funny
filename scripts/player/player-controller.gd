@@ -12,6 +12,7 @@ signal flashlight_changed(enabled: bool)
 @onready var flashlight: SpotLight3D = $Head/Camera3D/Flashlight
 
 var _locks: Dictionary = {}
+var _movement_locks: Dictionary = {}
 var _pitch := -8.0
 var _head_rest_position := Vector3.ZERO
 var _bob_time := 0.0
@@ -42,7 +43,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_pause()
 
 func _physics_process(delta: float) -> void:
-	if is_input_locked():
+	if is_input_locked() or is_movement_locked():
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
@@ -82,6 +83,17 @@ func set_input_locked(reason: String, locked: bool) -> void:
 
 func is_input_locked() -> bool:
 	return not _locks.is_empty()
+
+func set_movement_locked(reason: String, locked: bool) -> void:
+	if reason.is_empty():
+		return
+	if locked:
+		_movement_locks[reason] = true
+	else:
+		_movement_locks.erase(reason)
+
+func is_movement_locked() -> bool:
+	return not _movement_locks.is_empty()
 
 func add_camera_shake(strength: float, duration: float) -> void:
 	if not SettingsManager.camera_shake_enabled:

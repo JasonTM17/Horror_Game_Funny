@@ -154,18 +154,70 @@ func _verify_door_spam_and_reopen(player: CharacterBody3D, interaction: Node) ->
 	interaction._unhandled_input(interact_event)
 	interaction._unhandled_input(interact_event)
 	if not _require(door._moving, "door spam cancelled the opening transition"): return false
+	if not _require(player.is_movement_locked() and not player.is_input_locked(), "door opening did not isolate movement from camera/input locking"): return false
+	var door_motion_position := player.global_position
+	Input.action_press("move_backward")
+	for _frame in 5:
+		await get_tree().physics_frame
+	Input.action_release("move_backward")
+	if not _require(player.global_position.distance_to(door_motion_position) < 0.01, "player entered the rotating sweep after the initial clearance check"): return false
 	if not _require(not GameState.has_item("floor_key") and GameState.has_flag("floor_door_unlocked"), "production door interaction did not consume and persist the key unlock"): return false
 	await get_tree().create_timer(0.65).timeout
-	if not _require(door.is_open and not door._moving, "door did not finish one clean open transition"): return false
-	player.global_position = Vector3(1.75, 0.02, door.global_position.z)
+	if not _require(door.is_open and not door._moving and not player.is_movement_locked(), "door did not finish one clean open transition and release movement"): return false
+	var door_collider := _find_collision_shape(door)
+	if not _require(door_collider != null, "production door has no collision shape"): return false
+	var door_shape := door_collider.shape as BoxShape3D
+	if not _require(door_shape != null, "production door collider is not a box"): return false
+	var player_shape := (player.get_node("CollisionShape3D") as CollisionShape3D).shape as CapsuleShape3D
+	var authored_sweep_clearance := door_shape.size.x * 0.5 + player_shape.radius
+	if not _require(door.motion_sweep_radius >= authored_sweep_clearance, "door motion sweep does not cover the authored panel and player capsule"): return false
+	var blocked_offset := door.motion_sweep_radius - 0.2
+	player.global_position = Vector3(door.global_position.x + blocked_offset, 0.02, door.global_position.z)
 	player.rotation.y = PI / 2.0
 	player.velocity = Vector3.ZERO
 	await get_tree().physics_frame
 	interaction.ray.force_raycast_update()
-	if not _require(interaction.ray.get_collider() == door, "production ray could not reacquire the rotated open door"): return false
+	if not _require(interaction.ray.get_collider() == door, "production ray could not reach the open door from inside its sweep"): return false
+	if not _require(door.get_prompt(player) == "Move clear to use door", "unsafe close prompt did not tell the player to move clear"): return false
+	var blocked_interactions := [0]
+	var blocked_callback := func(_actor: Node) -> void:
+		blocked_interactions[0] += 1
+	var blocked_cooldown: float = door._cooldown_left
+	var blocked_rotation: float = door.rotation.y
+	door.interacted.connect(blocked_callback)
 	interaction._unhandled_input(interact_event)
+	door.interacted.disconnect(blocked_callback)
+	if not _require(door.is_open and not door._moving, "production E input started an unsafe close through the player"): return false
+	if not _require(not player.is_movement_locked(), "rejected close left player movement locked"): return false
+	if not _require(is_equal_approx(door._cooldown_left, blocked_cooldown) and is_equal_approx(door.rotation.y, blocked_rotation), "unsafe close mutated cooldown or door rotation"): return false
+	if not _require(blocked_interactions[0] == 0 and GameState.has_flag("floor_door_unlocked"), "unsafe close emitted success or lost the permanent unlock"): return false
+	player.global_position = Vector3(door.global_position.x + door.motion_sweep_radius + 0.25, 0.02, door.global_position.z)
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	interaction.ray.force_raycast_update()
+	if not _require(interaction.ray.get_collider() == door, "production ray could not reacquire the rotated door from a safe position"): return false
+	interaction._unhandled_input(interact_event)
+	if not _require(player.is_movement_locked(), "safe close did not lock movement for the rotating sweep"): return false
 	await get_tree().create_timer(0.65).timeout
-	if not _require(not door.is_open, "door did not close after reopening test"): return false
+	if not _require(not door.is_open and not door._moving and not player.is_movement_locked(), "door did not close and release movement after the player moved clear"): return false
+	player.global_position = Vector3(door.global_position.x, 0.02, door.global_position.z + blocked_offset)
+	player.rotation.y = 0.0
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	interaction.ray.force_raycast_update()
+	if not _require(interaction.ray.get_collider() == door, "production ray could not reach the closed door from inside its sweep"): return false
+	var blocked_open_cooldown: float = door._cooldown_left
+	var blocked_open_rotation: float = door.rotation.y
+	var blocked_open_interactions := [0]
+	var blocked_open_callback := func(_actor: Node) -> void:
+		blocked_open_interactions[0] += 1
+	door.interacted.connect(blocked_open_callback)
+	interaction._unhandled_input(interact_event)
+	door.interacted.disconnect(blocked_open_callback)
+	if not _require(not door.is_open and not door._moving, "production E input started an unsafe open through the player"): return false
+	if not _require(not player.is_movement_locked(), "rejected open left player movement locked"): return false
+	if not _require(is_equal_approx(door._cooldown_left, blocked_open_cooldown) and is_equal_approx(door.rotation.y, blocked_open_rotation), "unsafe open mutated cooldown or door rotation"): return false
+	if not _require(blocked_open_interactions[0] == 0 and GameState.has_flag("floor_door_unlocked"), "unsafe open emitted success or lost the permanent unlock"): return false
 	player.global_position = Vector3(0.8, 0.02, door.global_position.z + 1.35)
 	player.rotation.y = 0.0
 	player.velocity = Vector3.ZERO
@@ -173,8 +225,9 @@ func _verify_door_spam_and_reopen(player: CharacterBody3D, interaction: Node) ->
 	interaction.ray.force_raycast_update()
 	if not _require(interaction.ray.get_collider() == door, "production ray could not reacquire the closed door from the front"): return false
 	interaction._unhandled_input(interact_event)
+	if not _require(player.is_movement_locked(), "safe reopen did not lock movement for the rotating sweep"): return false
 	await get_tree().create_timer(0.65).timeout
-	return _require(door.is_open, "door did not reopen after a full close cycle")
+	return _require(door.is_open and not player.is_movement_locked(), "door did not reopen and release movement after a full close cycle")
 
 func _verify_comfort_head_bob_restores_authored_origin(player: CharacterBody3D, head: Node3D) -> bool:
 	SettingsManager.set_comfort_head_bob(false)
@@ -187,6 +240,12 @@ func _has_physical_e_binding() -> bool:
 		if event is InputEventKey and (event.physical_keycode == KEY_E or event.keycode == KEY_E):
 			return true
 	return false
+
+func _find_collision_shape(parent: Node) -> CollisionShape3D:
+	for child in parent.get_children():
+		if child is CollisionShape3D:
+			return child as CollisionShape3D
+	return null
 
 func _require(condition: bool, message: String) -> bool:
 	if condition:

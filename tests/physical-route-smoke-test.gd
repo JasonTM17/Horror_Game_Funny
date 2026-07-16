@@ -62,6 +62,11 @@ func _verify_door_gate(gameplay: Node3D, player: CharacterBody3D, door_id: Strin
 	GameState.set_flag(unlock_flag)
 	if not door.required_item.is_empty():
 		GameState.add_item(door.required_item)
+	# A real interaction happens from ray range, not while the capsule is pressed
+	# into the rotating panel. Step back outside the authored sweep before opening.
+	player.global_position = Vector3(0.8, 0.02, door.global_position.z + 1.35)
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
 	if not _require(door.interact(player), "%s rejected its valid unlock flag" % door_id): return false
 	if door.consume_required_item:
 		if not _require(not GameState.has_item(door.required_item), "%s did not consume its one-shot key" % door_id): return false
