@@ -24,7 +24,7 @@ func _ready() -> void:
 	if not _require(interaction.ray.collision_mask == 4, "interaction ray does not use the named Interactable physics layer"): return
 	if not await _verify_production_interaction(player, interaction): return
 	if not _verify_objective_review(): return
-	if not _verify_pause_and_flashlight(player): return
+	if not await _verify_pause_and_flashlight(player): return
 	if not await _verify_note_escape_restores_input(player): return
 	if not await _verify_door_spam_and_reopen(player, interaction): return
 	if not _verify_comfort_head_bob_restores_authored_origin(player, head): return
@@ -80,7 +80,30 @@ func _verify_pause_and_flashlight(player: CharacterBody3D) -> bool:
 	player._unhandled_input(pause_event)
 	if not _require(not get_tree().paused and not player.is_input_locked(), "second pause action did not resume and unlock input"): return false
 	player._unhandled_input(flashlight_event)
-	return _require(flashlight.visible != paused_visibility, "flashlight did not toggle after input resumed")
+	if not _require(flashlight.visible != paused_visibility, "flashlight did not toggle after input resumed"): return false
+	if not flashlight.visible:
+		flashlight.visible = true
+	SettingsManager.set_flicker_enabled(true)
+	if not _require(flashlight.process_mode == Node.PROCESS_MODE_PAUSABLE, "flashlight inherited always-on process mode from the paused player"): return false
+	flashlight.flicker_chance = 1.0
+	flashlight.flicker_interval_min = 0.01
+	flashlight.flicker_interval_max = 0.01
+	flashlight.pulse_duration_min = 0.05
+	flashlight.pulse_duration_max = 0.05
+	flashlight.flicker_min_energy = 0.2
+	flashlight._flicker_check_remaining = 0.0
+	flashlight._process(0.016)
+	if not _require(flashlight.light_energy >= flashlight.flicker_min_energy - 0.01 and flashlight.light_energy <= flashlight._base_energy + 0.01, "flashlight pulse exceeded its authored energy bounds"): return false
+	var paused_energy := flashlight.light_energy
+	var paused_check_remaining: float = float(flashlight._flicker_check_remaining)
+	get_tree().paused = true
+	await get_tree().process_frame
+	OS.delay_msec(120)
+	await get_tree().process_frame
+	var flicker_stayed_paused := is_equal_approx(flashlight.light_energy, paused_energy) and is_equal_approx(float(flashlight._flicker_check_remaining), paused_check_remaining)
+	get_tree().paused = false
+	await get_tree().process_frame
+	return _require(flicker_stayed_paused, "flashlight pulse advanced while the game was paused")
 
 func _verify_note_escape_restores_input(player: CharacterBody3D) -> bool:
 	var note := NOTE_SCRIPT.new() as CanvasLayer
