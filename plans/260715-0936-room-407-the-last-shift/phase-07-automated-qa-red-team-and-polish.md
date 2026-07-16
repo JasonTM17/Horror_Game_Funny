@@ -28,7 +28,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 ## Architecture
 
-`tests/run-headless-tests.ps1` launches 12 native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, targeted production-player movement/door collision, player input, visual effects, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. No production script recognizes a test bypass.
+`tests/run-headless-tests.ps1` launches 12 native Godot checks, isolates temp and user-data paths below the repository, scans logs for assertion/engine/leak failures, and exits nonzero on failure. Scene smoke checks load boot/gameplay; focused GDScript scenes exercise state, semantic progression, layout/checkpoint/chase, targeted production-player movement/door collision, player input, visual effects, settings/audio contracts, and two-process config persistence. Guaranteed teardown removes the isolated profile. `tests/run-physical-playthrough.ps1` separately packages a tester-driven editor/project run and refuses analysis-only, mixed-run, incomplete, or out-of-target evidence; it is not part of the twelve-check runner. No production script recognizes a test bypass.
 
 ## File Inventory
 
@@ -36,6 +36,7 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 |---|---|---:|---|
 | Maintain | `tests/run-headless-tests.ps1`, `tests/game-state-test.gd`, and scene-backed `tests/{progression,checkpoint-layout,physical-route-smoke,player-input-integration,visual-effects,settings-audio,settings-persistence-write,settings-persistence-read}-test.{gd,tscn}` | focused harnesses | exact twelve-check regression |
 | Maintain | `tests/menu-settings-regression.gd` | nested helper | Settings/modal focus contract inside check 10 |
+| Maintain | `tests/run-physical-playthrough.ps1` | manual wrapper | same-run log/pacing/capture evidence package |
 | Maintain | `plans/260715-0936-room-407-the-last-shift/reports/*.md` | reports | audit evidence |
 | Modify | only implementation files with evidence-backed defects | scoped | regression fixes |
 | Modify | `docs/testing.md`, `docs/limitations.md` | <250 lines | truthful QA contract |
@@ -55,6 +56,8 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 - `menu-settings-regression.gd` exercises save failure/retry/discard, modal focus trapping, launcher focus return, and hidden-control release inside `settings-audio`; it is not a thirteenth runner check.
 - Generated/credential/tracked-binary scans are clean; a clean clone at SHA `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, 0 bad lines, 0 temporary profiles, and 0 dirty lines before removal from the verified repository-local temp root.
 - Disk after the clean-clone rehearsal: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- `46a58e8` adds the manual evidence runner without changing production code or the twelve-check contract. PowerShell parsing passed; compressed, structurally valid synthetic, and mixed-payload cases proved rejection/pass boundaries while keeping analysis mode manual-gate-ineligible.
+- `ba59df0` makes the runner report a review-required evidence package rather than claiming automatic manual-gate completion, and blocks engine/script/parse/ObjectDB-leak failure lines. A synthetic error-log fixture verified the new rejection path and was deleted afterward.
 - No authorized physical F5 keyboard/mouse run has recorded the complete route with a same-run eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix. Phase 7 remains in progress.
 
 ## Dependency Map
@@ -102,6 +105,8 @@ No Blender/MCP assets, binary export, persistent gameplay save, crouch, secondar
 6. `fix(visuals): make flashlight flicker pause-safe`
 7. `fix(ui): restore menu focus and report save failures`
 8. `docs: record completion audit polish evidence`
+9. `test: add physical playthrough evidence runner`
+10. `fix(test): reject faulty physical evidence logs`
 
 ## Implementation Steps
 
@@ -153,6 +158,6 @@ Test logs stay ignored and are reviewed for local paths or credentials before an
 
 ## Next Steps
 
-- Complete and record an authorized physical F5 keyboard/mouse boot-to-credits run before changing Phase 7 to completed.
+- Run `tests/run-physical-playthrough.ps1` with an authorized physical F5 keyboard/mouse boot-to-credits recording before changing Phase 7 to completed.
 - Preserve that run's complete capture and `PLAYTHROUGH_PACING: ` payload together; automation or a Continue session cannot substitute for it.
 - Phase 8 documentation reconciliation and release auditing can continue, but final release closure remains dependent on the open Phase 7 evidence.

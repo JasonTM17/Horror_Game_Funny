@@ -232,6 +232,16 @@ Each run overwrites these machine-local files:
 
 Use the console summary for quick status and the matching log for diagnosis. A pacing payload begins with `PLAYTHROUGH_PACING: ` and contains eligibility, completeness, actual order validity, milestone/chapter times, active/wall/paused totals, target metadata, and verdicts. The combined progression log contains two identical copies because it concatenates engine and console streams; the runtime emission itself is single. Logs are generated artifacts, not committed proof. Preserve a dated external test report if release evidence must survive cleanup.
 
+## Physical Playthrough Evidence Runner
+
+`tests/run-physical-playthrough.ps1` is a manual evidence wrapper, not a thirteenth automated check. Its default `EditorF5` mode opens Godot Editor and waits while the tester physically presses F5, starts a fresh shift, reaches visible credits, and closes the game/editor. `ProjectRun` launches the configured main scene directly. Both modes preserve new same-session engine and console logs under `.artifacts/manual-playthrough/<timestamp>/`.
+
+The parser deduplicates identical engine/console copies of one payload and refuses two distinct payloads, preventing evidence from separate runs being merged. It rejects engine/script/parse/ObjectDB-leak failure lines and verifies fresh-Lobby eligibility, completion, exact boundary order, no missing milestones, the fixed 900–1200-second target metadata, active total, every chapter verdict, and the final total verdict. The generated summary records commit, UTC start/end, launch mode, engine exit, log failures, physical-input declaration, capture reference, log paths, pacing checks, and C:/D: free space.
+
+`evidence_package_ready` requires all pacing checks, zero scanned log failures, a normal launched-process exit, `-ConfirmPhysicalInput`, and a non-empty `-CaptureReference`. The script always records `review_required: true`: it does not inspect video contents, prove operating-system input, or judge the manual matrix. `-AnalyzeLog` intentionally cannot make an evidence package ready.
+
+Parser verification on 2026-07-16 covered four adversarial cases: the canonical 6.58-second compressed log was rejected; a synthetic 1000-second structurally valid payload passed pacing but remained package-ineligible in analysis mode; a log with two distinct payloads was rejected rather than mixed; and a structurally valid payload beside a synthetic `ERROR:` line recorded the failure and remained package-ineligible. Synthetic fixtures were deleted and are not release evidence.
+
 ## Required Manual Matrix
 
 No current automated check fully verifies the following. Record each result, environment, date, tester, and evidence link before a release claim.
@@ -252,6 +262,7 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 ## References
 
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
+- [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)

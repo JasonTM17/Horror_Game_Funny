@@ -15,6 +15,7 @@ All notable changes to this project are documented here.
 - Boot-menu Continue for process-local checkpoints and pause-menu access to Settings.
 - Persisted settings at `user://room407.cfg` for controls, display, audio, and comfort options.
 - Twelve-check Windows headless runner with per-check logs under `.artifacts/`, including targeted production-player movement/door collision and isolated two-process settings persistence.
+- Physical-playthrough evidence runner that preserves same-session logs, validates one unique 15–20 minute payload, records disk/commit/capture metadata, and keeps analysis-only or mixed-run evidence ineligible for release closure.
 
 ### Changed
 
@@ -39,6 +40,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- `ba59df0` changed the physical runner from an automatic “manual gate” claim to a review-required evidence package and rejects engine/script/parse/ObjectDB-leak failures before it can report readiness.
 - `1321971` enforced atomic quest-item consumption, permanent run-local fourth-floor unlock, and the pre-Room `room_entrance` checkpoint invariant.
 - `e4b8386` aligned the chase entity body with the floor and bounded lost-target search through deterministic `DESPAWN`/restart behavior.
 

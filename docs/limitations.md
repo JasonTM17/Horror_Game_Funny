@@ -32,6 +32,8 @@
 
 Runtime pacing telemetry is implemented, but no dated physical F5 run currently proves the pacing target. Required evidence is a fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload; compressed automation and checkpoint-start reports are not substitutes.
 
+`tests/run-physical-playthrough.ps1` can preserve same-session logs, reject mixed or out-of-target payloads, and record a tester-supplied capture reference. It cannot inspect that recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its summary is an evidence package for human review, not automatic proof of the physical gate.
+
 The following are targets or implemented features, not manually verified release claims:
 
 - 15-20 minute blind-run pacing and per-chapter pacing;
@@ -66,6 +68,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 - [Architecture](architecture.md)
 - [Asset credits and provenance](asset-credits.md)
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
+- [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
