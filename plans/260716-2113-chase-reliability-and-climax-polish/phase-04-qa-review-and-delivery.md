@@ -22,6 +22,8 @@
 - [x] Check C:/D:, staged secrets, branch divergence, remote URL, and commit split.
 - [x] Push without force and verify `HEAD == origin/main == refs/heads/main`.
 
+Current source-level pacing audit: [`reports/phase-04-pacing-audit-20260716.md`](reports/phase-04-pacing-audit-20260716.md). It documents the authored route lower bound and keeps the physical F5 capture gate open.
+
 ## Acceptance
 
 - All 12 canonical checks exit zero with required markers and no scanned failures.

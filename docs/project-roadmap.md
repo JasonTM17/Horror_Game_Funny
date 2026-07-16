@@ -20,6 +20,8 @@ The implementation roadmap is sequential and preserves one continuous gameplay s
 5. Capture real in-game stills and a short gameplay recording. Export an optimized GIF with FFmpeg, keep source capture outside the repository, and commit only reviewed deliverables under `docs/screenshots/`.
 6. Embed repository-relative media links in the final documentation, render-check them, run the canonical suite again, and push the final evidence commit.
 
+The current source-level route/timing audit is recorded in [`phase-04-pacing-audit-20260716.md`](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-04-pacing-audit-20260716.md). It is planning evidence only; it does not replace the physical capture gate.
+
 ## Guardrails
 
 - Do not add loading screens or split the route into levels to manufacture duration.
