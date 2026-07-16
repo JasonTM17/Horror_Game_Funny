@@ -58,6 +58,7 @@ The current primary boundary is deliberate: `GameplayDirector` is the runtime fa
 - Create or configure `NavigationAgent3D` during setup, and check the map iteration before requesting path points.
 - Keep fallback movement bounded by authored world limits.
 - Preserve the tested chase ordering: player walk 2.0 < entity 3.0 < player sprint 3.1.
+- Keep the chase entity root at floor level and express visual/collider offsets explicitly; never add test-only Y corrections. `LOST_TARGET`/`SEARCH` must use the last-seen position, respect a bounded search budget, and make `DESPAWN` stop and hide the entity. Restart must reset state, LOS, target position, and search counters.
 
 ## Interaction and Progression
 
@@ -94,15 +95,18 @@ All setters clamp or normalize at `SettingsManager`, not only at slider widgets.
 | Film grain/scanlines | on | boolean |
 | Fullscreen | off | boolean |
 
-Settings save to `user://room407.cfg` when the settings panel closes. Checkpoints are intentionally process-local and must not be added to that file without a deliberate save-system design.
+Settings edits apply immediately, but persistence is explicit. `save_settings()` returns the `ConfigFile.save()` `Error` and emits `settings_save_failed` on failure; every caller must handle the result and keep a failed modal visible for retry or an explicit session-only discard. Checkpoints are intentionally process-local and must not be added to that file without a deliberate save-system design.
+
+Boot/pause Settings is a modal focus boundary: background controls become non-focusable while it is open, hidden controls release focus, and closing returns focus to the launching button. Keep these rules in the UI controller rather than relying on scene-tab order alone.
 
 ## Audio and Visual Assets
 
 - Prefer primitive meshes, project-authored shaders/SVG, and generated audio.
 - Record every committed or generated asset source in `asset-credits.md`.
 - Do not add media with unclear copyright or license terms.
-- Keep procedural audio inputs positive and respect the 16 MiB cache cap.
+- Keep procedural audio inputs positive and respect the 16 MiB cache cap. Audio cache keys must include the semantic ID, sample rate, frequency, effective duration, and loop mode; true LRU eviction must protect streams held by regular or spatial players, and stop/eviction paths must subtract exact byte counts and remove all per-ID variants. Spatial players unregister on finish, parent deletion, and explicit stop.
 - Keep Compatibility-renderer shader syntax and test the shader through editor import.
+- Flashlight flicker must use bounded intervals, pulse duration, and minimum energy; it must run in `PROCESS_MODE_PAUSABLE` and restore base energy when disabled or hidden.
 - Do not claim that the project MIT license relicenses Godot Engine or its third-party components.
 
 ## Error Handling
@@ -118,6 +122,7 @@ Settings save to `user://room407.cfg` when the settings panel closes. Checkpoint
 - Run the narrowest relevant check first, then the complete twelve-check runner for shared contracts.
 - Automated progression tests must cover success, early rejection, duplicate rejection, and recovery where applicable.
 - Keep expected success markers and assertion prefixes synchronized with `run-headless-tests.ps1`.
+- A focused helper may share an existing lifecycle; `menu-settings-regression.gd` runs inside `settings-audio` and must not change the exact twelve-check runner contract.
 - Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.
 - A headless pass is not evidence of complete physical keyboard/mouse traversal, visual/audio balance, audible output, the physical Settings UI workflow, or 15–20 minute pacing. The targeted movement smoke proves only its listed capsule/door/threshold cases, and the two-process writer/reader pair proves only config persistence.
 - Record manual evidence separately; never convert an unobserved design target into a verified claim.

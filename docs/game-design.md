@@ -69,6 +69,8 @@ The phone and logbook teach interaction. The player must read the stopped desk c
 
 After crossing the first barrier, a maintenance notice establishes why the floor is closed and points toward the fuse locker. The player must read it, inspect an empty fuse box if desired, collect the spare fuse, and install it once. Installation advances the story only after the item guard passes; the power sequence then stabilizes before the next door opens.
 
+Crossing the threshold is a one-shot authored scare: the elevator display changes from `3` to `4`, the real floor door closes behind the player, and a distant, non-colliding arrival apparition appears before the display burns back to `--`. The fourth-floor shell uses alternating procedural wall panels, lights, and notices to make the route feel occupied without adding a second level or scene.
+
 ### Memory Hallway
 
 Three memory objects are ordered and idempotent. After each object returns its memory, the player follows a new environmental message before the loop gate will accept the next turn; the third echo opens the radio route after the final blackout.
@@ -93,11 +95,11 @@ The hallway controller exposes four visual roots: the initial corridor and three
 
 ### Room 407
 
-The family recording must finish before the drawing can be inspected. The player then searches the child's bed, wardrobe, and family table for three physical clues; all five Room 407 clue interactions are required before the final note opens. Closing the note begins the chase setup and creates a `chase_start` checkpoint after the narrative beat completes.
+The family recording must finish before the drawing can be inspected. The player then searches the child's bed, wardrobe, and family table for three physical clues; all five Room 407 clue interactions are required before the final note opens. Wallpaper panels, ceiling ribs, height marks, and a warning label sell the impossible childhood room while keeping the central navigation lane clear. Closing the note triggers a visible, non-colliding manifestation and begins the chase setup; the `chase_start` checkpoint is created after the narrative beat completes.
 
 ### Chase and Ending
 
-Chase start dims every named corridor light to eight percent of its previous energy while leaving red guide lights in the route. The entity uses `DORMANT`, `APPEAR`, `STALK`, `SEARCH`, `CHASE`, `LOST_TARGET`, and `DESPAWN` states with a runtime `NavigationAgent3D` over the continuous corridor navigation region.
+Chase start dims every named corridor light to eight percent of its previous energy while leaving red guide lights in the route. The entity uses `DORMANT`, `APPEAR`, `STALK`, `CHASE`, `LOST_TARGET`, `SEARCH`, and `DESPAWN` states with a runtime `NavigationAgent3D` over the continuous corridor navigation region. Losing line of sight stores the last visible position; bounded search cycles revisit that position, reacquire the player when visible, or end in a hidden/stopped `DESPAWN` state. Restarting the chase resets the state, search budget, and visibility.
 
 Configured speed values are:
 
@@ -136,11 +138,11 @@ The boot menu exposes Continue when a checkpoint exists in the current process. 
 - Text prompts, objectives, notes, radio feedback, and narrative subtitles.
 - Pause-menu access to the same settings panel as the boot menu.
 
-Settings save to `user://room407.cfg` when the panel closes. Automated tests inspect controls and selected clamps, then use separate writer and reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
+Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; a failed write returns an `Error`, leaves the modal open, displays the failure, and offers **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Discarding closes without writing a new file, so those values remain session-only. Boot and pause menus trap focus inside the modal and return it to the Settings launcher. Automated tests inspect controls/clamps and use separate writer/reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
 
 ## Completion Evidence Required
 
-Automated checks cover progression guards, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase speed ordering, ending success, and the reveal node. They also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, and deliberate rejection of compressed or out-of-order evidence.
+Automated checks cover progression guards, fourth-floor/Room 407 scare dressing, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. They also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
 
 Release validation still needs a recorded manual run covering:
 

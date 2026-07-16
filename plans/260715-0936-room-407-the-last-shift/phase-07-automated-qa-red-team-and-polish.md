@@ -34,9 +34,9 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 
 | Action | Paths | Rough size | Test impact |
 |---|---|---:|---|
-| Create | `tests/{run-tests,test-game-state,test-interactions,test-puzzles,test-checkpoint,test-settings}.gd` | <900 lines total | core regression |
-| Create | `tests/smoke-runner.gd` | <220 lines | runtime flow without production bypass |
-| Create | `plans/260715-0936-room-407-the-last-shift/reports/{test,red-team,code-review}-report.md` | reports | audit evidence |
+| Maintain | `tests/run-headless-tests.ps1`, `tests/game-state-test.gd`, and scene-backed `tests/{progression,checkpoint-layout,physical-route-smoke,player-input-integration,visual-effects,settings-audio,settings-persistence-write,settings-persistence-read}-test.{gd,tscn}` | focused harnesses | exact twelve-check regression |
+| Maintain | `tests/menu-settings-regression.gd` | nested helper | Settings/modal focus contract inside check 10 |
+| Maintain | `plans/260715-0936-room-407-the-last-shift/reports/*.md` | reports | audit evidence |
 | Modify | only implementation files with evidence-backed defects | scoped | regression fixes |
 | Modify | `docs/testing.md`, `docs/limitations.md` | <250 lines | truthful QA contract |
 
@@ -48,15 +48,14 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 - [x] Red-team fixes preserve the accepted continuous flow and checkpoint semantics across the covered regressions.
 - [x] Independent final review checked the committed gameplay/UI/test range and rejected stale findings against final code.
 
-## Current Evidence — 2026-07-15
+## Current Evidence — 2026-07-16
 
-- Telemetry code `fc8f7e7` and pacing documentation `257e601` are pushed. Local `HEAD` and `origin/main` matched at `257e601` before this evidence-only plan/journal update.
-- The exact 12-check runner passes after the final telemetry and adversarial-capture fixes. Focused progression passed three consecutive runs with active 3.66–3.67 seconds, wall 3.72–3.74 seconds, paused 0.06 seconds, complete/order-valid evidence, and a false compressed-run target verdict. Focused checkpoint/layout passed three consecutive resumed-run cases with a null total verdict.
-- Review found and closed finalized-report mutation, canonicalized-order masking, private chase-start/capture shortcuts, a false-positive pause assertion, and an audio playback teardown leak. Final adversarial re-review reported no remaining findings.
-- A real local Compatibility-renderer capture is clean and readable, but it is uncommitted developer evidence and not a physical F5 traversal.
-- A fresh clone of `origin/main` at `257e601` independently reproduced 12 logs, all 9 required success markers, zero bad log matches, zero temporary profiles, and zero tracked changes, then was removed from the verified repository-local temp root.
-- No authorized physical F5 keyboard/mouse run has recorded the complete route with a same-run eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix. Phase 7 therefore remains in progress.
-- Post-rehearsal disk snapshot at 18:20 ICT: C: 10.50 GiB free; D: 34.50 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- The completion-audit polish commits are pushed in order: `4287337` (plan audit), `1321971` (progression/checkpoint invariants), `4099a52` (fourth-floor and Room 407 scare dressing), `e4b8386` (bounded chase/body alignment), `4be615a` (audio cache/spatial lifetime), `f1bc63c` (pause-safe flashlight), and `c38fde9` (modal focus/save-failure UX). Local `HEAD` and `origin/main` matched at `c38fde9` before this documentation edit.
+- The exact 12-check runner exits `0`; the current canonical run produced 12 logs, all 9 required markers, zero scanned bad lines, and zero temporary Godot profiles. The fresh compressed pacing payload measured 6.58 s active, 6.82 s wall, and 0.22 s paused, with complete/order-valid telemetry and `within_target: false` by design. Checkpoint/layout remains correctly incomplete/ineligible with a null total verdict.
+- `menu-settings-regression.gd` exercises save failure/retry/discard, modal focus trapping, launcher focus return, and hidden-control release inside `settings-audio`; it is not a thirteenth runner check.
+- Generated/credential/tracked-binary scans are clean; a clean clone at SHA `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, 0 bad lines, 0 temporary profiles, and 0 dirty lines before removal from the verified repository-local temp root.
+- Disk after the clean-clone rehearsal: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
+- No authorized physical F5 keyboard/mouse run has recorded the complete route with a same-run eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix. Phase 7 remains in progress.
 
 ## Dependency Map
 
@@ -91,17 +90,18 @@ No Blender/MCP assets, binary export, persistent gameplay save, crouch, secondar
 - Progression: `scripts/world/{gameplay-director,story-progression-controller,continuous-story-layout}.gd`, `scripts/interaction/door-interactable.gd`, `scripts/ui/hud.gd`.
 - Presentation: `scripts/world/{continuous-world-builder,horror-event-director,chase-sequence-controller,chase-entity}.gd`.
 - Audio/accessibility/UI: `scripts/autoload/{audio-manager,settings-manager}.gd`, `scripts/player/player-flashlight.gd`, `scripts/ui/{boot-menu,pause-menu,settings-panel}.gd`.
-- Regression: existing `progression`, `checkpoint-layout`, `physical-route`, `player-input`, and `settings-audio` checks; no thirteenth runner entry.
+- Regression: existing `progression`, `checkpoint-layout`, `physical-route`, `player-input`, and `settings-audio` checks; `tests/menu-settings-regression.gd` is nested in `settings-audio`, so there is no thirteenth runner entry.
 
 ### Atomic Commit Checkpoints
 
 1. `docs: plan completion audit polish`
 2. `fix(progression): enforce quest item and checkpoint invariants`
 3. `feat(horror): render fourth-floor and Room 407 scare beats`
-4. `fix(chase): align entity body and state behavior`
-5. `fix(presentation): preserve tone variants and bound flicker`
-6. `fix(ui): restore menu focus and report save failures`
-7. `docs: record completion audit polish evidence`
+4. `fix(chase): bound entity search and align floor body`
+5. `fix(audio): harden tone cache and spatial lifetime`
+6. `fix(visuals): make flashlight flicker pause-safe`
+7. `fix(ui): restore menu focus and report save failures`
+8. `docs: record completion audit polish evidence`
 
 ## Implementation Steps
 

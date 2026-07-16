@@ -37,7 +37,7 @@ F6 is editor current-scene execution and can skip the boot scene. The memory loo
 
 ## World Construction
 
-`ContinuousWorldBuilder` creates the shared environment, 870-unit corridor shell, partitions, Room 407 dressing, lights, guide lights, and navigation region. `ContinuousStoryLayout` creates the story objects and guarded doors. `LevelGeometry` is the low-level box, label, material, and light factory.
+`ContinuousWorldBuilder` creates the shared environment, 870-unit corridor shell, partitions, Room 407 dressing, lights, guide lights, and navigation region. The authored dressing includes the fourth-floor elevator display/false-door set, the real arrival-door closure and timed apparition, Room 407 wallpaper/height marks/ceiling ribs, and alternating chase wall scars. `ContinuousStoryLayout` creates the story objects and guarded doors. `LevelGeometry` is the low-level box, label, material, and light factory.
 
 The navigation surface is a real `NavigationRegion3D` named `ContinuousCorridorNavigation`. Its `NavigationMesh` contains a four-vertex polygon spanning the playable corridor. This is created directly in code rather than baked from imported meshes.
 
@@ -126,16 +126,19 @@ The scene overrides movement defaults to walk speed 2.0 and sprint multiplier 1.
 
 ## Enemy and Navigation
 
-`ChaseSequenceController` creates one entity at chase start and attaches a capsule mesh/collider. The entity creates a `NavigationAgent3D` during setup and uses these states:
+`ChaseSequenceController` creates one entity at chase start and attaches a capsule mesh/collider. The entity root is placed at floor level; the visual capsule and collider use Y offsets `1.25` and `1.2`, so the body does not start half-buried or float. The entity creates a `NavigationAgent3D` during setup and uses these states:
 
 ```text
-DORMANT -> APPEAR -> STALK -> CHASE -> LOST_TARGET -> SEARCH -> CHASE
+DORMANT -> APPEAR -> STALK -> CHASE -> LOST_TARGET -> SEARCH -> LOST_TARGET
+                                      ^             |          |
+                                      |             +----------+
+                                      +-- reacquire -> CHASE
 any active state -------------------------------------------------> DESPAWN
 ```
 
-When the navigation map is ready, the agent supplies the next path point. Before that, motion falls back to the current target or last visible target vector; it is not a separate waypoint system. Line of sight is sampled every 0.2 seconds. The entity is confined by corridor Z bounds and requests failure within 1.25 units of the player.
+When the navigation map is ready, the agent supplies the next path point. Before that, motion falls back to the current target or last visible target vector; it is not a separate waypoint system. Line of sight is sampled every 0.2 seconds, and `LOST_TARGET`/`SEARCH` use the last visible target position. A successful reacquisition returns to `CHASE`; after the bounded `max_search_cycles` budget the entity enters `DESPAWN`, sets `active=false`, hides itself, and zeros velocity. Player recovery/despawn checks use the authored Z thresholds; the entity itself is not directly clamped to a corridor Z range. Restarting the chase resets search cycles, LOS timing, target position, visibility, and state.
 
-Entity speed is 3.0. The configured player walks at 2.0 and sprints at 3.1. Automated checks assert this ordering and the `STALK` transition, but manual traversal is required to validate navigation quality and human fairness.
+Entity speed is 3.0. The configured player walks at 2.0 and sprints at 3.1; `STALK`, `LOST_TARGET`, and `SEARCH` apply their authored multipliers before full-speed `CHASE`. Automated checks measure these transitions and speeds, but manual traversal is required to validate navigation quality and human fairness.
 
 ## Chase, Checkpoint, and Ending Flow
 
@@ -149,13 +152,13 @@ Ending success remains in the gameplay scene. The chase controller stops the ent
 
 ## Settings and Audio
 
-`SettingsManager` clamps values at the service boundary and applies audio levels to named buses. `settings-panel.gd` reads current values on construction, updates them immediately, and saves the full config when the panel closes.
+`SettingsManager` clamps values at the service boundary and applies audio levels to named buses. `save_settings()` returns the `Error` from `ConfigFile.save()` and emits `settings_save_failed` on failure. `settings-panel.gd` reads current values on open and applies edits immediately; a successful **SAVE & CLOSE** writes the full config, while a failed save keeps the modal open with a visible error, **RETRY SAVE**, and **CLOSE WITHOUT SAVING**. The discard path closes without writing a new file, so the active values are session-only. Escape closes normally after a successful save and uses the discard path after a failed save.
 
 `AudioManager` precedes `SettingsManager` in the autoload list. It creates the Music, SFX, Ambience, and Chase buses, then `SettingsManager.load_settings()` applies saved levels. When no config exists, the same method calls the four audio setters with their in-code defaults, including mapping music volume to Chase. The settings/audio check starts with an isolated first-run profile and asserts every named bus matches those defaults.
 
-`AudioManager` creates 16-bit, 22,050 Hz mono PCM tones and caps cached sample data at 16 MiB. `stop_all()` stops streams, clears cache/accounting, and frees player nodes synchronously. Drones are skipped under the headless display server, so a successful headless call does not prove audible output.
+`AudioManager` creates 16-bit, 22,050 Hz mono PCM tones. Cache identity includes the semantic ID, sample rate, frequency, effective duration (capped at four seconds), and loop mode. The cache uses true LRU order with a 16 MiB byte budget; eviction skips streams still referenced by regular or spatial players, and a stream is returned uncached if every resident entry is live. Spatial players unregister on finish or stop, queued/deleted parents are rejected, and `stop_tone()` removes every variant for an ID. `stop_all()` stops streams, clears cache/index/accounting and cache-limit overrides, and frees player nodes synchronously. Drones are skipped under the headless display server, so a successful headless call does not prove audible output.
 
-`VisualEffectsLayer` creates a full-screen `ColorRect` with the project-authored Compatibility canvas shader. The shader combines 2x2 dithering, VHS horizontal jitter/tracking, animated grain, scanlines, a cold color grade, and an edge vignette. `GameState.stage_changed` targets fear intensity at 1.0 for `CHASE`, 0.12 for `ENDING`, and 0.0 otherwise; the shader darkens and warms the edge as that value rises. `film_grain_enabled` controls visibility of the entire overlay, so disabling **Film Grain** also disables dither, VHS, scanline, grade, and chase fear-vignette effects. Flashlight flicker, head bob, and camera shake read their separate settings at runtime.
+`VisualEffectsLayer` creates a full-screen `ColorRect` with the project-authored Compatibility canvas shader. The shader combines 2x2 dithering, VHS horizontal jitter/tracking, animated grain, scanlines, a cold color grade, and an edge vignette. `GameState.stage_changed` targets fear intensity at 1.0 for `CHASE`, 0.12 for `ENDING`, and 0.0 otherwise; the shader darkens and warms the edge as that value rises. `film_grain_enabled` controls visibility of the entire overlay, so disabling **Film Grain** also disables dither, VHS, scanline, grade, and chase fear-vignette effects. `player-flashlight.gd` uses a minimum interval, bounded pulse duration/energy, recovery to base energy, and `PROCESS_MODE_PAUSABLE`; disabling or hiding the light resets its pulse state. Head bob and camera shake read their separate settings at runtime.
 
 ## Extension Guide
 
@@ -187,13 +190,13 @@ These are the current extension points verified against the source and headless 
 
 ### Test Check
 
-Create a focused `.gd` script and `.tscn` harness under `tests/`, print one unique success marker only after all assertions pass, then add one `Invoke-GodotCheck` entry in `run-headless-tests.ps1`. If the check uses a new assertion prefix, add that prefix to the runner's failure scan. Keep external profile/config behavior inside the runner's isolated `.tmp/` user-data tree and document the new check in `testing.md`.
+Create a focused `.gd` script and `.tscn` harness under `tests/`, print one unique success marker only after all assertions pass, then add one `Invoke-GodotCheck` entry in `run-headless-tests.ps1`. If the check uses a new assertion prefix, add that prefix to the runner's failure scan. Keep external profile/config behavior inside the runner's isolated `.tmp/` user-data tree and document the new check in `testing.md`. A helper may be invoked from an existing check when its assertions share the same lifecycle; `menu-settings-regression.gd` is intentionally nested inside `settings-audio` and does not create a thirteenth runner entry.
 
 ## Verification Boundaries
 
 The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, chase state/speed, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps; first-run bus defaults; audio teardown; in-memory Continue visibility; and settings persistence across two Godot processes.
+Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; and settings persistence across two Godot processes.
 
 The movement checks teleport between focused gates and the input check positions the player at selected production targets. The telemetry checks extend progression and checkpoint/layout; they do not add a thirteenth runner check. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify a same-run physical capture, monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
@@ -203,13 +206,19 @@ The movement checks teleport between focused gates and the input check positions
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`chase-entity.gd`](../scripts/world/chase-entity.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
 - [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
+- [`player-flashlight.gd`](../scripts/player/player-flashlight.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
+- [`settings-panel.gd`](../scripts/ui/settings-panel.gd)
+- [`pause-menu.gd`](../scripts/ui/pause-menu.gd)
+- [`boot-menu.gd`](../scripts/ui/boot-menu.gd)
 - [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
+- [`menu-settings-regression.gd`](../tests/menu-settings-regression.gd)
 - [Testing matrix](testing.md)

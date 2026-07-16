@@ -28,27 +28,28 @@ Polish the complete game with cached procedural audio, positional ambience, low-
 
 ## Architecture
 
-`AudioManager` caches generated `AudioStreamWAV` buffers by semantic ID and prevents duplicate named loops. `VisualSettingsApplier` broadcasts bounded comfort settings. A single lightweight canvas shader reads uniform toggles; level lights use a shared flicker component with capped frequency/intensity.
+`AudioManager` caches generated `AudioStreamWAV` buffers by a parameter-complete semantic key (ID, sample rate, frequency, effective duration, and loop mode), uses a 16 MiB LRU budget, protects streams held by regular/spatial players, and tears down players synchronously. `scripts/player/player-flashlight.gd` owns bounded flicker pulses and explicitly runs as `PROCESS_MODE_PAUSABLE`. `VisualEffectsLayer` drives the single Compatibility canvas shader; the authored UI scenes own settings, modal focus, and save-error handling.
 
 ## File Inventory
 
 | Action | Paths | Rough size | Test impact |
 |---|---|---:|---|
-| Create | `scripts/audio/{procedural-audio-factory,audio-cue}.gd` | <380 lines | generation/cache tests |
-| Create | `scripts/visual/{light-flicker,visual-settings-applier}.gd` | <280 lines | bounds tests |
-| Create | `shaders/ps1-screen.gdshader`, procedural materials/resources | <200 lines | compile/load checks |
-| Create | `default_bus_layout.tres`, UI theme/resources | text resources | bus/UI tests |
-| Modify | all authored levels for cues/lights/fog/subtitles | scoped scene edits | full-flow regression |
-| Modify | settings panel, HUD, pause, note, fail, ending UI | <250 lines | UI navigation |
+| Maintain | `scripts/autoload/audio-manager.gd` | generated PCM/cache service | variant/LRU/lifetime tests |
+| Maintain | `scripts/player/player-flashlight.gd` | bounded pulse component | bounds and pause tests |
+| Maintain | `scripts/ui/visual-effects-layer.gd`, `shaders/retro-screen-overlay.gdshader` | Compatibility retro treatment | import/uniform tests |
+| Maintain | `scripts/autoload/settings-manager.gd`, `scripts/ui/{settings-panel,pause-menu,boot-menu}.gd`, `scenes/ui/settings-panel.tscn` | settings, modal focus, persistence UX | UI/persistence tests |
+| Modify | runtime world/UI controllers for cues/lights/fog/subtitles | scoped scene/runtime edits | full-flow regression |
 
 ## Function and Interface Checklist
 
 - [x] Generated audio is cached, amplitude-bounded, and assigned to semantic buses.
 - [x] Procedural buffers are mono 16-bit at 22.05 kHz with bounded duration; total cached PCM stays below 16 MiB.
 - [x] Named loop start is idempotent; `stop_all()` clears streams, players, cache, and byte accounting without leaks.
-- [x] Flicker is bounded and can be disabled through settings.
+- [x] Cache identity includes pitch/duration/loop variants; LRU eviction protects live regular/spatial streams and stop paths reclaim exact accounting.
+- [x] Flicker is bounded, pause-safe, resets to base energy when disabled/hidden, and can be disabled through settings.
 - [x] Shader supports grain off and imports under the Compatibility renderer.
 - [x] Important phone/radio/story content has English subtitles.
+- [x] Settings save failures return an error, remain visible in the modal, and offer retry or session-only discard; boot/pause focus returns to the launcher.
 
 ## Dependency Map
 
@@ -106,3 +107,11 @@ All audio, shaders, UI, materials, and vector graphics are created specifically 
 ## Next Steps
 
 - Phase 7 performs automated regression, manual QA, and adversarial progression hardening.
+
+## Evidence Reconciliation — 2026-07-16
+
+- `4be615a` hardens the generated-tone cache: complete keys, four-second effective-duration cap, true LRU under 16 MiB, live-player protection, spatial lifetime cleanup, and deterministic `stop_tone()`/`stop_all()` teardown.
+- `f1bc63c` bounds flashlight interval/pulse/energy and keeps the component pausable, with reset behavior when disabled or hidden.
+- `c38fde9` completes the settings UX slice: `save_settings()` error propagation, visible retry/discard state, full-rect modal blocking, boot/pause focus return, and hidden-control focus release.
+- The exact twelve-check runner and focused settings/audio checks pass. `menu-settings-regression.gd` is invoked inside `settings-audio`; it does not create a thirteenth runner check.
+- Manual visual/audio balance, rendered comfort/readability, physical Settings save/fullscreen behavior, and the physical F5 route remain unchecked and are intentionally carried into Phase 7.

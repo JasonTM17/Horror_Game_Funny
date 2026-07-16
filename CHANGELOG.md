@@ -18,6 +18,15 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Completion audit polish — 2026-07-16
+
+- `4287337` reconciled the completion-audit plan and evidence workflow without changing the continuous route.
+- `4099a52` added the fourth-floor elevator/door/apparition beat, Room 407 dressing, and the bounded pre-chase manifestation.
+- `4be615a` made generated-tone cache identity parameter-complete, loop-aware, LRU-bounded, and safe around live spatial players.
+- `f1bc63c` made flashlight flicker a bounded timed pulse that resets cleanly and stops advancing while paused.
+- `c38fde9` made boot/pause Settings focus-modal, restored launcher focus, and exposed failed config writes with retry/discard actions.
+- Expanded the existing twelve-check suite without adding a thirteenth runner entry, covering progression transactions, rendered scare cleanup, bounded chase search, audio cache/lifetime contracts, pause-safe flicker, and Settings focus/save-failure recovery.
+
 - Split progression, chase, recovery, and ending responsibilities out of the gameplay facade.
 - Added authored observation beats inside the continuous route: the stopped desk clock, night register, floor notice, three memory echoes, and three Room 407 searches now gate the next story step with readable narrative feedback.
 - Replaced generic story-prop boxes with readable procedural PS1 silhouettes for phones, clocks, books, paper clues, fuses, cassettes, the rabbit, radio, search markers, the family table, and the exit panel.
@@ -29,6 +38,9 @@ All notable changes to this project are documented here.
 - Reworked project documentation to separate automated evidence from manual targets and to record exact settings bounds, test logs, provenance, and release limitations.
 
 ### Fixed
+
+- `1321971` enforced atomic quest-item consumption, permanent run-local fourth-floor unlock, and the pre-Room `room_entrance` checkpoint invariant.
+- `e4b8386` aligned the chase entity body with the floor and bounded lost-target search through deterministic `DESPAWN`/restart behavior.
 
 - Restored the memory-derived hallway variant when Continue rebuilds a Room 407 or chase checkpoint.
 - Preserved radio cooldown across close/reopen attempts and prevented stale feedback timers from clearing a new attempt.

@@ -40,23 +40,20 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 | 7 | [Automated QA Red Team and Polish](./phase-07-automated-qa-red-team-and-polish.md) | In Progress |
 | 8 | [Documentation Release and Push](./phase-08-documentation-release-and-push.md) | In Progress |
 
-## Current Evidence Reconciliation — 2026-07-15
+## Current Evidence Reconciliation — 2026-07-16
 
-- Telemetry code `fc8f7e7` and reconciled user/maintainer documentation `257e601` are pushed. Local `HEAD` and `origin/main` matched at `257e601` before this evidence-only plan/journal update.
-- The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in the order actually observed, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
-- The exact isolated Godot 4.7.1 runner passes all 12 checks after the telemetry, production-physics capture, pause, finalization, and audio-drain regressions. The compressed fresh payload is complete and order-valid with a false target verdict, as intended.
-- A fresh clone of `origin/main` at `257e601` reproduced the README runner contract in 45.7 seconds: 12 logs, all 9 required markers, zero bad log matches, zero temporary profiles, and zero tracked changes. The verified clone was then removed from the checked repository-local temp root.
-- Independent adversarial re-review found no remaining code findings after post-credits immutability, actual-order, physics-capture, measurable-pause, and audio-teardown fixes.
-- Separate writer and reader processes still verify all 11 settings survive relaunch inside one isolated profile, and guaranteed runner teardown removes that profile.
-- A real local Compatibility-renderer capture remains clean and readable developer evidence, but it is not a physical F5 traversal and cannot prove route completion, presentation quality, audible output, or pacing.
-- Phase 1–6 status denotes completed implementation slices. Open checkboxes in Phases 3–6 are deliberately carried into Phase 7 because they require physical/manual evidence, not more implementation claims.
-- Phase 7 remains in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or recorded chase/presentation/audio/settings evidence.
-- Phase 8 documentation and clean-clone auditing are current, but final closure remains dependent on Phase 7 physical evidence and the final clean synced Git state after that evidence is recorded.
-- Post-rehearsal disk snapshot at 18:20 ICT: C: 10.50 GiB free; D: 34.50 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
+- Completion-audit commits are pushed in sequence: `4287337`, `1321971`, `4099a52`, `e4b8386`, `4be615a`, `f1bc63c`, and `c38fde9`; local `HEAD` and `origin/main` match at `c38fde9` before this documentation edit.
+- The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in observed order, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
+- The exact isolated Godot 4.7.1 runner exits `0` with 12 logs, 9 required markers, zero scanned bad lines, and zero temporary profiles. The current compressed fresh payload is complete/order-valid at 6.58 s active, 6.82 s wall, and 0.22 s paused, with `within_target: false` as intended.
+- A fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines, then was removed from the verified repository-local temp root.
+- Independent review and generated/credential/tracked-binary scans found no remaining concrete code findings or committed release artifacts after progression, horror dressing, chase, audio, flashlight, and UI fixes. Separate writer/reader processes still verify all 11 settings survive relaunch in one isolated profile.
+- A real local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal, and cannot prove route completion, presentation quality, audible output, or pacing.
+- Phase 1–6 status denotes completed implementation slices. Phase 7 and Phase 8 remain in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix.
+- Post-rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
 
 ## Dependencies
 
-- No cross-plan dependencies. `origin/main` contains the pushed atomic history through telemetry commit `fc8f7e7` and pacing-documentation commit `257e601`; only this evidence-only plan/journal/report update remains local at report creation.
+- No cross-plan dependencies. `origin/main` contains the pushed atomic history through `c38fde9`; the documentation evidence update and its final push remain the next atomic release step.
 - Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
 - Compatibility renderer; procedural/created assets only.
 
@@ -93,6 +90,17 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 15. `perf: reduce active lights and procedural update cost`
 16. `docs: finalize run testing architecture and asset guides`
 17. `build: prepare verified playable release candidate`
+
+### Completion-Audit Commit Mapping — 2026-07-16
+
+1. `4287337` — `docs: plan completion audit polish`
+2. `1321971` — `fix(progression): enforce quest item and checkpoint invariants`
+3. `4099a52` — `feat(horror): render fourth-floor and Room 407 scare beats`
+4. `e4b8386` — `fix(chase): bound entity search and align floor body`
+5. `4be615a` — `fix(audio): harden tone cache and spatial lifetime`
+6. `f1bc63c` — `fix(visuals): make flashlight flicker pause-safe`
+7. `c38fde9` — `fix(ui): restore menu focus and report save failures`
+8. Pending — `docs: record completion audit polish evidence`
 
 ## Acceptance Criteria
 

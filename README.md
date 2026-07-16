@@ -37,16 +37,19 @@ godot --headless --path . --editor --quit
 | Review objective | Tab |
 | Pause | Escape |
 
-The pause menu includes Settings. Mouse sensitivity, field of view, four audio levels, fullscreen, light flicker, head bob, camera shake, and film grain controls are available. Closing the settings panel writes `user://room407.cfg`.
+The pause menu includes Settings. Mouse sensitivity, field of view, four audio levels, fullscreen, light flicker, head bob, camera shake, and film grain controls are available. Changes apply immediately. **SAVE & CLOSE** writes `user://room407.cfg`; if the write returns an error, the modal stays open with **RETRY SAVE** and **CLOSE WITHOUT SAVING**. The latter keeps the current values for this session only.
 
 ## Implemented Gameplay
 
 - One continuous `gameplay.tscn` runtime assembled from procedural geometry and authored controllers.
 - Guarded phone, logbook, fuse, memory, radio, Room 407, chase, and ending progression.
 - Four visibility-switched hallway states: one baseline plus three blackout-driven changes.
-- A real `NavigationRegion3D` and an enemy state machine that reaches `STALK` before `CHASE`.
+- A real `NavigationRegion3D` and an enemy state machine with `APPEAR`, `STALK`, full-speed `CHASE`, line-of-sight loss, bounded `SEARCH`, reacquisition, and terminal `DESPAWN` behavior.
 - Chase speed of 3.0 units/second versus player walk 2.0 and sprint 3.1 units/second.
 - Corridor-light failure at chase start, checkpoint recovery, an abandoned-lobby reveal, and a credits overlay.
+- An atomic fourth-floor key pickup/consumption with a permanent run-local door unlock; the installed fuse is consumed once and cannot reappear after backtracking.
+- A radio-completion checkpoint at `room_entrance` before the Room 407 threshold, a fourth-floor elevator display/real-door arrival beat, and a timed non-colliding apparition.
+- Procedural fourth-floor dressing, Room 407 height-mark/room dressing, and a pre-chase manifestation that clears before the chase entity starts.
 - A three-second in-world ending reveal before the credits overlay appears.
 - Pause-aware playthrough pacing telemetry for fresh Lobby runs, finalized when the visible credits appear.
 - Boot-menu Continue when an in-memory checkpoint exists.
@@ -57,7 +60,7 @@ Checkpoints are process-local. Restarting the application clears gameplay progre
 
 F5 loads `boot.tscn`, then enters the single continuous `gameplay.tscn`. `GameplayDirector` builds the procedural world and composes the player, UI, story, hallway, horror-event, chase, ending, and scene-local pacing components at runtime. Four autoloads own process state, scene routing, generated audio, and persisted settings; story controllers reach them through the director facade and stable flag/item IDs. The pacing facade returns a deep copy so callers cannot mutate the live report.
 
-`AudioManager` creates the Music, SFX, Ambience, and Chase buses before `SettingsManager` applies either saved values or the first-run defaults. This keeps a fresh profile at the configured bus levels instead of Godot's implicit 0 dB for every created bus. See [Architecture](docs/architecture.md) for controller boundaries, data flow, and extension points.
+`AudioManager` creates the Music, SFX, Ambience, and Chase buses before `SettingsManager` applies either saved values or the first-run defaults. Its generated PCM cache keys every sample-rendering parameter and loop mode, caps data at 16 MiB with LRU eviction, protects streams held by regular/spatial players, and tears down spatial players synchronously. `VisualEffectsLayer` owns the Compatibility shader; the flashlight uses a bounded, pause-safe pulse. See [Architecture](docs/architecture.md) for controller boundaries, data flow, and extension points.
 
 ## Test
 
@@ -78,7 +81,7 @@ The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progres
 
 The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
 
-These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible output or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+The suite also covers progression/scare/chase invariants, audio cache variants/LRU/live-player teardown, pause-safe flashlight bounds, modal focus return, and visible save failures; the Settings regression helper runs inside `settings-audio` and does not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible output or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
 ## Capture a Pacing Payload
 

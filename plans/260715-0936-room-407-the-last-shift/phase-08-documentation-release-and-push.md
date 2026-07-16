@@ -47,14 +47,15 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 - [x] README quick-start works from a clean clone using the official Godot 4.7.1 executable.
 - [ ] Final Git audit enumerates commits and proves a clean synced branch.
 
-## Current Evidence — 2026-07-15
+## Current Evidence — 2026-07-16
 
-- Telemetry code `fc8f7e7` and reconciled README/design/architecture/testing/limitations/changelog commit `257e601` are pushed. Local `HEAD` and `origin/main` matched at `257e601` before this evidence-only plan/journal update.
-- The exact 12-check headless runner passes after all telemetry/review fixes. The compressed fresh report is complete and order-valid but correctly outside target; the restored-run report is incomplete/ineligible with a null total verdict.
-- A fresh clone of `origin/main` at `257e601` reproduced the README runner contract with 12 logs, all 9 required markers, zero bad log matches, zero temporary profiles, and zero tracked changes. The verified clone was deleted from the repository-local temp root.
-- A real local Compatibility-renderer capture is clean and readable, but remains uncommitted and non-physical.
-- Post-rehearsal disk snapshot at 18:20 ICT: C: 10.50 GiB free; D: 34.50 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
-- No authorized physical F5 15–20 minute boot-to-credits run with same-run telemetry exists. Phase 8 is in progress, not complete.
+- The completion-audit sequence is pushed through `c38fde9`: `4287337`, `1321971`, `4099a52`, `e4b8386`, `4be615a`, `f1bc63c`, and `c38fde9`. Local `HEAD` and `origin/main` matched before this documentation edit; the branch had 73 commits and 154 tracked source files.
+- The exact 12-check Godot 4.7.1 runner exits `0` with 12 logs, all 9 required markers, zero canonical bad-line matches, and zero temporary profiles. `menu-settings-regression.gd` runs inside `settings-audio`; it is not a thirteenth check.
+- The current compressed fresh report is complete and order-valid at 6.58 seconds active, 6.82 seconds wall, and 0.22 seconds paused, but correctly reports `within_target: false`. The restored-run report remains incomplete/ineligible with a null total verdict.
+- A fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines. The verified clone was removed only after its absolute path was confirmed under the repository-local temp root.
+- The generated-file, credential-name, high-confidence secret, credentialed-remote, tracked-binary, and tracked-file-size scans found no release blockers. No tracked file exceeds 10 MiB; `.godot`, `.artifacts`, `.tmp`, engine logs, exports, and binaries remain untracked.
+- Clean-clone rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. Later disk readings are reported separately because unrelated desktop activity can change C:; the runner left zero `godot-user-*` profiles behind.
+- A local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal. No authorized physical F5 15–20 minute boot-to-credits run has paired same-run footage with eligible, complete, actual-order-valid 900–1200 second telemetry or the chase/presentation/audio/settings matrix. Phase 8 remains in progress.
 
 ## Dependency Map
 
@@ -111,5 +112,5 @@ Final staged diff is scanned for tokens, passwords, local user paths, logs, and 
 
 - Record the authorized physical F5 playthrough and manual presentation/settings evidence required by Phase 7.
 - Preserve the same-run capture and telemetry payload; use its chapter/total timings for any final tuning inside the continuous scene.
-- Commit and push this evidence-only plan/journal/audit update, then prove a clean working tree and local/remote parity without rewriting history.
+- Commit and push this documentation/evidence update, then prove a clean working tree and local/remote parity without rewriting history.
 - Mark the goal complete only after every remaining gate has direct evidence.

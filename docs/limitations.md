@@ -12,7 +12,7 @@
 - Gameplay checkpoints exist only in the `GameState` autoload for the current process.
 - The boot Continue button appears only when that in-memory checkpoint dictionary is populated.
 - Restarting the application removes checkpoint progress and starts a fresh shift.
-- Settings save to `user://room407.cfg` when Settings is closed. Isolated writer/reader processes verify file creation and all 11 values across relaunch; physical panel interaction and the real player profile remain manual boundaries.
+- Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; `save_settings()` returns an error and emits a failure signal when the write fails, so the modal stays open with **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Isolated writer/reader processes verify file creation and all 11 values across relaunch; physical panel interaction and the real player profile remain manual boundaries.
 
 ## Automated Test Boundaries
 
@@ -24,8 +24,9 @@
 - The player-input integration check confirms a physical E binding exists, then passes constructed `InputEventAction` objects directly to production handlers. It covers the phone interaction ray, objective review, pause/flashlight locks, note Escape/unlock, door spam and close/reopen cycles, and authored head-position restoration. It does not inject operating-system keyboard/mouse events or prove input latency and feel.
 - Layout tests use node, polygon, numeric, and collision-ray assertions; they do not drive the player capsule through the complete route or prove live pathfinding quality.
 - The visual-effects check verifies the overlay shader/material, dither/VHS/fear uniforms, chase/ending fear targets, and the film-grain visibility toggle. It does not inspect rendered pixels, readability, comfort, monitor gamma, or GPU performance.
-- The settings/audio test verifies buses, selected clamps, controls, pause Settings/Escape lock preservation, audio cache/player teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes. No headless check verifies audible output or physical panel interaction.
-- Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, or frame pacing on target hardware.
+- The settings/audio test verifies buses, selected clamps, controls, pause/boot modal focus and launcher return, visible save-failure retry/discard behavior, parameter-complete loop-aware audio cache variants, LRU/live-stream protection, exact byte accounting, spatial player lifetime/teardown, and in-memory Continue. Separate persistence checks save and restore all 11 values across two processes and check the returned save error. The nested `menu-settings-regression.gd` helper does not add a thirteenth runner check. No headless check verifies audible output, physical panel interaction, or target-device fullscreen behavior.
+- The player-input check verifies bounded flashlight energy, reset when disabled/hidden, and `PROCESS_MODE_PAUSABLE` pause freeze. It does not prove rendered flicker comfort, monitor gamma, or physical pause timing.
+- Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, audible mix, or frame pacing on target hardware.
 
 ## Manual Evidence Still Required
 

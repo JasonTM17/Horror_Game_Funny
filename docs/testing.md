@@ -50,11 +50,11 @@ This inventory records the current Windows verification machine. It is reproduci
 | 3 | `gameplay` / `test-gameplay.log` | `scenes/gameplay/gameplay.tscn` | continuous runtime scene constructs and survives the smoke window | full route traversal or progression |
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, staged ending/reveal, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, presentation |
-| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, `STALK`, speed ordering, retreat recovery, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, fresh-run pacing |
+| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, fresh-run pacing |
 | 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | E/raycast interaction, complete route, puzzles, physical keyboard/mouse, timing, chase feel |
-| 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look feel, full traversal |
+| 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look feel, full traversal |
 | 9 | `visual-effects` / `test-visual-effects.log` | `visual-effects-test.tscn`; `--quit-after 180` | overlay shader/material and dither/VHS/fear uniforms exist; chase/ending fear targets and film-grain visibility toggle respond | rendered pixels, readability, comfort, GPU performance, monitor gamma |
-| 10 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses and first-run default levels, selected clamps, controls, pause Settings/Escape locks, audio teardown, in-memory Continue | audible sound and physical UI navigation |
+| 10 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn` | buses and first-run default levels, selected clamps, parameter/loop-aware audio variants, LRU/live-stream protection, spatial finish/parent/stop teardown, controls, pause/boot modal focus trap and launcher return, visible save-failure retry/discard behavior, pause Settings/Escape locks, audio teardown, in-memory Continue; `menu-settings-regression.gd` runs as a nested helper | audible sound and physical UI navigation |
 | 11 | `settings-persistence-write` / `test-settings-persistence-write.log` | `settings-persistence-write-test.tscn` | writes 11 distinct bounded settings to isolated `room407.cfg` | real player profile and physical UI save action |
 | 12 | `settings-persistence-read` / `test-settings-persistence-read.log` | `settings-persistence-read-test.tscn` | a new Godot process restores all 11 values from the same isolated profile | target-device fullscreen transition and physical UI interaction |
 
@@ -74,7 +74,7 @@ SETTINGS_PERSISTENCE_READ_OK
 
 The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. The import, menu, and gameplay smoke checks have no success marker; they rely on process exit and the same log scan.
 
-The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, checkpoint-layout uses 1200, player-input uses 600, and visual-effects uses 180. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
+The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, progression/checkpoint-layout use 1200, physical-route 1800, player-input 600, visual-effects 180, and settings-audio/persistence 60. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
 
 Pacing assertions extend the existing `progression` and `checkpoint-layout` checks. The suite remains exactly twelve checks; there is no separate thirteenth pacing check.
 
@@ -104,7 +104,7 @@ The total target is independent of the chapter verdicts. A missing boundary pair
 
 ## Recorded Automated Evidence
 
-The final twelve-check suite passes after the telemetry and adversarial capture updates. The focused progression path also passed three consecutive runs with 3.66–3.67 active seconds, 3.72–3.74 wall seconds, 0.06 paused seconds, `complete: true`, `boundary_order_valid: true`, and `within_target: false`. Focused checkpoint/layout passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing.
+The canonical 2026-07-16 exact twelve-check suite passed with 12 logs, 9 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.58 s` active, `6.82 s` wall, and `0.22 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused runs at 3.66–3.67 active seconds are historical evidence only (see the dated plan reports).
 
 ## Synthetic Actions Versus Physical Input
 
@@ -129,7 +129,7 @@ Physical keyboard/mouse traversal, event delivery, mouse capture, and input feel
 - duplicate memory rejection;
 - radio UI opening, Escape close/unlock and reopen, non-digit filtering, wrong-code cooldown/disabled submit state, rejection of `0007` during cooldown, close/reopen cooldown preservation, three-failure hint, cooldown recovery, accepted `0007`, and `radio_solved` completion;
 - Room 407 recording, drawing, bed/wardrobe/family-table observations, final-note gate, direct note-close callback, and chase readiness;
-- production-threshold chase start, an attached-navigation entity positioned 0.05 units horizontally within capture range and 1.1 units above the floor, proximity recovery through two scheduled physics frames, the chase respawn marker, and no duplicate entity after recovery;
+- production-threshold chase start, an attached-navigation entity positioned 0.05 units horizontally within capture range and 1.1 units above the floor, APPEAR pause, measured STALK/CHASE movement, pause freeze, LOS/last-seen updates, reacquisition, bounded SEARCH-to-DESPAWN, clean restart/exit behavior, proximity recovery through two scheduled physics frames, the chase respawn marker, and no duplicate entity after recovery;
 - successful ending gate, `ENDING` stage, `AbandonedLobbyFloor` reveal node, delayed credits appearance, one finalized pacing report, duplicate-ending stability, and recursive report-copy isolation;
 - a deliberate paused interval is excluded from active gameplay while remaining in monotonic wall and pause totals; and
 - the compressed fresh route records every boundary in actual order, produces complete chapter durations, and is correctly rejected as shorter than 15–20 minutes.
@@ -147,8 +147,9 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 - collision rays cannot bypass closed barriers at center or side positions;
 - an opened door clears the tested passage ray;
 - `ContinuousCorridorNavigation` exists with one navigation polygon;
-- the entity reaches `STALK` after `APPEAR`;
-- entity 3.0 is faster than walk 2.0 and slower than sprint 3.1;
+- the entity remains frozen during `APPEAR`, reaches `STALK`, and records measured `STALK` and full-speed `CHASE` movement;
+- entity 3.0 is faster than walk 2.0 and slower than sprint 3.1, while pause freezes chase movement;
+- LOS loss records a last-seen position, traverses `LOST_TARGET`/bounded `SEARCH`, reacquires a nearby player, then reaches `DESPAWN` after the search budget; restart and exit boundaries hide/stop the entity cleanly;
 - retreat beyond the chase boundary requests recovery and restores the chase marker;
 - a restored Room 407 session is incomplete and ineligible, keeps `within_target` `null`, and represents missing chapter durations as `null`;
 - visible credits finalize that restored report, and a subsequent Replay/Menu-style `GameState.reset_run()` cannot mutate it;
@@ -198,7 +199,7 @@ The shader source also contains grain, scanline, ordered-dither, VHS tracking/ji
 
 ## Settings and Audio Coverage
 
-`settings-audio-test.gd` verifies the presence of Master, Music, SFX, Ambience, and Chase buses. It asserts these boundary examples:
+`settings-audio-test.gd` verifies the presence of Master, Music, SFX, Ambience, and Chase buses. It asserts these boundary examples and the generated-audio lifecycle:
 
 | Setter call | Expected clamp |
 |---|---:|
@@ -206,9 +207,9 @@ The shader source also contains grain, scanline, ordered-dither, VHS tracking/ji
 | field of view `12.0` | `60.0` |
 | master volume `-99.0` | `-40.0` dB |
 
-It also verifies settings controls for music, SFX, ambience, fullscreen, camera shake, film grain, and reset; a Settings button/panel in the pause scene; Escape closes Settings without clearing the pause lock; `stop_all()` clears players, cached samples, and byte accounting; and a visible Continue button after creating an in-memory checkpoint.
+It also verifies settings controls for music, SFX, ambience, fullscreen, camera shake, film grain, and reset; parameter-complete one-shot/loop cache keys; capped-duration reuse; LRU recency; protection of cached streams held by regular or spatial players; spatial finish/queued-parent/stop cleanup; `stop_tone()` variant reclamation; and `stop_all()` cache/player/byte-accounting reset. The nested `menu-settings-regression.gd` helper verifies boot/pause modal focus traversal, launcher focus return, hidden-control focus release, full-rect modal blocking, and a failed config save that keeps the panel open for retry or discard. It also checks a visible Continue button after creating an in-memory checkpoint.
 
-The writer process saves distinct values for all 11 settings into an isolated `user://room407.cfg`. The reader starts as a new Godot process with the same temporary profile and asserts every value after autoload initialization calls `load_settings()`. This proves config persistence without touching the normal player profile. It does not send physical UI events or prove fullscreen/display behavior on target hardware. The audio fixture calls generated cues, but headless execution remains no evidence of audible-output quality.
+The writer process saves distinct values for all 11 settings into an isolated `user://room407.cfg`; it checks the returned `Error` instead of silently accepting a failed write. The reader starts as a new Godot process with the same temporary profile and asserts every value after autoload initialization calls `load_settings()`. This proves config persistence without touching the normal player profile. It does not send physical UI events or prove fullscreen/display behavior on target hardware. The audio fixture calls generated cues, but headless execution remains no evidence of audible-output quality.
 
 ## Logs
 
@@ -243,7 +244,7 @@ No current automated check fully verifies the following. Record each result, env
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
 | Visual balance | Check corridor darkness, flashlight, blackout, flicker, grain, red guide lights, and ending reveal | screenshots/video on target hardware |
 | Audio balance | Listen to phone, narration tones, ambience, footsteps, radio static, chase, fail, and ending | device plus bus-level observations |
-| Settings UI workflow | Change values through the panel, Save & Close, quit, relaunch, and inspect the controls | before/after capture; automated config persistence already passes |
+| Settings UI workflow | Change values through the panel, **SAVE & CLOSE**, quit, relaunch, and inspect the controls; separately force/observe a failed save and choose retry or discard | before/after capture; automated config persistence and failure UI already pass |
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
 
 Do not mark 15-20 minute pacing, visual/audio balance, audible output, full physical traversal, or the physical Settings UI workflow as verified until this evidence exists.
@@ -254,14 +255,21 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
+- [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`chase-entity.gd`](../scripts/world/chase-entity.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`physical-route-smoke-test.gd`](../tests/physical-route-smoke-test.gd)
 - [`player-input-integration-test.gd`](../tests/player-input-integration-test.gd)
+- [`player-flashlight.gd`](../scripts/player/player-flashlight.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
 - [`settings-audio-test.gd`](../tests/settings-audio-test.gd)
 - [`settings-persistence-write-test.gd`](../tests/settings-persistence-write-test.gd)
 - [`settings-persistence-read-test.gd`](../tests/settings-persistence-read-test.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
+- [`settings-panel.gd`](../scripts/ui/settings-panel.gd)
+- [`pause-menu.gd`](../scripts/ui/pause-menu.gd)
+- [`boot-menu.gd`](../scripts/ui/boot-menu.gd)
+- [`menu-settings-regression.gd`](../tests/menu-settings-regression.gd)
 - [`audio-manager.gd`](../scripts/autoload/audio-manager.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
 - [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
