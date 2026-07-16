@@ -32,7 +32,7 @@ Deliver three sequential, headless-verifiable improvements without splitting the
 
 | Phase | Name | Status |
 |---|---|---|
-| 1 | [Terminal ending transition](./phase-01-terminal-ending-transition.md) | In Progress |
+| 1 | [Terminal ending transition](./phase-01-terminal-ending-transition.md) | Completed |
 | 2 | [Navigation-safe chase route](./phase-02-navigation-safe-chase-route.md) | Pending |
 | 3 | [Voiced interactive epilogue](./phase-03-voiced-interactive-epilogue.md) | Pending |
 | 4 | [Full QA, review, documentation, and delivery](./phase-04-qa-review-and-delivery.md) | Pending |
