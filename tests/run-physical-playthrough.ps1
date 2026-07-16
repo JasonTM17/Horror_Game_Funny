@@ -105,6 +105,22 @@ function Get-PacingVerdict([object]$Payload) {
     }
 }
 
+function Get-UniqueLogFailures([string[]]$LogPaths) {
+    $failurePattern = "ERROR:|SCRIPT ERROR|Parse Error|ObjectDB instances were leaked|Leaked instance:"
+    $failures = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::Ordinal
+    )
+    foreach ($logPath in $LogPaths) {
+        if (-not (Test-Path -LiteralPath $logPath)) {
+            continue
+        }
+        foreach ($match in Select-String -LiteralPath $logPath -Pattern $failurePattern) {
+            [void]$failures.Add($match.Line.Trim())
+        }
+    }
+    return @($failures)
+}
+
 function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
     $jsonPath = Join-Path $Directory "summary.json"
     $markdownPath = Join-Path $Directory "summary.md"
@@ -126,9 +142,11 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "- Engine exit: ``$($Summary.engine_exit_code)``",
         "- Physical input confirmed: ``$($Summary.physical_input_confirmed)``",
         "- Capture reference: ``$($Summary.capture_reference)``",
+        "- Log failure count: ``$($Summary.log_failure_count)``",
         "- Pacing parsed: ``$($Summary.pacing_parsed)``",
         "- Pacing pass: ``$($Summary.pacing_pass)``",
-        "- Manual gate ready: ``$($Summary.manual_gate_ready)``",
+        "- Evidence package ready: ``$($Summary.evidence_package_ready)``",
+        "- Human review still required: ``$($Summary.review_required)``",
         "- Error: ``$($Summary.error)``",
         "",
         "## Pacing Checks",
@@ -195,9 +213,10 @@ try {
 }
 
 $captureProvided = -not [string]::IsNullOrWhiteSpace($CaptureReference)
+$logFailures = @(Get-UniqueLogFailures $sourceLogs)
 $pacingPass = $null -ne $pacingVerdict -and [bool]$pacingVerdict.passed
-$enginePassed = $launchPerformed -and $engineExitCode -eq 0
-$manualGateReady = $enginePassed -and $pacingPass -and [bool]$ConfirmPhysicalInput -and $captureProvided
+$enginePassed = $launchPerformed -and $engineExitCode -eq 0 -and $logFailures.Count -eq 0
+$evidencePackageReady = $enginePassed -and $pacingPass -and [bool]$ConfirmPhysicalInput -and $captureProvided
 $endedAt = (Get-Date).ToUniversalTime()
 $summary = [pscustomobject][ordered]@{
     run_id = $runId
@@ -211,10 +230,13 @@ $summary = [pscustomobject][ordered]@{
     capture_reference = $CaptureReference
     capture_reference_provided = $captureProvided
     source_logs = $sourceLogs
+    log_failure_count = $logFailures.Count
+    log_failure_lines = $logFailures
     pacing_parsed = $null -ne $pacingVerdict
     pacing_pass = $pacingPass
     pacing_verdict = $pacingVerdict
-    manual_gate_ready = $manualGateReady
+    evidence_package_ready = $evidencePackageReady
+    review_required = $true
     error = $pacingError
     disk_free_gib_before = [pscustomobject]$diskBefore
     disk_free_gib_after = [pscustomobject][ordered]@{ C = Get-FreeGiB "C"; D = Get-FreeGiB "D" }
@@ -223,8 +245,8 @@ Write-EvidenceFiles $evidenceDirectory $summary
 
 Write-Host "PHYSICAL_PLAYTHROUGH_EVIDENCE_DIR=$evidenceDirectory"
 Write-Host "PACING_PASS=$pacingPass"
-Write-Host "MANUAL_GATE_READY=$manualGateReady"
-if (-not $manualGateReady) {
+Write-Host "EVIDENCE_PACKAGE_READY=$evidencePackageReady"
+if (-not $evidencePackageReady) {
     Write-Warning "Evidence is incomplete or outside target. See summary.md; this run must not close the manual release gate."
     exit 2
 }
