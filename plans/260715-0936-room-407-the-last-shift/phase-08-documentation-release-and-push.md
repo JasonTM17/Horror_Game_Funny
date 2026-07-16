@@ -45,11 +45,11 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 - [x] Asset credits list every authored/generated asset category and license scope.
 - [x] `docs/limitations.md` distinguishes untested export, hardware, and manual behavior from implemented gameplay.
 - [x] README quick-start works from a clean clone using the official Godot 4.7.1 executable.
-- [ ] Final Git audit enumerates commits and proves a clean synced branch.
+- [x] Final Git audit enumerates commits and proves a clean synced branch.
 
 ## Current Evidence — 2026-07-16
 
-- The completion-audit sequence is pushed through `c38fde9`: `4287337`, `1321971`, `4099a52`, `e4b8386`, `4be615a`, `f1bc63c`, and `c38fde9`. Local `HEAD` and `origin/main` matched before this documentation edit; the branch had 73 commits and 154 tracked source files.
+- The completion-audit gameplay sequence is pushed through `c38fde9`, followed by documentation/evidence commit `fa8cc1f`. Local `HEAD`, `origin/main`, and a direct `ls-remote` query all matched at `fa8cc1f`; the clean branch then contained 74 commits and 155 tracked source files.
 - The exact 12-check Godot 4.7.1 runner exits `0` with 12 logs, all 9 required markers, zero canonical bad-line matches, and zero temporary profiles. `menu-settings-regression.gd` runs inside `settings-audio`; it is not a thirteenth check.
 - The current compressed fresh report is complete and order-valid at 6.58 seconds active, 6.82 seconds wall, and 0.22 seconds paused, but correctly reports `within_target: false`. The restored-run report remains incomplete/ineligible with a null total verdict.
 - A fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines. The verified clone was removed only after its absolute path was confirmed under the repository-local temp root.
@@ -92,7 +92,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 - [x] Required source-release documentation is accurate, internally linked, and license-complete.
 - [x] Final clean-cache validation reproduces prior passing results.
-- [ ] Working tree is clean and atomic history is visible on `origin/main`.
+- [x] Working tree is clean and atomic history is visible on `origin/main`.
 - [x] Current audit reports requirements/evidence, fixed/open findings, documentation changes, automated verification, renderer evidence, Git, disk, remaining gates, recommendations, and unresolved questions without claiming completion.
 - [ ] Goal is marked complete only after all acceptance evidence is present.
 
@@ -112,5 +112,5 @@ Final staged diff is scanned for tokens, passwords, local user paths, logs, and 
 
 - Record the authorized physical F5 playthrough and manual presentation/settings evidence required by Phase 7.
 - Preserve the same-run capture and telemetry payload; use its chapter/total timings for any final tuning inside the continuous scene.
-- Commit and push this documentation/evidence update, then prove a clean working tree and local/remote parity without rewriting history.
+- Keep every later evidence or tuning commit non-force and re-prove a clean working tree plus direct local/remote parity after each push.
 - Mark the goal complete only after every remaining gate has direct evidence.

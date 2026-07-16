@@ -85,6 +85,8 @@ README, CHANGELOG, architecture, game design, testing, limitations, code standar
 
 Code and automated source-release gates are green at `c38fde9`. The project goal remains active because direct physical evidence for the required 15–20 minute experience and presentation matrix is still missing. Do not mark Phase 7, Phase 8, or the goal complete until that evidence is captured and reviewed.
 
+Documentation/evidence commit `fa8cc1f` was pushed non-force after this report was created. Local `HEAD`, `origin/main`, and the direct GitHub branch query matched at that commit with a clean worktree; the follow-up metadata commit only records that verified release state.
+
 ## Unresolved Questions
 
 - What total and per-beat durations will the authorized fresh physical run record?

@@ -42,7 +42,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Current Evidence Reconciliation — 2026-07-16
 
-- Completion-audit commits are pushed in sequence: `4287337`, `1321971`, `4099a52`, `e4b8386`, `4be615a`, `f1bc63c`, and `c38fde9`; local `HEAD` and `origin/main` match at `c38fde9` before this documentation edit.
+- Completion-audit gameplay commits are pushed in sequence through `c38fde9`, followed by documentation/evidence commit `fa8cc1f`; local `HEAD`, `origin/main`, and the direct GitHub `refs/heads/main` query matched at `fa8cc1f` before this sync-metadata edit.
 - The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in observed order, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
 - The exact isolated Godot 4.7.1 runner exits `0` with 12 logs, 9 required markers, zero scanned bad lines, and zero temporary profiles. The current compressed fresh payload is complete/order-valid at 6.58 s active, 6.82 s wall, and 0.22 s paused, with `within_target: false` as intended.
 - A fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines, then was removed from the verified repository-local temp root.
@@ -53,7 +53,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Dependencies
 
-- No cross-plan dependencies. `origin/main` contains the pushed atomic history through `c38fde9`; the documentation evidence update and its final push remain the next atomic release step.
+- No cross-plan dependencies. `origin/main` contains the pushed atomic gameplay and documentation history through `fa8cc1f`; physical playthrough evidence and any evidence-backed final tuning remain the next release steps.
 - Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
 - Compatibility renderer; procedural/created assets only.
 
@@ -100,7 +100,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 5. `4be615a` — `fix(audio): harden tone cache and spatial lifetime`
 6. `f1bc63c` — `fix(visuals): make flashlight flicker pause-safe`
 7. `c38fde9` — `fix(ui): restore menu focus and report save failures`
-8. Pending — `docs: record completion audit polish evidence`
+8. `fa8cc1f` — `docs: record completion audit polish evidence`
 
 ## Acceptance Criteria
 
