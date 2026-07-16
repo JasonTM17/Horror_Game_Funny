@@ -14,13 +14,13 @@
 
 ## Steps
 
-- [ ] Run focused checks, editor import, then the exact 12-check canonical suite.
-- [ ] Scan logs for engine/script/assert/leak failures and confirm temp-profile cleanup.
-- [ ] Run spec, quality, and adversarial review; fix accepted findings and rerun affected checks.
-- [ ] Sync documentation, plan statuses, journal/report, asset provenance, and truthful remaining gates.
+- [x] Run focused checks, editor import, then the exact 12-check canonical suite.
+- [x] Scan logs for engine/script/assert/leak failures and confirm temp-profile cleanup.
+- [x] Run spec, quality, and adversarial review; fix accepted findings and rerun affected checks.
+- [x] Sync documentation, plan statuses, report, asset provenance, and truthful remaining gates.
 - [ ] Define final documentation media slots; before the parent game goal closes, capture real gameplay screenshots and an optimized GIF, embed them with repository-relative links, and verify they render.
-- [ ] Check C:/D:, staged secrets, branch divergence, remote URL, and commit split.
-- [ ] Push without force and verify `HEAD == origin/main == refs/heads/main`.
+- [x] Check C:/D:, staged secrets, branch divergence, remote URL, and commit split.
+- [x] Push without force and verify `HEAD == origin/main == refs/heads/main`.
 
 ## Acceptance
 
