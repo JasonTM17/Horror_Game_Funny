@@ -3,6 +3,8 @@ extends RefCounted
 
 const STORY_SCRIPT := preload("res://scripts/interaction/story-interactable.gd")
 const DOOR_SCRIPT := preload("res://scripts/interaction/door-interactable.gd")
+const DRAWER_SCRIPT := preload("res://scripts/interaction/drawer-interactable.gd")
+const ATMOSPHERIC_DOOR_SCRIPT := preload("res://scripts/interaction/atmospheric-door-interactable.gd")
 const PROP_VISUALS := preload("res://scripts/world/story-prop-visual-builder.gd")
 
 static func build(director: Node3D) -> void:
@@ -10,6 +12,7 @@ static func build(director: Node3D) -> void:
 	_add_story(director, "desk_clock", Vector3(0.0, 1.18, WorldLayout.LOBBY_PROP_Z - 0.42), "Read the stopped desk clock", Color(0.22, 0.25, 0.28))
 	_add_story(director, "lobby_register", Vector3(2.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.18), "Read the night register", Color(0.29, 0.21, 0.14))
 	_add_story(director, "logbook", Vector3(1.8, 1.12, WorldLayout.LOBBY_PROP_Z - 0.25), "Sign the night log", Color(0.25, 0.18, 0.12))
+	_add_lobby_drawer(director)
 	_add_door(
 		director,
 		"floor_door",
@@ -21,6 +24,7 @@ static func build(director: Node3D) -> void:
 		true
 	)
 	_add_story(director, "floor_notice", Vector3(-2.8, 1.15, WorldLayout.FLOOR_DOOR_Z - 8.0), "Read the maintenance notice", Color(0.32, 0.3, 0.24))
+	_add_false_door_interaction(director)
 	_add_story(director, "fuse_pickup", Vector3(2.3, 0.45, WorldLayout.FUSE_PICKUP_Z), "Take the spare fuse", Color(0.74, 0.55, 0.2))
 	_add_story(director, "fuse_box", Vector3(-2.8, 1.15, WorldLayout.FUSE_BOX_Z), "Open the fuse box", Color(0.2, 0.22, 0.24))
 	_add_door(director, "power_door", Vector3(0, 1.25, WorldLayout.POWER_DOOR_Z), "power_stable", -92.0)
@@ -104,3 +108,58 @@ static func _add_loop_gate(director: Node3D) -> void:
 	collider.size = Vector3(7.4, 2.5, 0.22)
 	shape.shape = collider
 	gate.add_child(shape)
+
+static func _add_lobby_drawer(director: Node3D) -> void:
+	var drawer := DRAWER_SCRIPT.new() as DrawerInteractable
+	drawer.name = "night_desk_drawer"
+	drawer.position = Vector3(0, 0.56, WorldLayout.LOBBY_PROP_Z + 0.45)
+	drawer.collision_layer = 4
+	drawer.collision_mask = 0
+	drawer.cooldown = 0.55
+	director.add_child(drawer)
+	var mesh := MeshInstance3D.new()
+	mesh.name = "DrawerBody"
+	var box := BoxMesh.new()
+	box.size = Vector3(1.45, 0.35, 0.68)
+	mesh.mesh = box
+	mesh.material_override = LevelGeometry.material(Color(0.16, 0.105, 0.07))
+	drawer.add_child(mesh)
+	var front := MeshInstance3D.new()
+	front.name = "DrawerFront"
+	var front_box := BoxMesh.new()
+	front_box.size = Vector3(1.55, 0.4, 0.08)
+	front.mesh = front_box
+	front.position = Vector3(0, 0, 0.38)
+	front.material_override = LevelGeometry.material(Color(0.23, 0.145, 0.085))
+	drawer.add_child(front)
+	var handle := MeshInstance3D.new()
+	handle.name = "DrawerHandle"
+	var handle_box := BoxMesh.new()
+	handle_box.size = Vector3(0.36, 0.08, 0.08)
+	handle.mesh = handle_box
+	handle.position = Vector3(0, 0, 0.46)
+	handle.material_override = LevelGeometry.material(Color(0.42, 0.34, 0.22))
+	drawer.add_child(handle)
+	var shape := CollisionShape3D.new()
+	shape.name = "DrawerCollider"
+	shape.position = Vector3(0, 0, 0.04)
+	var collider := BoxShape3D.new()
+	collider.size = Vector3(1.55, 0.4, 0.78)
+	shape.shape = collider
+	drawer.add_child(shape)
+
+static func _add_false_door_interaction(director: Node3D) -> void:
+	var false_door := ATMOSPHERIC_DOOR_SCRIPT.new() as AtmosphericDoorInteractable
+	false_door.name = "false_door"
+	false_door.position = Vector3(3.82, 1.3, -54.0)
+	false_door.prompt_text = "[E] Try the painted door"
+	false_door.collision_layer = 4
+	false_door.collision_mask = 0
+	false_door.cooldown = 0.8
+	director.add_child(false_door)
+	var shape := CollisionShape3D.new()
+	shape.name = "FalseDoorCollider"
+	var collider := BoxShape3D.new()
+	collider.size = Vector3(0.12, 2.6, 1.65)
+	shape.shape = collider
+	false_door.add_child(shape)
