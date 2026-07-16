@@ -23,10 +23,10 @@ Deliver three sequential, headless-verifiable improvements without splitting the
 ## Requirements Contract
 
 - **Expected output:** production GDScript, scene-generated geometry, six manifest-backed English OGG cues, regressions, and synchronized project documentation.
-- **Acceptance:** no recovery can overwrite `ENDING`; every barrier blocks one lane while leaving a capsule-safe navigable bypass; enemy navigation reaches the exit; notice then roster gate credits exactly once; telemetry order remains `chase -> ending -> credits`.
+- **Acceptance:** no recovery can overwrite `ENDING`; every barrier blocks one lane while leaving a capsule-safe navigable bypass; enemy navigation reaches the exit; two ray-reachable epilogue props gate credits exactly once in the same gameplay scene; telemetry order remains `chase -> ending -> credits`.
 - **Out of scope:** physical F5 capture, audible/rendered sign-off, opening/Floor 4/Room 407 pacing retuning, persistent checkpoints, binary export, and a second ending.
 - **Constraints:** Godot 4.7.1 Compatibility renderer, one `gameplay.tscn` run, existing stage/flag/checkpoint contracts, no GUI automation without renewed consent, atomic Conventional Commits, C:/D: monitoring, non-force push.
-- **Touchpoints:** chase controller/fail overlay, continuous world/navigation builder, gameplay/story routing, narrative manifest/assets, progression/layout/audio tests, README/design/architecture/testing/limitations/credits.
+- **Touchpoints:** chase controller/fail overlay, continuous world/navigation builder, epilogue-first gameplay action routing with story fallback, forwarded credits signal/pacing finalization, narrative manifest/assets, progression/layout/audio tests, README/design/architecture/testing/limitations/credits.
 
 ## Phases
 
@@ -56,4 +56,3 @@ Deliver three sequential, headless-verifiable improvements without splitting the
 ## Completion Boundary
 
 This plan can close after fresh focused and full headless checks, adversarial review, documentation sync, clean secret scan, atomic commits, non-force push, and exact remote parity. The parent game goal remains open until the physical F5/pacing/presentation/audio/chase/settings release gates are evidenced.
-
