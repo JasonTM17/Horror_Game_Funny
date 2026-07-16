@@ -21,12 +21,11 @@ func _ready() -> void:
 	if not await _cross_trigger_without_flag(player, WorldLayout.MEMORY_TRIGGER_Z, "memory_loop_started", true): return
 
 	if not await _verify_door_gate(gameplay, player, "room_door", "radio_solved"): return
+	gameplay._story._on_narrative_finished("radio_solved")
+	if not _require(str(GameState.checkpoint.get("spawn_id", "")) == "room_entrance", "radio completion did not create the entrance checkpoint"): return
+	var room_checkpoint_snapshot := JSON.stringify(GameState.checkpoint)
 	if not await _cross_trigger_without_flag(player, WorldLayout.ROOM_TRIGGER_Z, "room_entered", true): return
-	if not _require(
-		str(GameState.checkpoint.get("scene_path", "")) == "res://scenes/gameplay/gameplay.tscn"
-		and str(GameState.checkpoint.get("spawn_id", "")) == "room_entrance",
-		"room threshold did not create the entrance checkpoint"
-	): return
+	if not _require(JSON.stringify(GameState.checkpoint) == room_checkpoint_snapshot, "room threshold overwrote the pre-door checkpoint"): return
 
 	if not await _cross_trigger_without_flag(player, WorldLayout.CHASE_TRIGGER_Z, "chase_started", false): return
 	GameState.set_flag("chase_ready")
@@ -56,7 +55,12 @@ func _verify_door_gate(gameplay: Node3D, player: CharacterBody3D, door_id: Strin
 	if not _require(player.global_position.z > door.global_position.z + 0.3, "%s did not block the player capsule while locked" % door_id): return false
 
 	GameState.set_flag(unlock_flag)
+	if not door.required_item.is_empty():
+		GameState.add_item(door.required_item)
 	if not _require(door.interact(player), "%s rejected its valid unlock flag" % door_id): return false
+	if door.consume_required_item:
+		if not _require(not GameState.has_item(door.required_item), "%s did not consume its one-shot key" % door_id): return false
+		if not _require(GameState.has_flag(door.permanent_unlock_flag), "%s did not persist its session unlock" % door_id): return false
 	await get_tree().create_timer(0.65).timeout
 	if not _require(door.is_open, "%s did not finish opening" % door_id): return false
 	player.global_position = Vector3(0.8, 0.02, door.global_position.z + 0.95)

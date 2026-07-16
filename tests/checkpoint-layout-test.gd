@@ -8,9 +8,9 @@ func _ready() -> void:
 	GameState.reset_run()
 	GameState.set_flag("phone_briefing_complete")
 	GameState.set_flag("log_signed")
-	for flag in ["floor_reached", "fuse_installed", "power_stable", "memory_loop_started", "memory_photo", "memory_cassette", "memory_rabbit", "radio_solved", "room_entered"]:
+	for flag in ["floor_door_unlocked", "floor_reached", "fuse_collected", "fuse_installed", "power_stable", "memory_loop_started", "memory_photo", "memory_cassette", "memory_rabbit", "memory_loop_complete", "radio_solved"]:
 		GameState.set_flag(flag)
-	GameState.advance_stage(GameState.Stage.ROOM_407)
+	GameState.advance_stage(GameState.Stage.MEMORY_LOOP)
 	GameState.set_objective("Restored checkpoint objective")
 	GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
 	GameState.set_objective("Mutated after snapshot")
@@ -20,8 +20,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var player: Node3D = gameplay.get_node("Player") as Node3D
-	if not _require(is_equal_approx(player.position.z, WorldLayout.ROOM_TRIGGER_Z + 3.0), "room spawn marker ignored"): return
+	if not _require(is_equal_approx(player.position.z, WorldLayout.ROOM_CHECKPOINT_Z), "safe pre-door room spawn marker ignored"): return
 	if not _require(GameState.objective == "Restored checkpoint objective", "checkpoint objective overwritten"): return
+	if not _require(not GameState.has_flag("room_entered") and GameState.stage == GameState.Stage.MEMORY_LOOP, "pre-room checkpoint restored after Room 407 entry"): return
 	if not _require(gameplay.has_method("get_playthrough_pacing_report"), "gameplay director does not expose pacing telemetry"): return
 	var restored_pacing: Dictionary = gameplay.get_playthrough_pacing_report()
 	if not _require(not bool(restored_pacing.get("eligible_full_run", true)), "checkpoint-start session was accepted as full-run pacing evidence"): return

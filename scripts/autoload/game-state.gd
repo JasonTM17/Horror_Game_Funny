@@ -67,6 +67,21 @@ func consume_item(item_id: String) -> bool:
 	inventory_changed.emit(inventory.duplicate())
 	return true
 
+func consume_item_and_set_flag(item_id: String, flag_id: String) -> bool:
+	if item_id.is_empty() or flag_id.is_empty():
+		return false
+	if has_flag(flag_id):
+		return true
+	var index := inventory.find(item_id)
+	if index < 0:
+		return false
+	# Commit both values before either synchronous signal can observe the state.
+	inventory.remove_at(index)
+	flags[flag_id] = true
+	inventory_changed.emit(inventory.duplicate())
+	flag_changed.emit(flag_id, true)
+	return true
+
 func has_item(item_id: String) -> bool:
 	return inventory.has(item_id)
 

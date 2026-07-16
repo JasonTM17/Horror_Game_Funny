@@ -16,6 +16,7 @@ const MEMORY_RABBIT_Z := -270.0
 const LOOP_GATE_Z := -310.0
 const RADIO_Z := -325.0
 const ROOM_DOOR_Z := -345.0
+const ROOM_CHECKPOINT_Z := ROOM_DOOR_Z + 3.0
 const ROOM_TRIGGER_Z := -350.0
 const ROOM_RECORD_Z := -385.0
 const ROOM_DRAWING_Z := -430.0

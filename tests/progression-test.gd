@@ -36,7 +36,35 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("lobby_register", player), "night register observation must be one-shot"): return
 	if not _require(director.handle_story_action("logbook", player), "logbook should grant key"): return
 	if not _require(GameState.has_item("floor_key"), "logbook should add the floor key"): return
+	var hud := gameplay.get_node("HUD")
+	if not _require("Fourth-floor key" in hud.inventory_label.text and not "floor_key" in hud.inventory_label.text, "HUD exposed the internal floor-key ID"): return
 	if not _require(not director.handle_story_action("logbook", player), "logbook signing must be one-shot"): return
+	var floor_door := gameplay.get_node("floor_door") as DoorInteractable
+	GameState.consume_item("floor_key")
+	if not _require(floor_door.interact(player), "missing-key door attempt was not handled"): return
+	if not _require(not floor_door.is_open and not floor_door._moving and not GameState.has_flag("floor_door_unlocked"), "floor door mutated without the granted key"): return
+	await get_tree().create_timer(0.3).timeout
+	GameState.add_item("floor_key")
+	var reentry_results: Array[bool] = []
+	var inventory_reentry := func(_items: Array[String]) -> void:
+		reentry_results.append(floor_door.interact(player))
+	var flag_reentry := func(id: String, value: bool) -> void:
+		if id == "floor_door_unlocked" and value:
+			reentry_results.append(floor_door.interact(player))
+	GameState.inventory_changed.connect(inventory_reentry)
+	GameState.flag_changed.connect(flag_reentry)
+	if not _require(floor_door.interact(player), "floor door rejected the granted key"): return
+	GameState.inventory_changed.disconnect(inventory_reentry)
+	GameState.flag_changed.disconnect(flag_reentry)
+	if not _require(reentry_results == [false, false], "unlock signals reentered the door transaction"): return
+	if not _require(not GameState.has_item("floor_key") and GameState.has_flag("floor_door_unlocked"), "floor-door unlock did not atomically consume the key and persist"): return
+	await get_tree().create_timer(0.65).timeout
+	if not _require(floor_door.is_open, "floor door did not finish opening"): return
+	if not _require(floor_door.interact(player), "unlocked floor door did not close without restoring the key"): return
+	await get_tree().create_timer(0.65).timeout
+	if not _require(floor_door.interact(player), "permanently unlocked floor door did not reopen"): return
+	await get_tree().create_timer(0.65).timeout
+	if not _require(floor_door.is_open and not GameState.has_item("floor_key"), "floor door lost its session unlock invariant"): return
 	if not _require(not director.handle_story_action("radio", player), "radio must wait for memories"): return
 	if not _require(not director.handle_story_action("floor_notice", player), "floor notice must stay behind the fourth-floor gate"): return
 	player.global_position.z = WorldLayout.FLOOR_TRIGGER_Z - 0.1
@@ -50,7 +78,9 @@ func _ready() -> void:
 	if not _require(GameState.has_item("spare_fuse"), "fuse pickup should add the spare fuse"): return
 	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must be one-shot"): return
 	if not _require(director.handle_story_action("fuse_box", player), "fuse should install"): return
-	if not _require(GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"), "fuse installation should consume the spare"): return
+	if not _require(GameState.has_flag("fuse_collected") and GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"), "fuse installation should consume the one-shot spare"): return
+	if not _require(director.get_story_prompt("fuse_pickup", player).is_empty(), "installed fuse regained a backtracking prompt"): return
+	if not _require(not director.handle_story_action("fuse_pickup", player) and not GameState.has_item("spare_fuse"), "installed fuse could be collected again after consumption"): return
 	if not _require(not director.handle_story_action("fuse_box", player), "fuse installation must be one-shot"): return
 	if not _require(await _wait_for_flag("power_stable"), "power sequence should stabilize"): return
 	player.global_position.z = WorldLayout.MEMORY_TRIGGER_Z - 0.1
@@ -112,6 +142,9 @@ func _ready() -> void:
 	radio_ui.entry.text = "0007"
 	radio_ui._submit()
 	if not _require(await _wait_for_flag("radio_solved"), "radio flag missing"): return
+	if not _require(await _wait_for_checkpoint("room_entrance"), "radio completion did not create the pre-room checkpoint"): return
+	if not _require(int(GameState.checkpoint.get("stage", -1)) == GameState.Stage.MEMORY_LOOP and not bool((GameState.checkpoint.get("flags", {}) as Dictionary).get("room_entered", false)), "room checkpoint was not captured before Room 407 entry"): return
+	var room_checkpoint_snapshot := JSON.stringify(GameState.checkpoint)
 	if not _require(not director.handle_story_action("radio", player), "solved radio must not reopen"): return
 	if not _require(not director.handle_story_action("room_record", player), "Room 407 recording must wait for room entry"): return
 	if not _require(not director.handle_story_action("room_drawing", player), "room drawing must wait for the family recording"): return
@@ -121,6 +154,7 @@ func _ready() -> void:
 	player.global_position.z = WorldLayout.ROOM_TRIGGER_Z - 0.1
 	director._process(0.0)
 	if not _require(GameState.has_flag("room_entered") and GameState.stage == GameState.Stage.ROOM_407, "production Room 407 threshold did not advance pacing stage"): return
+	if not _require(JSON.stringify(GameState.checkpoint) == room_checkpoint_snapshot, "room threshold overwrote the safe pre-door checkpoint"): return
 	if not _require(director.handle_story_action("room_record", player), "room recording should play"): return
 	if not _require(await _wait_for_flag("room_record_heard"), "room recording should complete"): return
 	if not _require(not director.handle_story_action("room_record", player), "room recording must be one-shot"): return
@@ -139,6 +173,7 @@ func _ready() -> void:
 	director.on_note_closed()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
+	if not _require(str(GameState.checkpoint.get("spawn_id", "")) == "chase_start", "later chase checkpoint did not supersede the room checkpoint"): return
 	player.global_position.z = WorldLayout.CHASE_TRIGGER_Z - 0.1
 	director._process(0.0)
 	if not _require(GameState.stage == GameState.Stage.CHASE, "chase stage missing"): return
@@ -224,6 +259,13 @@ func _count_named_children(parent: Node, child_name: String) -> int:
 func _wait_for_flag(flag: String, max_frames := 180) -> bool:
 	for _frame in max_frames:
 		if GameState.has_flag(flag):
+			return true
+		await get_tree().process_frame
+	return false
+
+func _wait_for_checkpoint(spawn_id: String, max_frames := 180) -> bool:
+	for _frame in max_frames:
+		if str(GameState.checkpoint.get("spawn_id", "")) == spawn_id:
 			return true
 		await get_tree().process_frame
 	return false

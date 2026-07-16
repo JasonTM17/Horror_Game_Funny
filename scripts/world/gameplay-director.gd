@@ -86,7 +86,6 @@ func _process(_delta: float) -> void:
 		GameState.set_flag("room_entered")
 		GameState.advance_stage(GameState.Stage.ROOM_407)
 		GameState.set_objective("Room 407 is open. Find what was left behind.")
-		GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
 		_narrative.play([
 			"Room 407 is longer inside than the building is wide.",
 			"The wallpaper carries the height marks of a missing child.",
@@ -99,7 +98,7 @@ func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate()
 	var spawn_z := WorldLayout.PLAYER_START_Z
 	if GameState.pending_spawn_id == "room_entrance":
-		spawn_z = WorldLayout.ROOM_TRIGGER_Z + 3.0
+		spawn_z = WorldLayout.ROOM_CHECKPOINT_Z
 	elif GameState.pending_spawn_id == "chase_start":
 		spawn_z = WorldLayout.CHASE_RESPAWN_Z
 	player.position = Vector3(0, 0.02, spawn_z)

@@ -111,10 +111,17 @@ func _verify_door_spam_and_reopen(player: CharacterBody3D, interaction: Node) ->
 	interaction._unhandled_input(interact_event)
 	if not _require(not door.is_open and not door._moving, "locked door started opening through production E input"): return false
 	await get_tree().create_timer(0.3).timeout
+	door.interaction_enabled = false
+	var disabled_cooldown := door._cooldown_left
+	interaction._unhandled_input(interact_event)
+	if not _require(door.get_prompt(player).is_empty() and not door._moving and is_equal_approx(door._cooldown_left, disabled_cooldown), "disabled door interaction caused a side effect"): return false
+	door.interaction_enabled = true
 	GameState.set_flag("log_signed")
+	GameState.add_item("floor_key")
 	interaction._unhandled_input(interact_event)
 	interaction._unhandled_input(interact_event)
 	if not _require(door._moving, "door spam cancelled the opening transition"): return false
+	if not _require(not GameState.has_item("floor_key") and GameState.has_flag("floor_door_unlocked"), "production door interaction did not consume and persist the key unlock"): return false
 	await get_tree().create_timer(0.65).timeout
 	if not _require(door.is_open and not door._moving, "door did not finish one clean open transition"): return false
 	player.global_position = Vector3(1.75, 0.02, door.global_position.z)

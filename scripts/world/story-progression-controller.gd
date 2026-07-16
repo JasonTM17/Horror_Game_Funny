@@ -45,7 +45,7 @@ func get_prompt(action_id: String, _actor: Node) -> String:
 		return "[E] Answer the ringing phone"
 	if action_id == "logbook" and GameState.has_flag("phone_briefing_complete") and GameState.has_flag("desk_clock_observation_complete") and GameState.has_flag("lobby_register_observation_complete") and not GameState.has_flag("log_signed"):
 		return "[E] Sign the night log"
-	if action_id == "fuse_pickup" and GameState.has_flag("floor_notice_observation_complete") and not GameState.has_item("spare_fuse"):
+	if action_id == "fuse_pickup" and GameState.has_flag("floor_notice_observation_complete") and not GameState.has_flag("fuse_collected") and not GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"):
 		return "[E] Take the spare fuse"
 	if action_id == "fuse_box" and not GameState.has_flag("fuse_installed"):
 		return "[E] Install the fuse" if GameState.has_item("spare_fuse") else "[E] Inspect the empty fuse box"
@@ -148,11 +148,14 @@ func _sign_logbook() -> bool:
 	return true
 
 func _take_fuse() -> bool:
+	if GameState.has_flag("fuse_collected") or GameState.has_flag("fuse_installed"):
+		return false
 	if not GameState.has_flag("floor_notice_observation_complete"):
 		GameState.set_subtitle("The maintenance notice points to the spare fuse locker.")
 		return false
 	if not GameState.add_item("spare_fuse"):
 		return false
+	GameState.set_flag("fuse_collected")
 	GameState.set_objective("Find the fuse box at the end of the dark corridor.")
 	return true
 
@@ -251,7 +254,9 @@ func _on_narrative_finished(flag: String) -> void:
 		"phone_briefing_complete", "desk_clock_observation_complete", "lobby_register_observation_complete": _refresh_lobby_objective()
 		"floor_notice_observation_complete": GameState.set_objective("Find the spare fuse at the end of the dark corridor.")
 		"power_stable": GameState.set_objective("Follow the humming lights into the changed hallway.")
-		"radio_solved": GameState.set_objective("Room 407 is open. Do not look behind the door.")
+		"radio_solved":
+			GameState.set_objective("Room 407 is open. Do not look behind the door.")
+			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
 		"room_record_heard": GameState.set_objective("Inspect the drawing, then search the bed and wardrobe.")
 		"room_bed_observation_complete", "room_wardrobe_observation_complete", "room_family_table_observation_complete": GameState.set_objective("The last note is waiting at the back of the impossible room.")
 		"chase_ready":

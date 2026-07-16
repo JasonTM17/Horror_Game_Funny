@@ -3,6 +3,13 @@ extends CanvasLayer
 const OBJECTIVE_CHANGE_FOCUS_SECONDS := 3.0
 const OBJECTIVE_REVIEW_SECONDS := 5.0
 const OBJECTIVE_DIM_ALPHA := 0.58
+const INVENTORY_LABELS := {
+	"floor_key": "Fourth-floor key",
+	"spare_fuse": "Spare fuse",
+	"photo": "Burned family photograph",
+	"cassette": "Old cassette tape",
+	"rabbit": "Red stuffed rabbit",
+}
 
 @onready var objective_label: Label = $Margin/Column/Objective
 @onready var inventory_label: Label = $Margin/Column/Inventory
@@ -51,7 +58,10 @@ func _on_inventory_changed(items: Array[String]) -> void:
 	if items.is_empty():
 		inventory_label.text = "POCKETS\n(empty)"
 	else:
-		inventory_label.text = "POCKETS\n" + "\n".join(items)
+		var display_items: Array[String] = []
+		for item_id: String in items:
+			display_items.append(str(INVENTORY_LABELS.get(item_id, item_id.capitalize())))
+		inventory_label.text = "POCKETS\n" + "\n".join(display_items)
 
 func _on_prompt_changed(text: String) -> void:
 	prompt_label.text = text

@@ -10,7 +10,16 @@ static func build(director: Node3D) -> void:
 	_add_story(director, "desk_clock", Vector3(0.0, 1.18, WorldLayout.LOBBY_PROP_Z - 0.42), "Read the stopped desk clock", Color(0.22, 0.25, 0.28))
 	_add_story(director, "lobby_register", Vector3(2.8, 1.18, WorldLayout.LOBBY_PROP_Z - 0.18), "Read the night register", Color(0.29, 0.21, 0.14))
 	_add_story(director, "logbook", Vector3(1.8, 1.12, WorldLayout.LOBBY_PROP_Z - 0.25), "Sign the night log", Color(0.25, 0.18, 0.12))
-	_add_door(director, "floor_door", Vector3(0, 1.25, WorldLayout.FLOOR_DOOR_Z), "log_signed", 92.0)
+	_add_door(
+		director,
+		"floor_door",
+		Vector3(0, 1.25, WorldLayout.FLOOR_DOOR_Z),
+		"log_signed",
+		92.0,
+		"floor_key",
+		"floor_door_unlocked",
+		true
+	)
 	_add_story(director, "floor_notice", Vector3(-2.8, 1.15, WorldLayout.FLOOR_DOOR_Z - 8.0), "Read the maintenance notice", Color(0.32, 0.3, 0.24))
 	_add_story(director, "fuse_pickup", Vector3(2.3, 0.45, WorldLayout.FUSE_PICKUP_Z), "Take the spare fuse", Color(0.74, 0.55, 0.2))
 	_add_story(director, "fuse_box", Vector3(-2.8, 1.15, WorldLayout.FUSE_BOX_Z), "Open the fuse box", Color(0.2, 0.22, 0.24))
@@ -44,12 +53,24 @@ static func _add_story(director: Node3D, id: String, position: Vector3, label: S
 	shape.shape = collider
 	item.add_child(shape)
 
-static func _add_door(director: Node3D, id: String, position: Vector3, locked_flag: String, angle: float) -> void:
+static func _add_door(
+	director: Node3D,
+	id: String,
+	position: Vector3,
+	locked_flag: String,
+	angle: float,
+	required_item := "",
+	permanent_unlock_flag := "",
+	consume_required_item := false
+) -> void:
 	var door := DOOR_SCRIPT.new() as DoorInteractable
 	door.name = id
 	door.position = position
 	door.open_angle = angle
 	door.locked_flag = locked_flag
+	door.required_item = required_item
+	door.permanent_unlock_flag = permanent_unlock_flag
+	door.consume_required_item = consume_required_item
 	door.prompt_text = "Door"
 	door.collision_layer = 5
 	director.add_child(door)
