@@ -73,7 +73,8 @@ func _ready() -> void:
 	if not _require(lobby_task_light != null and lobby_task_light.light_energy >= 1.8, "warm lobby focus light missing"): return
 	var corridor_light := gameplay.get_node_or_null("CorridorLight01") as OmniLight3D
 	if not _require(corridor_light != null and corridor_light.light_energy >= 1.1 and corridor_light.omni_range >= 10.0, "corridor pool lights regressed below the readability floor"): return
-	if not _require(player.flashlight.light_energy >= 3.0 and player.flashlight.spot_range >= 20.0, "flashlight regressed below the navigation readability floor"): return
+	var flashlight_base_energy := float(player.flashlight.get("_base_energy"))
+	if not _require(flashlight_base_energy >= 3.0 and player.flashlight.spot_range >= 20.0, "flashlight regressed below the navigation readability floor"): return
 	var navigation_region := gameplay.get_node_or_null("ContinuousCorridorNavigation") as NavigationRegion3D
 	if not _require(navigation_region != null and navigation_region.navigation_mesh != null, "chase navigation surface missing"): return
 	if not _require(navigation_region.navigation_mesh.get_polygon_count() == 1, "continuous navigation polygon missing"): return

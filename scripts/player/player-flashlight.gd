@@ -19,6 +19,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	_base_energy = light_energy
 	_pulse_target = _base_energy
+	_flicker_check_remaining = _next_flicker_interval()
 
 func _process(delta: float) -> void:
 	if not SettingsManager.flicker_enabled or not visible:
@@ -41,7 +42,7 @@ func _process(delta: float) -> void:
 	light_energy = minf(light_energy, _pulse_target)
 
 func _reset_flicker() -> void:
-	_flicker_check_remaining = 0.0
+	_flicker_check_remaining = maxf(0.001, minf(flicker_interval_min, flicker_interval_max))
 	_pulse_remaining = 0.0
 	_pulse_target = _base_energy
 	light_energy = _base_energy
