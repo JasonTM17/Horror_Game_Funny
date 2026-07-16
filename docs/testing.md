@@ -45,22 +45,23 @@ This inventory records the current Windows verification machine. It is reproduci
 
 | # | Check / log | Invocation target | Automated evidence | Not proven |
 |---:|---|---|---|---|
-| 1 | `editor-import` / `test-editor-import.log` | `--editor --quit` | project imports; scripts/resources parse during editor scan | rendered gameplay, input, audio output |
+| 1 | `editor-import` / `test-editor-import.log` | `--editor --quit`, then `project-settings-stability-test.gd` | project imports; scripts/resources parse; canonical save bytes exactly match committed `project.godot` | rendered gameplay, input, audio output |
 | 2 | `menu` / `test-menu.log` | `scenes/boot/boot.tscn` | boot scene loads under its configured `--quit-after 8` smoke limit | button navigation with physical input, visual layout |
 | 3 | `gameplay` / `test-gameplay.log` | `scenes/gameplay/gameplay.tscn` | continuous runtime scene constructs and survives the smoke window | full route traversal or progression |
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency and checkpoint inventory restore | scene recovery, disk persistence |
 | 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, staged ending/reveal, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, presentation |
-| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, fresh-run pacing |
+| 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 1200` | room spawn and Variant3 restore, barriers/doors, navigation polygon, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, entity-parented SFX cue at start/recovery plus teardown, authored distances, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | navigation quality under real play, collision feel, route readability, audible cue/mix quality, fresh-run pacing |
 | 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | E/raycast interaction, complete route, puzzles, physical keyboard/mouse, timing, chase feel |
-| 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look feel, full traversal |
+| 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; unsafe open/close inside the 1.5 m sweep has no state side effect; safe tweens hold only movement and release it; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look/door feel, full traversal |
 | 9 | `visual-effects` / `test-visual-effects.log` | `visual-effects-test.tscn`; `--quit-after 180` | overlay shader/material and dither/VHS/fear uniforms exist; chase/ending fear targets and film-grain visibility toggle respond | rendered pixels, readability, comfort, GPU performance, monitor gamma |
 | 10 | `settings-audio` / `test-settings-audio.log` | `settings-audio-test.tscn`; `--quit-after 600` | buses and first-run default levels, selected clamps, parameter/loop-aware audio variants, LRU/live-stream protection, spatial teardown, controls, pause/boot modal focus and launcher return, save-failure retry/discard, audio teardown, in-memory Continue; all 70 voice cues/imports and exact sequence groups, SFX/pause/single-voice contracts, real-cue pause/resume, external-subtitle interruption, replacement, fallback, queue duplicate/order/reentrancy, unscaled long-cue hold, malformed-manifest rejection, and teardown; voice and menu regressions run as nested helpers | audible voice/effects quality, mix balance, and physical UI navigation |
 | 11 | `settings-persistence-write` / `test-settings-persistence-write.log` | `settings-persistence-write-test.tscn` | writes 11 distinct bounded settings to isolated `room407.cfg` | real player profile and physical UI save action |
 | 12 | `settings-persistence-read` / `test-settings-persistence-read.log` | `settings-persistence-read-test.tscn` | a new Godot process restores all 11 values from the same isolated profile | target-device fullscreen transition and physical UI interaction |
 
-Checks 4-12 require these success markers respectively:
+Checks 1 and 4-12 require these ten success markers respectively:
 
 ```text
+PROJECT_SETTINGS_STABILITY_OK
 GAME_STATE_TEST_OK
 PROGRESSION_TEST_OK
 CHECKPOINT_LAYOUT_TEST_OK
@@ -72,7 +73,7 @@ SETTINGS_PERSISTENCE_WRITE_OK
 SETTINGS_PERSISTENCE_READ_OK
 ```
 
-The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. The import, menu, and gameplay smoke checks have no success marker; they rely on process exit and the same log scan.
+The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. Menu and gameplay smoke have no success marker; editor import runs the project-settings post-script and requires its marker.
 
 The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, progression/checkpoint-layout use 1200, physical-route 1800, player-input 600, visual-effects 180, and settings-audio/persistence 60. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
 
@@ -104,7 +105,7 @@ The total target is independent of the chapter verdicts. A missing boundary pair
 
 ## Recorded Automated Evidence
 
-The canonical 2026-07-16 exact twelve-check suite passed with 12 logs, 9 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.58 s` active, `6.82 s` wall, and `0.22 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused runs at 3.66–3.67 active seconds are historical evidence only (see the dated plan reports).
+The fresh post-voice hardening run on 2026-07-16 passed all twelve checks in 60.3 seconds with 12 logs, 10 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.59 s` active, `6.83 s` wall, and `0.23 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused and canonical runs remain historical evidence only (see the dated plan reports).
 
 ## Synthetic Actions Versus Physical Input
 
@@ -149,6 +150,7 @@ The test manipulates UI fields and calls methods directly. It synthesizes Escape
 - `ContinuousCorridorNavigation` exists with one navigation polygon;
 - the entity remains frozen during `APPEAR`, reaches `STALK`, and records measured `STALK` and full-speed `CHASE` movement;
 - entity 3.0 is faster than walk 2.0 and slower than sprint 3.1, while pause freezes chase movement;
+- chase start creates exactly one bounded `AudioStreamPlayer3D` at the entity origin on SFX, failure removes the stale player, checkpoint recovery creates one replacement, and ending teardown removes both player and cache ownership;
 - LOS loss records a last-seen position, traverses `LOST_TARGET`/bounded `SEARCH`, reacquires a nearby player, then reaches `DESPAWN` after the search budget; restart and exit boundaries hide/stop the entity cleanly;
 - retreat beyond the chase boundary requests recovery and restores the chase marker;
 - a restored Room 407 session is incomplete and ineligible, keeps `within_target` `null`, and represents missing chapter durations as `null`;
@@ -166,6 +168,7 @@ These are structural and numeric assertions. They do not move a player capsule t
 - the floor, power, and Room 407 doors remain closed without their prerequisite flags;
 - the capsule receives forward movement but stops at each locked door;
 - each valid flag opens its door and lets the same capsule cross the passage;
+- valid door interactions begin outside the authored 1.5 m sweep instead of unrealistically opening while the capsule is pressed into the rotating panel;
 - the memory threshold rejects entry before `power_stable` and activates after it;
 - the Room 407 threshold creates the expected gameplay-scene checkpoint snapshot; and
 - the chase threshold rejects premature entry, then starts once `chase_ready` and creates a valid entity.
@@ -181,7 +184,9 @@ The harness teleports between focused gates, sets prerequisite flags, and calls 
 - after focused player placement and a forced ray update, a synthesized `interact` action reaches the phone through the production interaction handler;
 - synthesized objective, pause, and flashlight actions refresh the HUD, preserve the flashlight state while paused, and toggle it after resume;
 - a test-created production note reader locks input, then a synthesized Escape action closes the note and releases the lock;
-- the production ray reaches the floor door; a locked attempt stays closed; repeated synthesized interaction during the opening tween does not cancel it; and the same door closes and reopens after ray reacquisition from the appropriate side; and
+- the production ray reaches the floor door; a locked attempt stays closed; repeated synthesized interaction during the opening tween does not cancel it; and the same door closes and reopens after ray reacquisition from the appropriate side;
+- player positions inside the authored 1.5 m sweep receive the move-clear prompt and cannot start either close or reopen, change rotation/cooldown, emit the success signal, lose the permanent unlock, or acquire a movement lock;
+- a safe open/close/reopen acquires a per-door movement-only lock, blocks mapped movement without setting a full input lock, and releases the reason after every completed tween; and
 - disabling head bob restores the authored head origin.
 
 The test positions the player, forces ray updates, sets the door prerequisite flag, constructs action objects, and calls handlers directly. It proves production handler and state behavior, not physical key delivery, mouse-look delivery, or a complete route.
@@ -255,7 +260,7 @@ No current automated check fully verifies the following. Record each result, env
 | Physical traversal | Walk/sprint through every closed/open door, loop return, Room 407, and chase route | no snag/bypass report and capture |
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
 | Visual balance | Check corridor darkness, flashlight, blackout, flicker, grain, red guide lights, and ending reveal | screenshots/video on target hardware |
-| Audio balance | Listen to phone, narration tones, ambience, footsteps, radio static, chase, fail, and ending | device plus bus-level observations |
+| Audio balance | Listen to all 70 English story cues plus phone, procedural feedback, ambience, footsteps, radio static, the positional entity cue at chase start/recovery, chase drone, fail, and ending | device plus bus-level observations |
 | Settings UI workflow | Change values through the panel, **SAVE & CLOSE**, quit, relaunch, and inspect the controls; separately force/observe a failed save and choose retry or discard | before/after capture; automated config persistence and failure UI already pass |
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
 

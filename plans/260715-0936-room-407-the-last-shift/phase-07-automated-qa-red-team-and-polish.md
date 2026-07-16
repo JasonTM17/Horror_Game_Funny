@@ -35,11 +35,11 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 | Action | Paths | Rough size | Test impact |
 |---|---|---:|---|
 | Maintain | `tests/run-headless-tests.ps1`, `tests/game-state-test.gd`, and scene-backed `tests/{progression,checkpoint-layout,physical-route-smoke,player-input-integration,visual-effects,settings-audio,settings-persistence-write,settings-persistence-read}-test.{gd,tscn}` | focused harnesses | exact twelve-check regression |
-| Maintain | `tests/menu-settings-regression.gd` | nested helper | Settings/modal focus contract inside check 10 |
+| Maintain | `tests/{menu-settings-regression,voice-over-regression}.gd` | nested helpers | Settings/modal focus and 70-cue narration contracts inside check 10 |
 | Maintain | `tests/run-physical-playthrough.ps1` | manual wrapper | same-run log/pacing/capture evidence package |
 | Maintain | `plans/260715-0936-room-407-the-last-shift/reports/*.md` | reports | audit evidence |
 | Modify | only implementation files with evidence-backed defects | scoped | regression fixes |
-| Modify | `docs/testing.md`, `docs/limitations.md` | <250 lines | truthful QA contract |
+| Modify | `docs/testing.md`, `docs/limitations.md` | <400 lines | truthful QA contract |
 
 ## Function and Interface Checklist
 
@@ -48,13 +48,17 @@ Add native headless tests and an external test-only runtime smoke runner, then e
 - [x] Every required semantic progression gate has positive and negative automated coverage; physical E/raycast and full-route cases remain manual.
 - [x] Red-team fixes preserve the accepted continuous flow and checkpoint semantics across the covered regressions.
 - [x] Independent final review checked the committed gameplay/UI/test range and rejected stale findings against final code.
+- [x] Post-voice regressions cover unsafe door-motion rejection, reason-scoped movement-only lock/release, and entity-parented SFX cue start/recovery/teardown.
 
 ## Current Evidence — 2026-07-16
 
-- The completion-audit polish commits are pushed in order: `4287337` (plan audit), `1321971` (progression/checkpoint invariants), `4099a52` (fourth-floor and Room 407 scare dressing), `e4b8386` (bounded chase/body alignment), `4be615a` (audio cache/spatial lifetime), `f1bc63c` (pause-safe flashlight), and `c38fde9` (modal focus/save-failure UX). Local `HEAD` and `origin/main` matched at `c38fde9` before this documentation edit.
-- The exact 12-check runner exits `0`; the current canonical run produced 12 logs, all 9 required markers, zero scanned bad lines, and zero temporary Godot profiles. The fresh compressed pacing payload measured 6.58 s active, 6.82 s wall, and 0.22 s paused, with complete/order-valid telemetry and `within_target: false` by design. Checkpoint/layout remains correctly incomplete/ineligible with a null total verdict.
+- The voice slice is pushed through `e1e8093`: `5b745b1` (first-frame flashlight stability), `db736f4` (70 English cues/runtime), `3c17663` (voice regressions), and `e1e8093` (provenance/QA). Post-voice commits `15b871c`, `2e2abf2`, and `d5e6dfb` are also pushed; local `HEAD`, `origin/main`, and the direct remote branch ref matched `d5e6dfb` before this documentation sync.
+- The fresh post-voice 12-check runner exits `0` in 60.3 seconds with 12 logs, all 10 required markers, zero scanned bad lines, and zero temporary Godot profiles. The fresh compressed pacing payload measured 6.59 s active, 6.83 s wall, and 0.23 s paused, with complete/order-valid telemetry and `within_target: false` by design. Checkpoint/layout remains correctly incomplete/ineligible with a null total verdict.
+- All 20 narrative groups resolve exactly to 70 committed English cues. Regression coverage includes exact subtitle matching, replacement/fallback, pause/resume, unscaled voice holds, queue duplicates/order/reentrancy, external-subtitle interruption, malformed manifests, and teardown.
+- Door regressions reject opening and closing inside the 1.5 m sweep before cooldown/signal/rotation/unlock mutation, then prove safe open/close/reopen acquires and releases only a reason-scoped movement lock. Chase regressions prove one bounded, entity-parented SFX cue at start and recovery, stale-player removal during failure, and ending cache/player teardown.
+- Standard review found one medium issue and it was fixed before the full suite; the follow-up adversarial review reported zero findings.
 - `menu-settings-regression.gd` exercises save failure/retry/discard, modal focus trapping, launcher focus return, and hidden-control release inside `settings-audio`; it is not a thirteenth runner check.
-- Generated/credential/tracked-binary scans are clean; a clean clone at SHA `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, 0 bad lines, 0 temporary profiles, and 0 dirty lines before removal from the verified repository-local temp root.
+- Generated/credential/tracked-binary scans were clean at the earlier release rehearsal; a clean clone at SHA `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, 0 bad lines, 0 temporary profiles, and 0 dirty lines before removal from the verified repository-local temp root. That historical clone predates the project-settings marker, voice delivery, and current hardening.
 - Disk after the clean-clone rehearsal: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner left zero `godot-user-*` profiles behind.
 - `46a58e8` adds the manual evidence runner without changing production code or the twelve-check contract. PowerShell parsing passed; compressed, structurally valid synthetic, and mixed-payload cases proved rejection/pass boundaries while keeping analysis mode manual-gate-ineligible.
 - `ba59df0` makes the runner report a review-required evidence package rather than claiming automatic manual-gate completion, and blocks engine/script/parse/ObjectDB-leak failure lines. A synthetic error-log fixture verified the new rejection path and was deleted afterward.
@@ -88,6 +92,13 @@ The existing continuous scene keeps its route and public controls, while consume
 ### Scope Boundary
 
 No Blender/MCP assets, binary export, persistent gameplay save, crouch, secondary ending, new level split, extra autoload, paid/unclear asset, or automated claim of physical 15–20 minute completion. Manual F5, audible mix, rendered comfort/readability, fullscreen behavior, and chase feel remain open evidence.
+
+### Post-Voice Hardening Addendum — 2026-07-16
+
+- A designer-tunable 1.5 m horizontal sweep prevents player-operated doors from starting through the actor. Rejection occurs before cooldown, signal, key/unlock, rotation, or tween mutation and provides move-clear feedback.
+- Accepted player-operated door tweens use a per-door movement-only reason. Camera/mouse input remains available; completion and tree teardown release the reason.
+- Chase start and checkpoint recovery each create one 92 Hz, 1.4-second `AudioStreamPlayer3D` under the entity on SFX with an 18-unit maximum distance. Failure stops the stale cue before recovery; ending stops playback and cache ownership.
+- The complete suite and two review passes validate these contracts automatically. They do not prove physical door clearance feel, audible entity-cue balance, or live chase fairness.
 
 ### Touchpoints
 

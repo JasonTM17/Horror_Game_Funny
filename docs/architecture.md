@@ -63,7 +63,7 @@ Player interaction ray
   -> signals consumed by HUD and narrative/event controllers
 ```
 
-Prompt lookup is read-only. Mutating actions guard prerequisites first. Story stages are monotonic:
+Prompt lookup is read-only. Mutating actions guard prerequisites first. `DoorInteractable` additionally rejects player-operated opening and closing while the actor is within its designer-tunable 1.5 m horizontal motion sweep. The check happens before cooldown, signal, item, unlock, or tween mutation. Accepted motion acquires a per-door reason-scoped movement lock and releases it when the tween finishes or the door leaves the tree; event-driven closure can omit an actor and therefore does not claim that player lock. Story stages are monotonic:
 
 ```text
 LOBBY
@@ -120,7 +120,7 @@ The first two memories loop the actor to the memory start. The third memory swap
 
 ## Player Composition
 
-The `CharacterBody3D` player owns movement, bounded look pitch, pause input, input-lock reasons, head bob, camera shake, flashlight visibility, and settings application. A child interaction node owns the 2.5-unit ray and calls interactable contracts.
+The `CharacterBody3D` player owns movement, bounded look pitch, pause input, input-lock reasons, movement-only lock reasons, head bob, camera shake, flashlight visibility, and settings application. A child interaction node owns the 2.5-unit ray and calls interactable contracts. Full input locks expose the cursor and gate camera look plus flashlight input; selected modal reasons also gate pause. Movement-only locks zero physics velocity while preserving captured mouse, camera look, flashlight, and other unlocked input.
 
 The scene overrides movement defaults to walk speed 2.0 and sprint multiplier 1.55, producing sprint speed 3.1. Movement uses `_physics_process`, normalized input, acceleration toward target velocity, gravity, and `move_and_slide()`.
 
@@ -142,9 +142,9 @@ Entity speed is 3.0. The configured player walks at 2.0 and sprints at 3.1; `STA
 
 ## Chase, Checkpoint, and Ending Flow
 
-At chase readiness, `GameState` captures serializable values and spawn ID `chase_start`. Chase start dims named corridor lights, creates one entity, starts chase audio, and advances the stage.
+At chase readiness, `GameState` captures serializable values and spawn ID `chase_start`. Chase start dims named corridor lights, creates one entity, starts chase audio, and advances the stage. It also creates one 92 Hz, 1.4-second `AudioStreamPlayer3D` under the entity. The cue is routed through SFX and bounded to the normal 18-unit spatial distance, so it follows the source rather than the controller.
 
-Capture recovery happens inside the existing gameplay scene. It restores the checkpoint dictionary, resets the existing player and entity positions, restarts the entity and chase drone, and releases the fail lock. It does not serialize nodes, reload the gameplay scene, or create a replacement enemy.
+Capture recovery happens inside the existing gameplay scene. It restores the checkpoint dictionary, resets the existing player and entity positions, restarts the entity and chase drone, replays one fresh entity-parented presence cue, and releases the fail lock. The stale presence cue is stopped before failure feedback and before every replay; finishing the chase stops the cue and releases its cache ownership. Recovery does not serialize nodes, reload the gameplay scene, or create a replacement enemy.
 
 The boot menu's Continue path is different: when a checkpoint exists in the current process, it calls `SceneRouter.reload_checkpoint()`, which restores state and reloads the snapshot's scene path. During story-controller setup, completed memory flags derive the active hallway variant before control returns to the player. Because `GameState` is not written to disk, Continue disappears after application restart.
 
@@ -198,7 +198,7 @@ Create a focused `.gd` script and `.tscn` harness under `tests/`, print one uniq
 
 The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-Together they verify import and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; and settings persistence across two Godot processes.
+Together they verify import, canonical `project.godot` serialization, and scene construction; state snapshots and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, entity-parented SFX cue start/recovery/teardown, and staged ending invariants; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam, 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; all 70 manifest-backed English voice resources and sequencing/fallback contracts; and settings persistence across two Godot processes.
 
 The movement checks teleport between focused gates and the input check positions the player at selected production targets. The telemetry checks extend progression and checkpoint/layout; they do not add a thirteenth runner check. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify a same-run physical capture, monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
@@ -212,10 +212,13 @@ The movement checks teleport between focused gates and the input check positions
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
+- [`door-interactable.gd`](../scripts/interaction/door-interactable.gd)
+- [`player-controller.gd`](../scripts/player/player-controller.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
 - [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
 - [`player-flashlight.gd`](../scripts/player/player-flashlight.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
+- [`audio-manager.gd`](../scripts/autoload/audio-manager.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`settings-panel.gd`](../scripts/ui/settings-panel.gd)
 - [`pause-menu.gd`](../scripts/ui/pause-menu.gd)

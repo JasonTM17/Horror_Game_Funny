@@ -42,11 +42,12 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Current Evidence Reconciliation — 2026-07-16
 
-- Completion-audit gameplay commits are pushed in sequence through `c38fde9`, followed by documentation/evidence commit `fa8cc1f`; local `HEAD`, `origin/main`, and the direct GitHub `refs/heads/main` query matched at `fa8cc1f` before this sync-metadata edit.
+- The voice delivery is pushed through `e1e8093`: `5b745b1` fixes initial flashlight timing, `db736f4` adds the 70-cue English voice runtime/assets, `3c17663` adds sequencing/fallback regressions, and `e1e8093` records provenance and QA. The focused post-voice hardening sequence is also pushed: `15b871c` plans the slice, `2e2abf2` prevents door-sweep collisions, and `d5e6dfb` adds the positional chase cue. Local `HEAD`, `origin/main`, and a direct `refs/heads/main` query all matched `d5e6dfb` before this documentation sync.
+- All 20 production narrative groups resolve to 70 manifest-backed English OGG cues. Playback is exact-subtitle matched, SFX-routed, pause-aware, single-voice, and scene-local; malformed, missing, stale, or unloadable cues fall back without blocking progression.
 - The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in observed order, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
-- The exact isolated Godot 4.7.1 runner exits `0` with 12 logs, 9 required markers, zero scanned bad lines, and zero temporary profiles. The current compressed fresh payload is complete/order-valid at 6.58 s active, 6.82 s wall, and 0.22 s paused, with `within_target: false` as intended.
-- A fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines, then was removed from the verified repository-local temp root.
-- Independent review and generated/credential/tracked-binary scans found no remaining concrete code findings or committed release artifacts after progression, horror dressing, chase, audio, flashlight, and UI fixes. Separate writer/reader processes still verify all 11 settings survive relaunch in one isolated profile.
+- The fresh post-voice hardening suite exits `0` in 60.3 seconds with 12 logs, 10 required markers, zero scanned bad lines, and zero temporary profiles. The compressed fresh payload is complete/order-valid at 6.59 s active, 6.83 s wall, and 0.23 s paused, with `within_target: false` as intended.
+- A historical fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines, then was removed from the verified repository-local temp root. That rehearsal predates the project-settings marker and voice delivery; it is not presented as the current hardening revision.
+- Current source and regressions cover the 1.5 m door sweep guard, reason-scoped movement-only lock/release, and one entity-parented SFX cue at chase start and checkpoint recovery with failure/ending teardown. The standard review's one medium finding was fixed; the adversarial review then reported zero findings. Separate writer/reader processes still verify all 11 settings survive relaunch in one isolated profile.
 - A real local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal, and cannot prove route completion, presentation quality, audible output, or pacing.
 - Phase 1–6 status denotes completed implementation slices. Phase 7 and Phase 8 remain in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix.
 - Post-rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
@@ -54,7 +55,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 ## Dependencies
 
-- No cross-plan dependencies. `origin/main` contains the pushed atomic gameplay and documentation history through `fa8cc1f`; physical playthrough evidence and any evidence-backed final tuning remain the next release steps.
+- No cross-plan dependencies. The pushed runtime boundary recorded for this reconciliation is `d5e6dfb`, including the voice delivery and post-voice door/chase hardening. Physical playthrough evidence and any evidence-backed final tuning remain the next release steps.
 - Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
 - Compatibility renderer; procedural/created assets only.
 
@@ -63,13 +64,14 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - Thin autoloads: `GameState`, `SceneRouter`, `AudioManager`, `SettingsManager`.
 - Scene-local controllers for levels, events, hallway variants, puzzles, and chase.
 - Typed signal-driven progression with idempotent flags and serializable checkpoint snapshots.
-- Reusable interaction base, composed player components, deterministic procedural geometry/audio.
+- Reusable interaction base with a 1.5 m door sweep guard and reason-scoped movement-only locks; composed player components; deterministic procedural geometry/audio.
+- Manifest-backed 70-cue English story voice playback plus a bounded entity-parented SFX presence cue at chase start/recovery.
 - Native `SceneTree` test runner plus Godot headless import/runtime smoke checks.
 
 ## Scope Boundary
 
 - Required: all acceptance items in the project brief, 15–20 minute main ending.
-- Deferred: optional secondary ending, crouch, persistent save across application restarts, external asset packs, voiced dialogue, export templates/binary release.
+- Deferred: optional secondary ending, crouch, persistent save across application restarts, external art/prop packs, human-performed acting, non-English localization, and export templates/binary release. Generated English voiced dialogue is implemented for all 70 sequenced story lines.
 - Never defer: ending, checkpoint/fail recovery, both puzzles, three memories, chase, settings, documentation, or main-path QA.
 
 ## Atomic Commit Sequence
@@ -106,11 +108,22 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 10. `ba59df0` — `fix(test): reject faulty physical evidence logs`
 11. `05ade4b` — `fix(test): bind physical evidence to clean revision`
 
+### Voice and Post-Voice Hardening Mapping — 2026-07-16
+
+1. `5b745b1` — `fix(player): delay initial flashlight flicker` (pushed)
+2. `db736f4` — `feat(audio): add licensed story voice-over playback` (pushed)
+3. `3c17663` — `test(audio): cover narration sequencing and fallback` (pushed)
+4. `e1e8093` — `docs: document voice provenance and QA evidence` (pushed voice boundary)
+5. `15b871c` — `docs: plan post-voice release hardening` (pushed)
+6. `2e2abf2` — `fix(interaction): prevent door sweep collisions` (pushed)
+7. `d5e6dfb` — `feat(audio): add positional chase entity cue` (pushed runtime boundary)
+
 ## Acceptance Criteria
 
 - Godot recognizes the project; every referenced script parses and every main scene loads.
 - Menu starts a completable 15–20 minute first-person flow with two puzzles, three memories, dynamic hallway, Room 407, chase, fail/checkpoint recovery, ending, and credits.
 - Interaction spam/out-of-order actions cannot duplicate items/events/enemies or bypass required gates.
+- All 20 sequenced narrative groups have 70 exact-manifest English voice cues with deterministic fallback, interruption, pause, queue, and teardown behavior.
 - Settings cover sensitivity, FOV, volumes, display mode, head bob, shake, grain, and reduced flicker.
 - Headless import, automated tests, runtime smoke, manual full playthrough, and red-team checklist have truthful recorded results.
 - README, design, architecture, testing, asset credits, limitations, license, and changelog match actual code.

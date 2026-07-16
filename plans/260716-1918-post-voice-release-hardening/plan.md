@@ -1,6 +1,6 @@
 ---
 title: Post-voice release hardening
-status: in-progress
+status: completed
 priority: P1
 branch: main
 created: '2026-07-16T19:18:00+07:00'
@@ -15,7 +15,7 @@ Close two remaining release-quality gaps without changing the continuous 15–20
 
 ## Phase
 
-- [Phase 1: interaction and chase audio hardening](./phase-01-interaction-and-chase-audio-hardening.md) — in progress
+- [Phase 1: interaction and chase audio hardening](./phase-01-interaction-and-chase-audio-hardening.md) — completed
 
 ## Acceptance
 
