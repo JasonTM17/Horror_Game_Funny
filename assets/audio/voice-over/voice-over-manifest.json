@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "language": "en-US",
+  "cue_id_format": "<completion_flag>-<one-based-line-index>",
+  "generator": {
+    "tool": "Piper TTS 1.4.2",
+    "voice": "en_US-kristin-medium",
+    "model_source": "https://huggingface.co/rhasspy/piper-voices/tree/main/en/en_US/kristin/medium",
+    "model_repository_license": "MIT",
+    "training_audio_source": "LibriVox",
+    "training_audio_license": "Public domain",
+    "training_note": "The model card states that this voice was trained from scratch."
+  },
+  "cues": [
+    {
+      "id": "floor_arrival_complete-01",
+      "subtitle": "The elevator display skips from 3 to 4, then goes dark.",
+      "spoken_text": "The elevator display skips from three to four, then goes dark.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/floor_arrival_complete-01.ogg"
+    },
+    {
+      "id": "floor_arrival_complete-02",
+      "subtitle": "A fuse rattles somewhere beyond the dead emergency lights.",
+      "spoken_text": "A fuse rattles somewhere beyond the dead emergency lights.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/floor_arrival_complete-02.ogg"
+    },
+    {
+      "id": "floor_arrival_complete-03",
+      "subtitle": "At the far end, a silhouette steps behind a door that never opened.",
+      "spoken_text": "At the far end, a silhouette steps behind a door that never opened.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/floor_arrival_complete-03.ogg"
+    },
+    {
+      "id": "memory_arrival_complete-01",
+      "subtitle": "The room numbers repeat in the wrong order.",
+      "spoken_text": "The room numbers repeat in the wrong order.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_arrival_complete-01.ogg"
+    },
+    {
+      "id": "memory_arrival_complete-02",
+      "subtitle": "Your footsteps return one beat late.",
+      "spoken_text": "Your footsteps return one beat late.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_arrival_complete-02.ogg"
+    },
+    {
+      "id": "memory_arrival_complete-03",
+      "subtitle": "A family photograph waits where the corridor should end.",
+      "spoken_text": "A family photograph waits where the corridor should end.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_arrival_complete-03.ogg"
+    },
+    {
+      "id": "room_arrival_complete-01",
+      "subtitle": "Room 407 is longer inside than the building is wide.",
+      "spoken_text": "Room four oh seven is longer inside than the building is wide.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_arrival_complete-01.ogg"
+    },
+    {
+      "id": "room_arrival_complete-02",
+      "subtitle": "The wallpaper carries the height marks of a missing child.",
+      "spoken_text": "The wallpaper carries the height marks of a missing child.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_arrival_complete-02.ogg"
+    },
+    {
+      "id": "room_arrival_complete-03",
+      "subtitle": "A family recording clicks on by itself.",
+      "spoken_text": "A family recording clicks on by itself.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/room_arrival_complete-03.ogg"
+    },
+    {
+      "id": "radio_solved-01",
+      "subtitle": "YOUR VOICE: Zero. Zero. Zero. Seven.",
+      "spoken_text": "Zero. Zero. Zero. Seven.",
+      "role": "radio",
+      "file": "res://assets/audio/voice-over/radio_solved-01.ogg"
+    },
+    {
+      "id": "radio_solved-02",
+      "subtitle": "YOUR VOICE: I left the rabbit under the bed.",
+      "spoken_text": "I left the rabbit under the bed.",
+      "role": "radio",
+      "file": "res://assets/audio/voice-over/radio_solved-02.ogg"
+    },
+    {
+      "id": "radio_solved-03",
+      "subtitle": "YOUR VOICE: I locked the door from the outside.",
+      "spoken_text": "I locked the door from the outside.",
+      "role": "radio",
+      "file": "res://assets/audio/voice-over/radio_solved-03.ogg"
+    },
+    {
+      "id": "radio_solved-04",
+      "subtitle": "The radio clicks off. Room 407 unlocks.",
+      "spoken_text": "The radio clicks off. Room four oh seven unlocks.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/radio_solved-04.ogg"
+    },
+    {
+      "id": "chase_ready-01",
+      "subtitle": "The note is written in your childhood handwriting.",
+      "spoken_text": "The note is written in your childhood handwriting.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/chase_ready-01.ogg"
+    },
+    {
+      "id": "chase_ready-02",
+      "subtitle": "Behind you, the family recording starts again.",
+      "spoken_text": "Behind you, the family recording starts again.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/chase_ready-02.ogg"
+    },
+    {
+      "id": "chase_ready-03",
+      "subtitle": "The corridor stretches toward a red EXIT light.",
+      "spoken_text": "The corridor stretches toward a red exit light.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/chase_ready-03.ogg"
+    },
+    {
+      "id": "chase_ready-04",
+      "subtitle": "Something stands between you and the room you forgot.",
+      "spoken_text": "Something stands between you and the room you forgot.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/chase_ready-04.ogg"
+    },
+    {
+      "id": "phone_briefing_complete-01",
+      "subtitle": "MANAGER: You are covering the last shift, yes?",
+      "spoken_text": "You are covering the last shift, yes?",
+      "role": "manager",
+      "file": "res://assets/audio/voice-over/phone_briefing_complete-01.ogg"
+    },
+    {
+      "id": "phone_briefing_complete-02",
+      "subtitle": "MANAGER: Sign the log. Take the fourth-floor key.",
+      "spoken_text": "Sign the log. Take the fourth-floor key.",
+      "role": "manager",
+      "file": "res://assets/audio/voice-over/phone_briefing_complete-02.ogg"
+    },
+    {
+      "id": "phone_briefing_complete-03",
+      "subtitle": "MANAGER: The lights failed outside Room 407.",
+      "spoken_text": "The lights failed outside Room four oh seven.",
+      "role": "manager",
+      "file": "res://assets/audio/voice-over/phone_briefing_complete-03.ogg"
+    },
+    {
+      "id": "phone_briefing_complete-04",
+      "subtitle": "MANAGER: If someone calls from inside... do not answer twice.",
+      "spoken_text": "If someone calls from inside... do not answer twice.",
+      "role": "manager",
+      "file": "res://assets/audio/voice-over/phone_briefing_complete-04.ogg"
+    },
+    {
+      "id": "power_stable-01",
+      "subtitle": "The fuse catches. One light wakes up.",
+      "spoken_text": "The fuse catches. One light wakes up.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/power_stable-01.ogg"
+    },
+    {
+      "id": "power_stable-02",
+      "subtitle": "A second light answers farther down the hall.",
+      "spoken_text": "A second light answers farther down the hall.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/power_stable-02.ogg"
+    },
+    {
+      "id": "power_stable-03",
+      "subtitle": "A door slams where there was no door.",
+      "spoken_text": "A door slams where there was no door.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/power_stable-03.ogg"
+    },
+    {
+      "id": "power_stable-04",
+      "subtitle": "The emergency circuit settles into a low hum.",
+      "spoken_text": "The emergency circuit settles into a low hum.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/power_stable-04.ogg"
+    },
+    {
+      "id": "memory_photo_recalled-01",
+      "subtitle": "The photograph shows you outside Room 407, holding the red rabbit.",
+      "spoken_text": "The photograph shows you outside Room four oh seven, holding the red rabbit.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_photo_recalled-01.ogg"
+    },
+    {
+      "id": "memory_photo_recalled-02",
+      "subtitle": "Behind the family, the lobby clock is frozen at 00:07.",
+      "spoken_text": "Behind the family, the lobby clock is frozen at twelve oh seven.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_photo_recalled-02.ogg"
+    },
+    {
+      "id": "memory_cassette_recalled-01",
+      "subtitle": "The cassette contains your voice asking to be let out.",
+      "spoken_text": "The cassette contains your voice asking to be let out.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/memory_cassette_recalled-01.ogg"
+    },
+    {
+      "id": "memory_cassette_recalled-02",
+      "subtitle": "A second voice whispers: the radio remembers the stopped clock.",
+      "spoken_text": "The radio remembers the stopped clock.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_cassette_recalled-02.ogg"
+    },
+    {
+      "id": "memory_rabbit_recalled-01",
+      "subtitle": "The rabbit's stitched name is yours.",
+      "spoken_text": "The rabbit's stitched name is yours.",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/memory_rabbit_recalled-01.ogg"
+    },
+    {
+      "id": "memory_rabbit_recalled-02",
+      "subtitle": "The corridor was not hunting the missing child. It was bringing you home.",
+      "spoken_text": "The corridor was not hunting the missing child. It was bringing you home.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_rabbit_recalled-02.ogg"
+    },
+    {
+      "id": "room_record_heard-01",
+      "subtitle": "RECORDING: You promised you would come back for us.",
+      "spoken_text": "You promised you would come back for us.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/room_record_heard-01.ogg"
+    },
+    {
+      "id": "room_record_heard-02",
+      "subtitle": "CHILD: I put the rabbit where the hallway cannot see.",
+      "spoken_text": "I put the rabbit where the hallway cannot see.",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/room_record_heard-02.ogg"
+    },
+    {
+      "id": "room_record_heard-03",
+      "subtitle": "RECORDING: The door was locked from the outside.",
+      "spoken_text": "The door was locked from the outside.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/room_record_heard-03.ogg"
+    },
+    {
+      "id": "desk_clock_observation_complete-01",
+      "subtitle": "The lobby clock is still running, but its second hand never moves.",
+      "spoken_text": "The lobby clock is still running, but its second hand never moves.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/desk_clock_observation_complete-01.ogg"
+    },
+    {
+      "id": "desk_clock_observation_complete-02",
+      "subtitle": "The display freezes at 00:07 whenever you look away.",
+      "spoken_text": "The display freezes at twelve oh seven whenever you look away.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/desk_clock_observation_complete-02.ogg"
+    },
+    {
+      "id": "desk_clock_observation_complete-03",
+      "subtitle": "Someone has circled the same time in every night log.",
+      "spoken_text": "Someone has circled the same time in every night log.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/desk_clock_observation_complete-03.ogg"
+    },
+    {
+      "id": "desk_clock_observation_complete-04",
+      "subtitle": "In the cracked glass, the elevator doors are standing open behind you.",
+      "spoken_text": "In the cracked glass, the elevator doors are standing open behind you.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/desk_clock_observation_complete-04.ogg"
+    },
+    {
+      "id": "lobby_register_observation_complete-01",
+      "subtitle": "The register lists every night worker except the shift dated tonight.",
+      "spoken_text": "The register lists every night worker except the shift dated tonight.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/lobby_register_observation_complete-01.ogg"
+    },
+    {
+      "id": "lobby_register_observation_complete-02",
+      "subtitle": "A fresh signature has been added beneath the old manager's name.",
+      "spoken_text": "A fresh signature has been added beneath the old manager's name.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/lobby_register_observation_complete-02.ogg"
+    },
+    {
+      "id": "lobby_register_observation_complete-03",
+      "subtitle": "The ink is still wet, although the pen has no ink cartridge.",
+      "spoken_text": "The ink is still wet, although the pen has no ink cartridge.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/lobby_register_observation_complete-03.ogg"
+    },
+    {
+      "id": "lobby_register_observation_complete-04",
+      "subtitle": "The final entry says: DO NOT LET THE CHILD ANSWER THE PHONE.",
+      "spoken_text": "The final entry says: Do not let the child answer the phone.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/lobby_register_observation_complete-04.ogg"
+    },
+    {
+      "id": "floor_notice_observation_complete-01",
+      "subtitle": "MAINTENANCE NOTICE: FLOOR 4 CLOSED AFTER THE 2007 INCIDENT.",
+      "spoken_text": "Maintenance notice. Floor four closed after the two thousand seven incident.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/floor_notice_observation_complete-01.ogg"
+    },
+    {
+      "id": "floor_notice_observation_complete-02",
+      "subtitle": "The notice has been signed by a manager who stopped working here years ago.",
+      "spoken_text": "The notice has been signed by a manager who stopped working here years ago.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/floor_notice_observation_complete-02.ogg"
+    },
+    {
+      "id": "floor_notice_observation_complete-03",
+      "subtitle": "A hand-written arrow points toward the spare fuse locker.",
+      "spoken_text": "A hand-written arrow points toward the spare fuse locker.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/floor_notice_observation_complete-03.ogg"
+    },
+    {
+      "id": "floor_notice_observation_complete-04",
+      "subtitle": "Below it, a smaller note reads: THE POWER NEVER FAILED.",
+      "spoken_text": "Below it, a smaller note reads: The power never failed.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/floor_notice_observation_complete-04.ogg"
+    },
+    {
+      "id": "room_bed_observation_complete-01",
+      "subtitle": "Dust covers the bed, except for one clean hollow in the blankets.",
+      "spoken_text": "Dust covers the bed, except for one clean hollow in the blankets.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_bed_observation_complete-01.ogg"
+    },
+    {
+      "id": "room_bed_observation_complete-02",
+      "subtitle": "A child's voice under the frame whispers your name once.",
+      "spoken_text": "Your name.",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/room_bed_observation_complete-02.ogg"
+    },
+    {
+      "id": "room_bed_observation_complete-03",
+      "subtitle": "The red rabbit was never hidden here. It was waiting somewhere you could see it.",
+      "spoken_text": "The red rabbit was never hidden here. It was waiting somewhere you could see it.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/room_bed_observation_complete-03.ogg"
+    },
+    {
+      "id": "room_bed_observation_complete-04",
+      "subtitle": "Your own initials are carved into the underside of the frame.",
+      "spoken_text": "Your own initials are carved into the underside of the frame.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_bed_observation_complete-04.ogg"
+    },
+    {
+      "id": "room_wardrobe_observation_complete-01",
+      "subtitle": "The wardrobe is deeper than its back panel should allow.",
+      "spoken_text": "The wardrobe is deeper than its back panel should allow.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_wardrobe_observation_complete-01.ogg"
+    },
+    {
+      "id": "room_wardrobe_observation_complete-02",
+      "subtitle": "Scratches on the inside spell the same four digits as the radio clue.",
+      "spoken_text": "Scratches on the inside spell the same four digits as the radio clue.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_wardrobe_observation_complete-02.ogg"
+    },
+    {
+      "id": "room_wardrobe_observation_complete-03",
+      "subtitle": "When the door closes, the corridor outside sounds like a bedroom.",
+      "spoken_text": "When the door closes, the corridor outside sounds like a bedroom.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/room_wardrobe_observation_complete-03.ogg"
+    },
+    {
+      "id": "room_wardrobe_observation_complete-04",
+      "subtitle": "A coat in your childhood size is still warm at the shoulders.",
+      "spoken_text": "A coat in your childhood size is still warm at the shoulders.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_wardrobe_observation_complete-04.ogg"
+    },
+    {
+      "id": "room_family_table_observation_complete-01",
+      "subtitle": "Four plates are set, but only one has dust disturbed around it.",
+      "spoken_text": "Four plates are set, but only one has dust disturbed around it.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_family_table_observation_complete-01.ogg"
+    },
+    {
+      "id": "room_family_table_observation_complete-02",
+      "subtitle": "The family photograph on the table has been turned face down.",
+      "spoken_text": "The family photograph on the table has been turned face down.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_family_table_observation_complete-02.ogg"
+    },
+    {
+      "id": "room_family_table_observation_complete-03",
+      "subtitle": "Under the frame, someone has written: WE WERE WAITING FOR YOU.",
+      "spoken_text": "Under the frame, someone has written: We were waiting for you.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/room_family_table_observation_complete-03.ogg"
+    },
+    {
+      "id": "room_family_table_observation_complete-04",
+      "subtitle": "The empty chair turns a few degrees when you stop reading.",
+      "spoken_text": "The empty chair turns a few degrees when you stop reading.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/room_family_table_observation_complete-04.ogg"
+    },
+    {
+      "id": "memory_echo_1-01",
+      "subtitle": "The wallpaper is damp where the photograph used to hang.",
+      "spoken_text": "The wallpaper is damp where the photograph used to hang.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_echo_1-01.ogg"
+    },
+    {
+      "id": "memory_echo_1-02",
+      "subtitle": "A child's height marks stop at 00:07.",
+      "spoken_text": "A child's height marks stop at twelve oh seven.",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/memory_echo_1-02.ogg"
+    },
+    {
+      "id": "memory_echo_1-03",
+      "subtitle": "The next door opens only when you stop looking at it.",
+      "spoken_text": "The next door opens only when you stop looking at it.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_echo_1-03.ogg"
+    },
+    {
+      "id": "memory_echo_1-04",
+      "subtitle": "Something small runs across the ceiling above the impossible corner.",
+      "spoken_text": "Something small runs across the ceiling above the impossible corner.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_echo_1-04.ogg"
+    },
+    {
+      "id": "memory_echo_2-01",
+      "subtitle": "The cassette hiss is coming from inside the wall.",
+      "spoken_text": "The cassette hiss is coming from inside the wall.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/memory_echo_2-01.ogg"
+    },
+    {
+      "id": "memory_echo_2-02",
+      "subtitle": "Your voice counts footsteps that have not happened yet.",
+      "spoken_text": "One. Two. Three. Four.",
+      "role": "radio",
+      "file": "res://assets/audio/voice-over/memory_echo_2-02.ogg"
+    },
+    {
+      "id": "memory_echo_2-03",
+      "subtitle": "The impossible corner is waiting beyond the red room number.",
+      "spoken_text": "The impossible corner is waiting beyond the red room number.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_echo_2-03.ogg"
+    },
+    {
+      "id": "memory_echo_2-04",
+      "subtitle": "The counting stops only when a second pair of footsteps begins.",
+      "spoken_text": "The counting stops only when a second pair of footsteps begins.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/memory_echo_2-04.ogg"
+    },
+    {
+      "id": "memory_echo_3-01",
+      "subtitle": "The rabbit's stitched mouth is full of fresh dust.",
+      "spoken_text": "The rabbit's stitched mouth is full of fresh dust.",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/memory_echo_3-01.ogg"
+    },
+    {
+      "id": "memory_echo_3-02",
+      "subtitle": "A second set of footprints ends at the corner and turns back.",
+      "spoken_text": "A second set of footprints ends at the corner and turns back.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/memory_echo_3-02.ogg"
+    },
+    {
+      "id": "memory_echo_3-03",
+      "subtitle": "The hallway has finished remembering. The radio is awake.",
+      "spoken_text": "The hallway has finished remembering. The radio is awake.",
+      "role": "radio",
+      "file": "res://assets/audio/voice-over/memory_echo_3-03.ogg"
+    },
+    {
+      "id": "memory_echo_3-04",
+      "subtitle": "Behind the static, a child is asking why you left the door locked.",
+      "spoken_text": "Why did you leave the door locked?",
+      "role": "child",
+      "file": "res://assets/audio/voice-over/memory_echo_3-04.ogg"
+    }
+  ]
+}

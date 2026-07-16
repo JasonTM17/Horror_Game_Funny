@@ -9,6 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().physics_frame
 	gameplay._narrative.duration_scale = 0.001
+	gameplay._narrative.voice_over_enabled = false
 	var player := gameplay.player as CharacterBody3D
 
 	if not await _verify_door_gate(gameplay, player, "floor_door", "log_signed"): return

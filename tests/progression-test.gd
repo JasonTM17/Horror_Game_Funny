@@ -10,6 +10,7 @@ func _ready() -> void:
 	var player: Node = gameplay.get_node("Player")
 	var director: Node = gameplay
 	director._narrative.duration_scale = 0.02
+	director._narrative.voice_over_enabled = false
 	director._horror.effect_duration_scale = 0.05
 	GameState.reset_run()
 	var pacing_before_pause: Dictionary = director.get_playthrough_pacing_report()
@@ -240,6 +241,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	if not _require(_count_named_children(gameplay, "EndingOverlay") == 1, "duplicate ending created a second credits overlay"): return
 	if not _require(JSON.stringify(director.get_playthrough_pacing_report()) == pacing_before_duplicate, "duplicate ending mutated the pacing report"): return
+	var voice_contract_failures: PackedStringArray = director._narrative.voice_contract_failures()
+	if not _require(voice_contract_failures.is_empty(), "production narrative drifted from the voice manifest: " + "; ".join(voice_contract_failures)): return
+	if not _require(director._narrative.validated_voice_cue_count() == 70, "full progression did not exercise all 70 manifest-backed narrative lines"): return
 	AudioManager.stop_all()
 	print("PROGRESSION_TEST_OK")
 	gameplay.queue_free()

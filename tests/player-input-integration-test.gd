@@ -14,6 +14,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().physics_frame
 	_gameplay._narrative.duration_scale = 0.001
+	_gameplay._narrative.voice_over_enabled = false
 	var player := _gameplay.player as CharacterBody3D
 	var head := player.get_node("Head") as Node3D
 	var interaction := player.get_node("Head/Camera3D/Interaction")
@@ -85,6 +86,8 @@ func _verify_pause_and_flashlight(player: CharacterBody3D) -> bool:
 		flashlight.visible = true
 	SettingsManager.set_flicker_enabled(true)
 	if not _require(flashlight.process_mode == Node.PROCESS_MODE_PAUSABLE, "flashlight inherited always-on process mode from the paused player"): return false
+	flashlight._reset_flicker()
+	if not _require(float(flashlight._flicker_check_remaining) > 0.0, "flashlight can flicker immediately after spawn or reset"): return false
 	flashlight.flicker_chance = 1.0
 	flashlight.flicker_interval_min = 0.01
 	flashlight.flicker_interval_max = 0.01
