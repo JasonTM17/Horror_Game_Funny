@@ -53,6 +53,8 @@ func finish() -> void:
 	if ending:
 		return
 	ending = true
+	_player.set_input_locked("ending", true)
+	_cancel_failure_recovery()
 	GameState.advance_stage(GameState.Stage.ENDING)
 	GameState.set_objective("23:47. The shift was never scheduled.")
 	if entity != null:
@@ -69,7 +71,6 @@ func finish() -> void:
 	ending_label.position = _player.global_position + Vector3(0, 1.2, -3.0)
 	ending_label.no_depth_test = true
 	_director.add_child(ending_label)
-	_player.set_input_locked("ending", true)
 	AudioManager.play_tone("ending", 130.0, 2.0, -15.0)
 	_show_credits_after_reveal()
 
@@ -93,6 +94,9 @@ func _recover_from_failure() -> void:
 	_fail_overlay.show_failure()
 	AudioManager.play_tone("fail", 48.0, 0.5, -12.0)
 	await get_tree().create_timer(1.25).timeout
+	if ending or not recovering:
+		_cancel_failure_recovery()
+		return
 	GameState.restore_checkpoint()
 	GameState.set_flag("chase_started")
 	GameState.advance_stage(GameState.Stage.CHASE)
@@ -104,8 +108,15 @@ func _recover_from_failure() -> void:
 		entity.start_chase()
 		_play_entity_presence_cue()
 	AudioManager.start_drone("chase_drone", 58.0, -19.0, "Chase")
-	_player.set_input_locked("fail", false)
+	_cancel_failure_recovery()
+
+func _cancel_failure_recovery() -> void:
+	AudioManager.stop_tone("fail")
 	recovering = false
+	if is_instance_valid(_player):
+		_player.set_input_locked("fail", false)
+	if is_instance_valid(_fail_overlay):
+		_fail_overlay.visible = false
 
 func _play_entity_presence_cue() -> void:
 	AudioManager.stop_tone(ENTITY_PRESENCE_CUE_ID)

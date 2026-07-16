@@ -230,11 +230,24 @@ func _ready() -> void:
 		if child.name.begins_with("TheEntity"):
 			entity_count += 1
 	if not _require(entity_count == 1, "fail recovery duplicated the entity"): return
+	# Ending is terminal even if a capture coroutine already owns the fail delay.
+	# This reproduces the production overlap without sacrificing the ordinary
+	# checkpoint-recovery coverage above.
+	director._chase.request_failure()
+	if not _require(director._chase.recovering, "terminal race fixture did not start capture recovery"): return
+	var fail_audio := AudioManager._players.get("fail") as AudioStreamPlayer
+	if not _require(is_instance_valid(fail_audio) and fail_audio.stream != null and AudioManager._cache_ids.has("fail"), "terminal race fixture did not start failure audio"): return
 	director._chase.ending_reveal_duration = 0.01
 	if not _require(director.handle_story_action("exit", player), "ending should accept the completed chase path"): return
 	if not _require(GameState.stage == GameState.Stage.ENDING, "ending stage missing"): return
+	if not _require(not fail_audio.playing and fail_audio.stream == null and not AudioManager._cache_ids.has("fail"), "terminal ending retained stale failure audio or cache ownership"): return
 	if not _require(gameplay.has_node("AbandonedLobbyFloor"), "abandoned lobby reveal missing"): return
 	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the in-world reveal"): return
+	await get_tree().create_timer(1.4).timeout
+	if not _require(GameState.stage == GameState.Stage.ENDING, "capture recovery overwrote the terminal ending stage"): return
+	if not _require(GameState.objective == "23:47. The shift was never scheduled.", "capture recovery overwrote the terminal ending objective"): return
+	if not _require(not director._chase.recovering and not director._chase.entity.active and not director._chase.entity.visible, "capture recovery restarted the entity after ending"): return
+	if not _require(not player._locks.has("fail") and player._locks.has("ending") and not director._fail_overlay.visible, "ending retained stale capture UI or released its terminal lock"): return
 	if not _verify_complete_pacing_report(director): return
 	var pacing_before_duplicate: String = JSON.stringify(director.get_playthrough_pacing_report())
 	director._chase.finish()
