@@ -44,6 +44,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 
 - The voice delivery is pushed through `e1e8093`: `5b745b1` fixes initial flashlight timing, `db736f4` adds the 70-cue English voice runtime/assets, `3c17663` adds sequencing/fallback regressions, and `e1e8093` records provenance and QA. The focused post-voice hardening sequence is also pushed: `15b871c` plans the slice, `2e2abf2` prevents door-sweep collisions, and `d5e6dfb` adds the positional chase cue. Local `HEAD`, `origin/main`, and a direct `refs/heads/main` query all matched `d5e6dfb` before this documentation sync.
 - Documentation, journal, and QA evidence are pushed in `bf4cd9a`; the working tree was clean and local `HEAD`, `origin/main`, and the direct remote branch ref matched with `0/0` divergence before this metadata-only parity record.
+- Environmental interaction polish is pushed through `3b25956`: `68b479b` plans the slice, `3fef536` adds the safe animated lobby drawer and painted-door response, `7d612b4` adds production-ray/geometry/cooldown/sweep/audio teardown regressions, and `3b25956` updates contracts and journal evidence. The delivery boundary matched `origin/main` with `0/0` divergence before its metadata-only completion record.
 - All 20 production narrative groups resolve to 70 manifest-backed English OGG cues. Playback is exact-subtitle matched, SFX-routed, pause-aware, single-voice, and scene-local; malformed, missing, stale, or unloadable cues fall back without blocking progression.
 - The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in observed order, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
 - The fresh post-voice hardening suite exits `0` in 60.3 seconds with 12 logs, 10 required markers, zero scanned bad lines, and zero temporary profiles. The compressed fresh payload is complete/order-valid at 6.59 s active, 6.83 s wall, and 0.23 s paused, with `within_target: false` as intended.
@@ -52,11 +53,12 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - A real local Compatibility-renderer capture remains developer evidence, not a physical F5 traversal, and cannot prove route completion, presentation quality, audible output, or pacing.
 - Phase 1–6 status denotes completed implementation slices. Phase 7 and Phase 8 remain in progress because no authorized physical F5 keyboard/mouse playthrough has paired a same-run capture with an eligible, complete, actual-order-valid 900–1200 second payload or the chase/presentation/audio/settings matrix.
 - Post-rehearsal disk snapshot: C: 11.97 GiB free; D: 33.05 GiB free. The isolated runner and rehearsal cleanup left zero `godot-user-*` profiles behind.
+- Environmental-polish verification snapshot: C: 8.63 GiB free; D: 29.43 GiB free. The final runner left zero test profiles and no Godot/FFmpeg/Piper process; no unrelated C: data was deleted because the concurrent decline had no proven in-scope owner.
 - Manual-evidence tooling commits `46a58e8`, `ba59df0`, and `05ade4b` are pushed. They package a new editor F5 or direct project run, bind it to an unchanged clean revision, validate one unique same-session payload, reject engine/script/parse/leak failures, record capture/input/disk metadata, generate a human-review checklist, and always leave final manual-gate closure to review.
 
 ## Dependencies
 
-- No cross-plan dependencies. The pushed runtime boundary recorded for this reconciliation is `d5e6dfb`, including the voice delivery and post-voice door/chase hardening. Physical playthrough evidence and any evidence-backed final tuning remain the next release steps.
+- No cross-plan dependencies. The pushed optional-interaction runtime boundary is `3fef536`; tests and documentation are pushed through `3b25956`, on top of the voice and post-voice door/chase hardening. Physical playthrough evidence and any evidence-backed final tuning remain the next release steps.
 - Godot 4.7.1 Windows x86_64 portable under `D:\Tools`, with `_sc_` and D:-resident `TEMP`/`TMP`.
 - Compatibility renderer; procedural/created assets only.
 
@@ -65,7 +67,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - Thin autoloads: `GameState`, `SceneRouter`, `AudioManager`, `SettingsManager`.
 - Scene-local controllers for levels, events, hallway variants, puzzles, and chase.
 - Typed signal-driven progression with idempotent flags and serializable checkpoint snapshots.
-- Reusable interaction base with a 1.5 m door sweep guard and reason-scoped movement-only locks; composed player components; deterministic procedural geometry/audio.
+- Reusable interaction base with guarded door and drawer sweeps, reason-scoped movement-only locks, and a state-neutral painted-door response; composed player components; deterministic procedural geometry/audio.
 - Manifest-backed 70-cue English story voice playback plus a bounded entity-parented SFX presence cue at chase start/recovery.
 - Native `SceneTree` test runner plus Godot headless import/runtime smoke checks.
 
@@ -118,6 +120,13 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 5. `15b871c` — `docs: plan post-voice release hardening` (pushed)
 6. `2e2abf2` — `fix(interaction): prevent door sweep collisions` (pushed)
 7. `d5e6dfb` — `feat(audio): add positional chase entity cue` (pushed runtime boundary)
+
+### Environmental Interaction Polish Mapping — 2026-07-16
+
+1. `68b479b` — `docs: plan environmental interaction polish` (pushed)
+2. `3fef536` — `feat(interaction): add environmental responses` (pushed runtime boundary)
+3. `7d612b4` — `test(interaction): cover optional interaction safety` (pushed)
+4. `3b25956` — `docs: record environmental interaction contracts` (pushed delivery boundary)
 
 ## Acceptance Criteria
 

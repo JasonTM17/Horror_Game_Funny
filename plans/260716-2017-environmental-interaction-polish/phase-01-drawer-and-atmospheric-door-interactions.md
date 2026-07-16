@@ -19,13 +19,20 @@
 
 ## Implementation steps
 
-1. Add production-ray regression assertions for missing drawer and false-door contracts; record the expected failing run before implementation.
-2. Implement a designer-tunable drawer state machine with one active tween, open/close prompts, HUD feedback, spatial SFX, and teardown cleanup.
-3. Implement a non-opening atmospheric-door response with bounded cooldown, HUD feedback, spatial SFX, and teardown cleanup.
-4. Author both interactables in the continuous layout using Interactable-only colliders and verify their ray-accessible positions.
-5. Prove mapped interaction, tween spam rejection, state immutability, collider layers, SFX ownership, and cleanup in the production route fixture.
-6. Run focused green verification, the full suite, CK debugging and code review, then update truthful docs/evidence.
-7. Commit plan, runtime, tests/evidence, and parity in focused clusters; push non-force only after repository checks.
+- [x] Add production-ray regression assertions for missing drawer and false-door contracts; record the expected failing run before implementation.
+- [x] Implement a designer-tunable drawer state machine with one active tween, open/close prompts, HUD feedback, spatial SFX, and teardown cleanup.
+- [x] Implement a non-opening atmospheric-door response with bounded cooldown, HUD feedback, spatial SFX, and teardown cleanup.
+- [x] Author both interactables in the continuous layout using Interactable-only colliders and verify their ray-accessible positions.
+- [x] Prove mapped interaction, tween spam rejection, state immutability, collider layers, SFX ownership, and cleanup in the production route fixture.
+- [x] Run focused green verification, the full suite, CK debugging and code review, then update truthful docs/evidence.
+- [x] Commit plan, runtime, tests/evidence, and parity in focused clusters; push non-force only after repository checks.
+
+## Verification evidence
+
+- Controlled missing-drawer red probe: exit `2` in `3.03 s`; restored focused route printed `PHYSICAL_ROUTE_SMOKE_TEST_OK`.
+- Final canonical runner: `12/12`, `10/10` required markers, zero scanned bad lines, zero temporary profiles.
+- CK debugger, tester, initial review, and fix-only re-review findings are resolved; final review has no findings.
+- Runtime, tests, and documentation were pushed through `3b25956` without force and reached `0/0` parity.
 
 ## Risks and rollback
 

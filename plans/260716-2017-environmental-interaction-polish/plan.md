@@ -1,6 +1,6 @@
 ---
 title: Environmental interaction polish
-status: in-progress
+status: completed
 priority: P1
 branch: main
 created: '2026-07-16T20:17:00+07:00'
@@ -16,7 +16,7 @@ Close two explicit interaction gaps from the attached game specification without
 
 ## Phase
 
-- [Phase 1: drawer and atmospheric door interactions](./phase-01-drawer-and-atmospheric-door-interactions.md) — in progress
+- [Phase 1: drawer and atmospheric door interactions](./phase-01-drawer-and-atmospheric-door-interactions.md) — completed
 
 ## Acceptance criteria
 
@@ -40,3 +40,8 @@ Close two explicit interaction gaps from the attached game specification without
 
 - Godot 4.7.1 portable console executable under `D:\Tools`.
 - Existing production player ray, `Interactable` base contract, HUD feedback channel, and generated spatial-tone API.
+
+## Evidence
+
+- [QA and project-management report](./reports/pm-260716-2048-environmental-interaction-polish.md)
+- Delivery boundary `3b25956` matched `origin/main` with `0/0` divergence before this metadata-only completion record.
