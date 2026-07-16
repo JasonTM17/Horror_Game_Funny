@@ -45,11 +45,12 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 - [x] Asset credits list every authored/generated asset category and license scope.
 - [x] `docs/limitations.md` distinguishes untested export, hardware, and manual behavior from implemented gameplay.
 - [x] README quick-start works from a clean clone using the official Godot 4.7.1 executable.
-- [ ] Final Git audit must be rerun after the post-voice hardening/documentation commits and prove a clean synced branch.
+- [x] Final Git audit was rerun after the post-voice hardening/documentation commits and proved a clean synced branch at `bf4cd9a` before this metadata-only parity record.
 
 ## Current Evidence — 2026-07-16
 
 - The voice delivery is pushed through `e1e8093` in four focused commits: `5b745b1`, `db736f4`, `3c17663`, and `e1e8093`. It adds 70 manifest-backed English story cues and their verified runtime/test/provenance contracts. The post-voice sequence `15b871c`, `2e2abf2`, and `d5e6dfb` is also pushed; local `HEAD`, `origin/main`, and a direct `refs/heads/main` query matched `d5e6dfb` before this documentation sync.
+- Documentation, journal, and QA evidence landed non-force in `bf4cd9a`. The working tree was clean and local `HEAD`, `origin/main`, and the direct remote branch ref all matched `bf4cd9a` with `0/0` divergence before this metadata-only parity record.
 - The fresh post-voice 12-check Godot 4.7.1 runner exits `0` in 60.3 seconds with 12 logs, all 10 required markers, zero canonical bad-line matches, and zero temporary profiles. `menu-settings-regression.gd` and `voice-over-regression.gd` run inside `settings-audio`; neither adds a thirteenth check.
 - The current compressed fresh report is complete and order-valid at 6.59 seconds active, 6.83 seconds wall, and 0.23 seconds paused, but correctly reports `within_target: false`. The restored-run report remains incomplete/ineligible with a null total verdict.
 - Current hardening source/test evidence covers the 1.5 m door sweep, reason-scoped movement-only lock/release, and a bounded entity-parented SFX cue at chase start/recovery with failure/ending teardown. Standard review's one medium finding was fixed; adversarial review reported zero findings.
@@ -94,7 +95,7 @@ Docs describe only paths/signals/commands proven in current code. Release is sou
 
 - [x] Required source-release documentation is accurate, internally linked, and license-complete.
 - [x] Final clean-cache validation reproduces prior passing results.
-- [ ] Post-voice hardening and documentation are committed/pushed, then working-tree cleanliness and `origin/main` parity are re-proven.
+- [x] Post-voice hardening and documentation are committed/pushed; working-tree cleanliness and `origin/main` parity were re-proven at `bf4cd9a` before this metadata-only parity record.
 - [x] Current audit reports requirements/evidence, fixed/open findings, documentation changes, automated verification, renderer evidence, Git, disk, remaining gates, recommendations, and unresolved questions without claiming completion.
 - [ ] Goal is marked complete only after all acceptance evidence is present.
 
@@ -112,7 +113,6 @@ Final staged diff is scanned for tokens, passwords, local user paths, logs, and 
 
 ## Next Steps
 
-- Commit and non-force push this reviewed documentation/evidence cluster, then recheck clean local/remote parity without rewriting history.
 - Record the authorized physical F5 playthrough and manual presentation/settings evidence required by Phase 7.
 - Preserve the same-run capture and telemetry payload; use its chapter/total timings for any final tuning inside the continuous scene.
 - Keep every later evidence or tuning commit non-force and re-prove a clean working tree plus direct local/remote parity after each push.
