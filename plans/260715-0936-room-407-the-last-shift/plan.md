@@ -45,7 +45,7 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - The voice delivery is pushed through `e1e8093`: `5b745b1` fixes initial flashlight timing, `db736f4` adds the 70-cue English voice runtime/assets, `3c17663` adds sequencing/fallback regressions, and `e1e8093` records provenance and QA. The focused post-voice hardening sequence is also pushed: `15b871c` plans the slice, `2e2abf2` prevents door-sweep collisions, and `d5e6dfb` adds the positional chase cue. Local `HEAD`, `origin/main`, and a direct `refs/heads/main` query all matched `d5e6dfb` before this documentation sync.
 - Documentation, journal, and QA evidence are pushed in `bf4cd9a`; the working tree was clean and local `HEAD`, `origin/main`, and the direct remote branch ref matched with `0/0` divergence before this metadata-only parity record.
 - Environmental interaction polish is pushed through `3b25956`: `68b479b` plans the slice, `3fef536` adds the safe animated lobby drawer and painted-door response, `7d612b4` adds production-ray/geometry/cooldown/sweep/audio teardown regressions, and `3b25956` updates contracts and journal evidence. The delivery boundary matched `origin/main` with `0/0` divergence before its metadata-only completion record.
-- All 20 production narrative groups resolve to 70 manifest-backed English OGG cues. Playback is exact-subtitle matched, SFX-routed, pause-aware, single-voice, and scene-local; malformed, missing, stale, or unloadable cues fall back without blocking progression.
+- All 22 production narrative groups resolve to 76 manifest-backed English OGG cues. Playback is exact-subtitle matched, SFX-routed, pause-aware, single-voice, and scene-local; malformed, missing, stale, or unloadable cues fall back without blocking progression.
 - The scene-local telemetry snapshots fresh-Lobby eligibility once, records all stage boundaries in observed order, separates active/wall/paused time, finalizes at visible credits, freezes after reset, and emits one JSON payload. Checkpoint, incomplete, and invalid-order evidence receives no total verdict.
 - The fresh post-voice hardening suite exits `0` in 60.3 seconds with 12 logs, 10 required markers, zero scanned bad lines, and zero temporary profiles. The compressed fresh payload is complete/order-valid at 6.59 s active, 6.83 s wall, and 0.23 s paused, with `within_target: false` as intended.
 - A historical fresh clone of `origin/main` at `c38fde9` independently reproduced `SuiteExit 0`, 12 logs, 9 markers, zero bad lines, zero temporary profiles, and zero dirty lines, then was removed from the verified repository-local temp root. That rehearsal predates the project-settings marker and voice delivery; it is not presented as the current hardening revision.
@@ -68,13 +68,13 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - Scene-local controllers for levels, events, hallway variants, puzzles, and chase.
 - Typed signal-driven progression with idempotent flags and serializable checkpoint snapshots.
 - Reusable interaction base with guarded door and drawer sweeps, reason-scoped movement-only locks, and a state-neutral painted-door response; composed player components; deterministic procedural geometry/audio.
-- Manifest-backed 70-cue English story voice playback plus a bounded entity-parented SFX presence cue at chase start/recovery.
+- Manifest-backed 76-cue English story voice playback, including the two-step voiced epilogue, plus a bounded entity-parented SFX presence cue at chase start/recovery.
 - Native `SceneTree` test runner plus Godot headless import/runtime smoke checks.
 
 ## Scope Boundary
 
 - Required: all acceptance items in the project brief, 15–20 minute main ending.
-- Deferred: optional secondary ending, crouch, persistent save across application restarts, external art/prop packs, human-performed acting, non-English localization, and export templates/binary release. Generated English voiced dialogue is implemented for all 70 sequenced story lines.
+- Deferred: optional secondary ending, crouch, persistent save across application restarts, external art/prop packs, human-performed acting, non-English localization, and export templates/binary release. Generated English voiced dialogue is implemented for all 76 sequenced story lines.
 - Never defer: ending, checkpoint/fail recovery, both puzzles, three memories, chase, settings, documentation, or main-path QA.
 
 ## Atomic Commit Sequence

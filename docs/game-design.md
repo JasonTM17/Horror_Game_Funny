@@ -117,7 +117,7 @@ Configured speed values are:
 
 The automated layout test proves `walk < entity < sprint`, verifies `STALK`, checks physical lane blocking and capsule clearance, confirms the path turns through all three bypasses, and drives the live-LOS entity across the first obstruction without failure or despawn. It does not prove rendered readability, player-driven traversal through all three barriers, collision feel, or human chase fairness; those remain manual checks.
 
-The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, builds the abandoned-lobby reveal, locks player input, stops the chase, holds the in-world view for three seconds, and opens the credits overlay in the same gameplay scene.
+The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, stops the chase, and builds the abandoned-lobby reveal in the same gameplay scene. The player remains in control and must inspect two separated physical props in order: the 2007 condemnation notice, then the night roster. Each interaction delivers three voiced revelations; the roster stays gated until the notice narration finishes, and credits stay gated until the roster narration finishes. Only visible credits lock input and finalize pacing.
 
 ## Failure and Recovery
 
@@ -166,6 +166,7 @@ Release validation still needs a recorded manual run covering:
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
+- [`ending-epilogue-controller.gd`](../scripts/world/ending-epilogue-controller.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)

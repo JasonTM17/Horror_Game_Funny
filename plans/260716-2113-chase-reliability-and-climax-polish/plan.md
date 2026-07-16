@@ -34,7 +34,7 @@ Deliver three sequential, headless-verifiable improvements without splitting the
 |---|---|---|
 | 1 | [Terminal ending transition](./phase-01-terminal-ending-transition.md) | Completed |
 | 2 | [Navigation-safe chase route](./phase-02-navigation-safe-chase-route.md) | Completed |
-| 3 | [Voiced interactive epilogue](./phase-03-voiced-interactive-epilogue.md) | Pending |
+| 3 | [Voiced interactive epilogue](./phase-03-voiced-interactive-epilogue.md) | Completed |
 | 4 | [Full QA, review, documentation, and delivery](./phase-04-qa-review-and-delivery.md) | Pending |
 
 ## Evidence Baseline

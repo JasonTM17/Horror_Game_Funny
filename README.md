@@ -52,7 +52,7 @@ The pause menu includes Settings. Mouse sensitivity, field of view, four audio l
 - A radio-completion checkpoint at `room_entrance` before the Room 407 threshold, a fourth-floor elevator display/real-door arrival beat, and a timed non-colliding apparition.
 - Procedural fourth-floor dressing, Room 407 height-mark/room dressing, and a pre-chase manifestation that clears before the chase entity starts.
 - Optional, state-neutral environmental interactions: a visible lobby desk drawer animates open and closed with sweep-safe movement locking and a positional tone, while the painted fourth-floor false door stays fixed and returns explicit feedback with its own positional tone.
-- A three-second in-world ending reveal before the credits overlay appears.
+- A two-step in-world ending investigation with six voiced revelations before the credits overlay appears.
 - Pause-aware playthrough pacing telemetry for fresh Lobby runs, finalized when the visible credits appear.
 - Boot-menu Continue when an in-memory checkpoint exists.
 
@@ -85,7 +85,7 @@ The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Go
 
 The existing `physical-route` check also covers the optional drawer and painted door: structural visibility/alignment, production-ray acquisition, mapped feedback, cooldown/spam behavior, drawer sweep rejection and movement-only locking, open/close animation, unchanged story state, and spatial-tone/lock cleanup on teardown. These remain headless contract assertions, not rendered-visual, audible-mix, or physical-input evidence.
 
-The suite also covers progression/scare/chase invariants, audio cache variants/LRU/live-player teardown, all 70 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible voice quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+The suite also covers progression/scare/chase invariants, the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered visual balance, audible voice quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
 The fresh post-environmental-interaction run on 2026-07-16 passed all 12 checks in 64.7 seconds, produced 12 canonical logs and 10 required markers, contained zero scanned failure lines, and left zero temporary Godot profiles. This is automated contract evidence only; the physical and perceptual gates above remain open.
 
@@ -116,7 +116,7 @@ The generated Markdown includes an unchecked human-review matrix. The capture pa
 
 ## Assets
 
-There is no third-party art or recorded-sound pack. Corridor geometry, props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 70 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
+There is no third-party art or recorded-sound pack. Corridor geometry, props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 76 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
 
 No gameplay captures are committed. Add only verified in-engine captures under `docs/screenshots/` after a manual visual pass; do not present concept art as gameplay. See [Asset credits and provenance](docs/asset-credits.md).
 

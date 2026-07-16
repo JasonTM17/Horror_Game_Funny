@@ -16,6 +16,7 @@ All notable changes to this project are documented here.
 - Persisted settings at `user://room407.cfg` for controls, display, audio, and comfort options.
 - Twelve-check Windows headless runner with per-check logs under `.artifacts/`, including targeted production-player movement/door collision and isolated two-process settings persistence.
 - Physical-playthrough evidence runner that preserves same-session logs, validates one unique 15–20 minute payload, records disk/commit/capture metadata, and keeps analysis-only or mixed-run evidence ineligible for release closure.
+- Two-step in-world ending investigation with a condemnation notice, night roster, six manifest-backed voice cues, and credits gated behind completed narration.
 
 ### Changed
 
@@ -27,6 +28,8 @@ All notable changes to this project are documented here.
 - `f1bc63c` made flashlight flicker a bounded timed pulse that resets cleanly and stops advancing while paused.
 - `c38fde9` made boot/pause Settings focus-modal, restored launcher focus, and exposed failed config writes with retry/discard actions.
 - Expanded the existing twelve-check suite without adding a thirteenth runner entry, covering progression transactions, rendered scare cleanup, bounded chase search, audio cache/lifetime contracts, pause-safe flicker, and Settings focus/save-failure recovery.
+- Replaced the passive three-second ending delay with two ray-reachable gameplay-root interactions while preserving the chase controller as the exactly-once visible-credits pacing boundary.
+- Expanded the English story voice set from 70 to 76 reviewed mono 22.05 kHz OGG cues; the six ending lines provide 30.596 seconds of decoded narration.
 
 - Split progression, chase, recovery, and ending responsibilities out of the gameplay facade.
 - Added authored observation beats inside the continuous route: the stopped desk clock, night register, floor notice, three memory echoes, and three Room 407 searches now gate the next story step with readable narrative feedback.
@@ -44,10 +47,11 @@ All notable changes to this project are documented here.
 - `05ade4b` binds physical evidence to one clean, unchanged branch/commit and generates the human-review checklist required before release closure.
 - `1321971` enforced atomic quest-item consumption, permanent run-local fourth-floor unlock, and the pre-Room `room_entrance` checkpoint invariant.
 - `e4b8386` aligned the chase entity body with the floor and bounded lost-target search through deterministic `DESPAWN`/restart behavior.
+- Made restored checkpoint inventory, flags, and completed-event collections independent copies so later story state cannot mutate the saved snapshot by aliasing.
 
 - Restored the memory-derived hallway variant when Continue rebuilds a Room 407 or chase checkpoint.
 - Preserved radio cooldown across close/reopen attempts and prevented stale feedback timers from clearing a new attempt.
-- Added an in-world observation window before the ending credits cover the abandoned-lobby reveal.
+- Added an in-world interactive investigation before the ending credits cover the abandoned-lobby reveal.
 - Converted chase retreat beyond the authored route into checkpoint recovery instead of silently disabling the entity.
 - Isolated headless test settings from the real Godot user profile and made leak warnings fail the runner.
 - Released procedural audio players synchronously and added a short audio-server drain in the regression fixture so WAV playback objects do not leak during shutdown.
