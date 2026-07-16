@@ -1,8 +1,8 @@
 extends Node
 
 const GAMEPLAY_SCENE := preload("res://scenes/gameplay/gameplay.tscn")
-const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 const PACING_SCRIPT := preload("res://scripts/world/playthrough-pacing-telemetry.gd")
+const EXPECTED_ENTITY_PRESENCE_CUE_ID := "chase_entity_presence"
 
 func _ready() -> void:
 	GameState.reset_run()
@@ -91,11 +91,12 @@ func _ready() -> void:
 		var open_hit := gameplay.get_world_3d().direct_space_state.intersect_ray(open_query)
 		if not _require(open_hit.is_empty(), "%s collision still blocks the open passage" % door_id): return
 	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_RESPAWN_Z)
-	var chase_entity: CharacterBody3D = ENTITY_SCRIPT.new() as CharacterBody3D
-	chase_entity.position = player.position + Vector3(0, 0, 18.0)
-	gameplay.add_child(chase_entity)
-	chase_entity.setup(player, gameplay)
-	chase_entity.start_chase()
+	if not _require(ChaseSequenceController.ENTITY_PRESENCE_CUE_ID == EXPECTED_ENTITY_PRESENCE_CUE_ID, "chase entity presence cue ID changed unexpectedly"): return
+	gameplay._chase.start()
+	var chase_entity: CharacterBody3D = gameplay._chase.entity
+	if not _require(is_instance_valid(chase_entity), "production chase controller did not create its entity"): return
+	if not _verify_entity_presence_cue(chase_entity, "chase start"): return
+	chase_entity.global_position = player.global_position + Vector3(0, 0, 18.0)
 	var appear_origin := chase_entity.global_position
 	for _frame in 18:
 		await get_tree().physics_frame
@@ -179,23 +180,28 @@ func _ready() -> void:
 	if not _require(chase_entity.global_position.distance_to(exit_despawn_origin) < 0.01 and not chase_entity.active, "backtracking restarted an escaped enemy without a chase reset"): return
 	chase_entity.start_chase()
 	if not _require(chase_entity.visible and chase_entity._last_target_position.distance_to(player.global_position) < 0.05, "checkpoint restart retained stale target memory"): return
-	gameplay._chase.entity = chase_entity
 	GameState.set_flag("chase_started")
+	gameplay._chase._play_entity_presence_cue()
+	if not _verify_entity_presence_cue(chase_entity, "pre-recovery replay"): return
 	player.global_position = Vector3(0, 0.02, WorldLayout.CHASE_TRIGGER_Z + 26.0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	if not _require(gameplay._chase.recovering, "retreating out of the chase did not request checkpoint recovery"): return
+	if not _require(_entity_presence_players().is_empty(), "failure recovery left the stale entity cue playing"): return
 	await get_tree().create_timer(1.4).timeout
 	if not _require(is_equal_approx(player.global_position.z, WorldLayout.CHASE_RESPAWN_Z), "retreat recovery did not restore the chase marker"): return
-	chase_entity.stop_chase()
-	chase_entity.queue_free()
+	if not _verify_entity_presence_cue(chase_entity, "checkpoint recovery"): return
 	var loop_distance := absf(WorldLayout.LOOP_GATE_Z - WorldLayout.MEMORY_START_Z)
 	var chase_distance := absf(WorldLayout.EXIT_Z - WorldLayout.CHASE_TRIGGER_Z)
 	if not _require(loop_distance >= 180.0, "memory loop is too short for authored pacing"): return
 	if not _require(chase_distance >= 280.0, "chase route is too short"): return
 	if not _require(WorldLayout.FLOOR_LENGTH >= 850.0, "continuous world length regressed"): return
+	gameplay._chase._play_entity_presence_cue()
+	if not _verify_entity_presence_cue(chase_entity, "ending teardown fixture"): return
 	gameplay._chase.ending_reveal_duration = 0.01
 	gameplay.finish_ending()
+	if not _require(_entity_presence_players().is_empty(), "ending teardown retained the entity presence player"): return
+	if not _require(not AudioManager._cache_ids.has(EXPECTED_ENTITY_PRESENCE_CUE_ID), "ending teardown retained entity presence cache ownership"): return
 	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "restored run did not show credits before pacing finalization"): return
 	var finalized_report: Dictionary = gameplay.get_playthrough_pacing_report()
 	if not _require(not bool(finalized_report.get("eligible_full_run", true)), "finalized checkpoint run became eligible for pacing evidence"): return
@@ -213,6 +219,24 @@ func _ready() -> void:
 	# The audio server releases the ending playback on its mix thread.
 	await get_tree().create_timer(0.2).timeout
 	get_tree().quit()
+
+func _verify_entity_presence_cue(entity: CharacterBody3D, phase: String) -> bool:
+	var matching_players := _entity_presence_players()
+	if not _require(matching_players.size() == 1, "%s created %d entity presence cues instead of one" % [phase, matching_players.size()]): return false
+	var cue := matching_players[0]
+	if not _require(cue.get_parent() == entity and cue.position.is_equal_approx(Vector3.ZERO), "%s cue is not attached to the chase entity" % phase): return false
+	if not _require(cue.bus == "SFX" and cue.max_distance > 0.0 and cue.max_distance <= 18.0, "%s cue is not bounded or routed through SFX" % phase): return false
+	if not _require(cue.stream != null and AudioManager._cache_ids.has(EXPECTED_ENTITY_PRESENCE_CUE_ID), "%s cue has no stream or cache ownership" % phase): return false
+	return true
+
+func _entity_presence_players() -> Array[AudioStreamPlayer3D]:
+	AudioManager._prune_spatial_players()
+	var matching_players: Array[AudioStreamPlayer3D] = []
+	for spatial_player: AudioStreamPlayer3D in AudioManager._spatial_players:
+		var cue_id := str(AudioManager._spatial_player_ids.get(spatial_player.get_instance_id(), ""))
+		if cue_id == EXPECTED_ENTITY_PRESENCE_CUE_ID:
+			matching_players.append(spatial_player)
+	return matching_players
 
 func _require(condition: bool, message: String) -> bool:
 	if condition:

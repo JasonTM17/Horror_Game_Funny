@@ -5,6 +5,7 @@ signal credits_shown
 
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
 const ENDING_SCENE := preload("res://scenes/ui/ending-overlay.tscn")
+const ENTITY_PRESENCE_CUE_ID := "chase_entity_presence"
 
 var entity: CharacterBody3D
 var ending := false
@@ -37,6 +38,7 @@ func start() -> void:
 	_build_entity_body()
 	_fail_corridor_lights()
 	entity.start_chase()
+	_play_entity_presence_cue()
 	AudioManager.play_tone("chase_alarm", 72.0, 1.2, -9.0)
 	AudioManager.start_drone("chase_drone", 58.0, -19.0, "Chase")
 	_player.add_camera_shake(0.06, 1.0)
@@ -56,6 +58,7 @@ func finish() -> void:
 	if entity != null:
 		entity.stop_chase()
 		entity.visible = false
+	AudioManager.stop_tone(ENTITY_PRESENCE_CUE_ID)
 	AudioManager.stop_tone("chase_drone")
 	_build_abandoned_lobby_reveal()
 	var ending_label := Label3D.new()
@@ -85,6 +88,7 @@ func _recover_from_failure() -> void:
 	if entity != null:
 		entity.stop_chase()
 		entity.visible = false
+	AudioManager.stop_tone(ENTITY_PRESENCE_CUE_ID)
 	AudioManager.stop_tone("chase_drone")
 	_fail_overlay.show_failure()
 	AudioManager.play_tone("fail", 48.0, 0.5, -12.0)
@@ -98,9 +102,15 @@ func _recover_from_failure() -> void:
 		entity.global_position = _player.global_position + Vector3(0, 0, 8.5)
 		entity.visible = true
 		entity.start_chase()
+		_play_entity_presence_cue()
 	AudioManager.start_drone("chase_drone", 58.0, -19.0, "Chase")
 	_player.set_input_locked("fail", false)
 	recovering = false
+
+func _play_entity_presence_cue() -> void:
+	AudioManager.stop_tone(ENTITY_PRESENCE_CUE_ID)
+	if is_instance_valid(entity):
+		AudioManager.play_spatial_tone(entity, ENTITY_PRESENCE_CUE_ID, 92.0, 1.4, -11.0)
 
 func _build_entity_body() -> void:
 	var mesh := MeshInstance3D.new()
