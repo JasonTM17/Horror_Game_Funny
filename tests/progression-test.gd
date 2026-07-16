@@ -192,8 +192,10 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("room_family_table", player), "family table observation must be one-shot"): return
 	player.global_position.z = WorldLayout.FINAL_CLUE_Z + 1.0
 	if not _require(director.handle_story_action("final_clue", player), "final clue should open note"): return
-	director.on_note_closed()
+	if not _require(director._story._note_ui != null and director._story._note_ui.visible, "final clue note UI did not open"): return
+	director._story._note_ui.close_note()
 	if not _require(GameState.has_flag("final_clue_seen"), "final clue flag missing"): return
+	if not _require(not player._locks.has("note"), "closing the final clue retained its input lock"): return
 	var room_manifestation := director._horror.get_node_or_null("RoomEntityManifestation") as Node3D
 	if not _require(room_manifestation != null and room_manifestation.has_node("EyeLeft") and not _contains_collision_object(room_manifestation), "pre-chase Room 407 manifestation is missing or physical"): return
 	if not _require(room_manifestation.global_position.distance_to(player.global_position) <= 18.0, "pre-chase manifestation spawned outside its spatial cue range"): return
@@ -237,12 +239,35 @@ func _ready() -> void:
 	if not _require(director._chase.recovering, "terminal race fixture did not start capture recovery"): return
 	var fail_audio := AudioManager._players.get("fail") as AudioStreamPlayer
 	if not _require(is_instance_valid(fail_audio) and fail_audio.stream != null and AudioManager._cache_ids.has("fail"), "terminal race fixture did not start failure audio"): return
-	director._chase.ending_reveal_duration = 0.01
+	if not _require(not director.handle_story_action("ending_notice", player), "epilogue notice accepted before Ending"): return
+	var checkpoint_before_ending := JSON.stringify(GameState.checkpoint)
+	var credits_count := [0]
+	director._chase.credits_shown.connect(func() -> void: credits_count[0] += 1)
 	if not _require(director.handle_story_action("exit", player), "ending should accept the completed chase path"): return
 	if not _require(GameState.stage == GameState.Stage.ENDING, "ending stage missing"): return
 	if not _require(not fail_audio.playing and fail_audio.stream == null and not AudioManager._cache_ids.has("fail"), "terminal ending retained stale failure audio or cache ownership"): return
 	if not _require(gameplay.has_node("AbandonedLobbyFloor"), "abandoned lobby reveal missing"): return
-	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the in-world reveal"): return
+	var ending_notice := gameplay.get_node_or_null("ending_notice") as StoryInteractable
+	var ending_roster := gameplay.get_node_or_null("ending_roster") as StoryInteractable
+	if not _require(ending_notice != null and ending_roster != null and ending_notice.get_parent() == gameplay and ending_roster.get_parent() == gameplay, "epilogue props are not distinct gameplay-root interactables"): return
+	if not _require(ending_notice.global_position.distance_to(ending_roster.global_position) >= 2.5, "epilogue props are not spatially separated"): return
+	if not _require(ending_notice.get_node_or_null("CollisionShape3D") != null and ending_roster.get_node_or_null("CollisionShape3D") != null, "epilogue props have no production collision shapes"): return
+	if not _require(not gameplay.has_node("EndingOverlay") and credits_count[0] == 0, "credits appeared before either epilogue reveal"): return
+	if not _require(not player.is_input_locked() and not player.is_movement_locked() and not player._locks.has("fail") and not director._fail_overlay.visible, "epilogue investigation retained an input lock: %s" % [player._locks.keys()]): return
+	if not _require(director.get_story_prompt("ending_notice", player) == "[E] Read the 2007 condemnation notice", "ending notice prompt is missing or unclear"): return
+	if not _require(director.get_story_prompt("ending_roster", player).is_empty() and not director.handle_story_action("ending_roster", player), "night roster bypassed the notice narration gate"): return
+	if not _require(director.handle_story_action("ending_notice", player), "ending notice did not start"): return
+	if not _require(not director.handle_story_action("ending_notice", player), "ending notice accepted a duplicate action"): return
+	if not _require(not gameplay.has_node("EndingOverlay") and not player.is_input_locked(), "notice interaction showed credits or locked investigation early"): return
+	if not _require(await _wait_for_flag("ending_notice_complete"), "ending notice narration did not complete"): return
+	if not _require(director.get_story_prompt("ending_roster", player) == "[E] Read the night roster", "night roster did not unlock after notice narration"): return
+	if not _require(director.handle_story_action("ending_roster", player), "night roster did not start"): return
+	if not _require(not director.handle_story_action("ending_roster", player), "night roster accepted a duplicate action"): return
+	if not _require(not gameplay.has_node("EndingOverlay") and credits_count[0] == 0 and not player.is_input_locked(), "roster interaction finalized before its narration completed"): return
+	if not _require(await _wait_for_flag("ending_roster_complete"), "night roster narration did not complete"): return
+	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the completed interactive epilogue"): return
+	if not _require(credits_count[0] == 1 and player._locks.has("ending") and player.is_input_locked(), "visible credits did not apply exactly one terminal input lock and signal"): return
+	if not _require(JSON.stringify(GameState.checkpoint) == checkpoint_before_ending, "interactive epilogue mutated the chase checkpoint"): return
 	await get_tree().create_timer(1.4).timeout
 	if not _require(GameState.stage == GameState.Stage.ENDING, "capture recovery overwrote the terminal ending stage"): return
 	if not _require(GameState.objective == "23:47. The shift was never scheduled.", "capture recovery overwrote the terminal ending objective"): return
@@ -251,12 +276,14 @@ func _ready() -> void:
 	if not _verify_complete_pacing_report(director): return
 	var pacing_before_duplicate: String = JSON.stringify(director.get_playthrough_pacing_report())
 	director._chase.finish()
+	director._chase.show_credits()
 	await get_tree().process_frame
 	if not _require(_count_named_children(gameplay, "EndingOverlay") == 1, "duplicate ending created a second credits overlay"): return
+	if not _require(credits_count[0] == 1, "duplicate ending emitted credits more than once"): return
 	if not _require(JSON.stringify(director.get_playthrough_pacing_report()) == pacing_before_duplicate, "duplicate ending mutated the pacing report"): return
 	var voice_contract_failures: PackedStringArray = director._narrative.voice_contract_failures()
 	if not _require(voice_contract_failures.is_empty(), "production narrative drifted from the voice manifest: " + "; ".join(voice_contract_failures)): return
-	if not _require(director._narrative.validated_voice_cue_count() == 70, "full progression did not exercise all 70 manifest-backed narrative lines"): return
+	if not _require(director._narrative.validated_voice_cue_count() == 76, "full progression did not exercise all 76 manifest-backed narrative lines"): return
 	AudioManager.stop_all()
 	print("PROGRESSION_TEST_OK")
 	gameplay.queue_free()

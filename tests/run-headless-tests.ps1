@@ -74,7 +74,7 @@ try {
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/gameplay/gameplay.tscn", "--quit-after", "20") "gameplay"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--script", "res://tests/game-state-test.gd", "--quit-after", "20") "game-state" "GAME_STATE_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/progression-test.tscn", "--quit-after", "1200") "progression" "PROGRESSION_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/checkpoint-layout-test.tscn", "--quit-after", "1600") "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/checkpoint-layout-test.tscn", "--quit-after", "2000") "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/physical-route-smoke-test.tscn", "--quit-after", "1800") "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/player-input-integration-test.tscn", "--quit-after", "600") "player-input" "PLAYER_INPUT_INTEGRATION_TEST_OK"
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/visual-effects-test.tscn", "--quit-after", "180") "visual-effects" "VISUAL_EFFECTS_TEST_OK"

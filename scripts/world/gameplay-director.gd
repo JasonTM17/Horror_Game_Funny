@@ -11,6 +11,7 @@ const HALLWAY_TRANSITION_SCRIPT := preload("res://scripts/ui/hallway-transition-
 const VISUAL_EFFECTS_SCRIPT := preload("res://scripts/ui/visual-effects-layer.gd")
 const STORY_CONTROLLER_SCRIPT := preload("res://scripts/world/story-progression-controller.gd")
 const CHASE_CONTROLLER_SCRIPT := preload("res://scripts/world/chase-sequence-controller.gd")
+const EPILOGUE_CONTROLLER_SCRIPT := preload("res://scripts/world/ending-epilogue-controller.gd")
 const PACING_TELEMETRY_SCRIPT := preload("res://scripts/world/playthrough-pacing-telemetry.gd")
 
 var player: CharacterBody3D
@@ -19,6 +20,7 @@ var _horror: Node3D
 var _narrative: Node
 var _story: StoryProgressionController
 var _chase: ChaseSequenceController
+var _epilogue: Node
 var _fail_overlay: CanvasLayer
 var _pacing: Node
 
@@ -47,6 +49,10 @@ func _ready() -> void:
 	_chase = CHASE_CONTROLLER_SCRIPT.new() as ChaseSequenceController
 	add_child(_chase)
 	_chase.setup(player, self, _fail_overlay)
+	_epilogue = EPILOGUE_CONTROLLER_SCRIPT.new()
+	add_child(_epilogue)
+	_epilogue.setup(self, player, _narrative)
+	_epilogue.credits_requested.connect(_chase.show_credits)
 	_pacing = PACING_TELEMETRY_SCRIPT.new()
 	_pacing.name = "PlaythroughPacingTelemetry"
 	add_child(_pacing)
@@ -109,9 +115,13 @@ func _spawn_player() -> void:
 	add_child(_fail_overlay)
 
 func get_story_prompt(action_id: String, actor: Node) -> String:
+	if _epilogue != null and _epilogue.owns_action(action_id):
+		return _epilogue.get_prompt(action_id, actor)
 	return _story.get_prompt(action_id, actor) if _story != null else ""
 
 func handle_story_action(action_id: String, actor: Node) -> bool:
+	if _epilogue != null and _epilogue.owns_action(action_id):
+		return _epilogue.handle_action(action_id, actor)
 	return _story.handle_action(action_id, actor) if _story != null else false
 
 func on_radio_solved() -> void:
@@ -127,7 +137,8 @@ func fail_chase() -> void:
 	_chase.request_failure()
 
 func finish_ending() -> void:
-	_chase.finish()
+	if _chase.finish():
+		_epilogue.begin(player.global_position)
 
 func get_playthrough_pacing_report() -> Dictionary:
 	return _pacing.get_report().duplicate(true) if _pacing != null else {}

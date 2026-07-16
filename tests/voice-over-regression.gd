@@ -23,6 +23,8 @@ const EXPECTED_SEQUENCE_LENGTHS := {
 	"memory_echo_1": 4,
 	"memory_echo_2": 4,
 	"memory_echo_3": 4,
+	"ending_notice_complete": 3,
+	"ending_roster_complete": 3,
 }
 
 var _host: Node
@@ -36,13 +38,13 @@ func run(host: Node) -> bool:
 	if not _require(player.process_mode == Node.PROCESS_MODE_PAUSABLE, "voice playback is not pause-aware"): return false
 	if not _require(player.max_polyphony == 1, "voice player can overlap multiple cues"): return false
 	if not _require(player.manifest_error().is_empty(), "manifest load failed: " + player.manifest_error()): return false
-	if not _require(player.cue_count() == 70, "manifest does not contain all 70 reviewed narrative cues"): return false
+	if not _require(player.cue_count() == 76, "manifest does not contain all 76 reviewed narrative cues"): return false
 	for completion_flag: String in EXPECTED_SEQUENCE_LENGTHS:
 		for line_index in range(EXPECTED_SEQUENCE_LENGTHS[completion_flag]):
 			if not _require(player.has_cue_id(completion_flag, line_index), "%s line %d has no cue id" % [completion_flag, line_index + 1]): return false
 	var asset_failures := player.validate_assets()
 	if not _require(asset_failures.is_empty(), "voice asset validation failed: " + "; ".join(asset_failures)): return false
-	if not _require(player.cached_stream_count() == 70, "asset validation did not load every reviewed cue"): return false
+	if not _require(player.cached_stream_count() == 76, "asset validation did not load every reviewed cue"): return false
 	if not _require(VoiceOverPlayer.make_cue_id("phone_briefing_complete", 0) == "phone_briefing_complete-01", "cue id mapping is unstable"): return false
 
 	var manager_subtitle := "MANAGER: You are covering the last shift, yes?"
@@ -57,6 +59,11 @@ func run(host: Node) -> bool:
 	var scaled_wait := VoiceOverPlayer.line_wait_seconds(4.0, 0.05, long_duration)
 	if not _require(scaled_wait >= long_duration + VoiceOverPlayer.END_PADDING_SECONDS, "duration scale can cut off a long voice cue"): return false
 	if not _require(is_equal_approx(VoiceOverPlayer.line_wait_seconds(5.0, 0.5, 1.0), 2.5), "short voice cue changed the scaled authored hold"): return false
+	var epilogue_hold := 0.0
+	for completion_flag in ["ending_notice_complete", "ending_roster_complete"]:
+		for line_index in 3:
+			epilogue_hold += player.cue_duration(completion_flag, line_index, _epilogue_subtitle(completion_flag, line_index))
+	if not _require(epilogue_hold >= 21.0, "six voiced epilogue cues provide less than 21 seconds of meaningful hold"): return false
 
 	var first_duration := player.play_cue("phone_briefing_complete", 0, manager_subtitle)
 	var first_stream := player.stream
@@ -187,3 +194,18 @@ func _require(condition: bool, message: String) -> bool:
 	if _host != null:
 		_host.get_tree().quit(2)
 	return false
+
+func _epilogue_subtitle(completion_flag: String, line_index: int) -> String:
+	var lines := {
+		"ending_notice_complete": [
+			"The condemnation notice is dated October 2007, sixteen years before tonight.",
+			"Room 407 is named as the origin of a fire the hotel never reported.",
+			"Your childhood signature appears beneath one line: only survivor.",
+		],
+		"ending_roster_complete": [
+			"The night roster lists no manager, no guard, and no scheduled shift.",
+			"Every voice you heard belongs to the Room 407 casualty list.",
+			"Your name is crossed out. Beside it, the clock reads 23:47.",
+		],
+	}
+	return str((lines[completion_flag] as Array)[line_index])

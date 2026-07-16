@@ -501,6 +501,48 @@
       "spoken_text": "Why did you leave the door locked?",
       "role": "child",
       "file": "res://assets/audio/voice-over/memory_echo_3-04.ogg"
+    },
+    {
+      "id": "ending_notice_complete-01",
+      "subtitle": "The condemnation notice is dated October 2007, sixteen years before tonight.",
+      "spoken_text": "The condemnation notice is dated October two thousand seven, sixteen years before tonight.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/ending_notice_complete-01.ogg"
+    },
+    {
+      "id": "ending_notice_complete-02",
+      "subtitle": "Room 407 is named as the origin of a fire the hotel never reported.",
+      "spoken_text": "Room four oh seven is named as the origin of a fire the hotel never reported.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/ending_notice_complete-02.ogg"
+    },
+    {
+      "id": "ending_notice_complete-03",
+      "subtitle": "Your childhood signature appears beneath one line: only survivor.",
+      "spoken_text": "Your childhood signature appears beneath one line: only survivor.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/ending_notice_complete-03.ogg"
+    },
+    {
+      "id": "ending_roster_complete-01",
+      "subtitle": "The night roster lists no manager, no guard, and no scheduled shift.",
+      "spoken_text": "The night roster lists no manager, no guard, and no scheduled shift.",
+      "role": "narrator",
+      "file": "res://assets/audio/voice-over/ending_roster_complete-01.ogg"
+    },
+    {
+      "id": "ending_roster_complete-02",
+      "subtitle": "Every voice you heard belongs to the Room 407 casualty list.",
+      "spoken_text": "Every voice you heard belongs to the Room four oh seven casualty list.",
+      "role": "recording",
+      "file": "res://assets/audio/voice-over/ending_roster_complete-02.ogg"
+    },
+    {
+      "id": "ending_roster_complete-03",
+      "subtitle": "Your name is crossed out. Beside it, the clock reads 23:47.",
+      "spoken_text": "Your name is crossed out. Beside it, the clock reads twenty-three forty-seven.",
+      "role": "whisper",
+      "file": "res://assets/audio/voice-over/ending_roster_complete-03.ogg"
     }
   ]
 }

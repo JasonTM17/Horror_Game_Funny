@@ -20,6 +20,8 @@ func _ready() -> void:
 	add_child(gameplay)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	gameplay._narrative.duration_scale = 0.001
+	gameplay._narrative.voice_over_enabled = false
 	var player: Node3D = gameplay.get_node("Player") as Node3D
 	if not _require(is_equal_approx(player.position.z, WorldLayout.ROOM_CHECKPOINT_Z), "safe pre-door room spawn marker ignored"): return
 	if not _require(GameState.objective == "Restored checkpoint objective", "checkpoint objective overwritten"): return
@@ -265,11 +267,25 @@ func _ready() -> void:
 	if not _require(WorldLayout.FLOOR_LENGTH >= 850.0, "continuous world length regressed"): return
 	gameplay._chase._play_entity_presence_cue()
 	if not _verify_entity_presence_cue(chase_entity, "ending teardown fixture"): return
-	gameplay._chase.ending_reveal_duration = 0.01
+	var checkpoint_before_ending := JSON.stringify(GameState.checkpoint)
 	gameplay.finish_ending()
 	if not _require(_entity_presence_players().is_empty(), "ending teardown retained the entity presence player"): return
 	if not _require(not AudioManager._cache_ids.has(EXPECTED_ENTITY_PRESENCE_CUE_ID), "ending teardown retained entity presence cache ownership"): return
-	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "restored run did not show credits before pacing finalization"): return
+	var ending_notice := gameplay.get_node_or_null("ending_notice") as StoryInteractable
+	var ending_roster := gameplay.get_node_or_null("ending_roster") as StoryInteractable
+	if not _require(ending_notice != null and ending_roster != null, "restored run did not build both epilogue interactables"): return
+	if not _require(ending_notice.get_parent() == gameplay and ending_roster.get_parent() == gameplay, "epilogue interactables left the active gameplay scene"): return
+	if not _require(await _verify_epilogue_ray_target(player, ending_notice), "production ray cannot acquire the ending notice"): return
+	if not _require(not gameplay.handle_story_action("ending_roster", player), "restored run bypassed the notice gate"): return
+	if not _require(ending_notice.interact(player), "production notice interactable rejected the restored player"): return
+	if not _require(await _wait_for_flag("ending_notice_complete"), "restored notice narration did not complete"): return
+	if not _require(await _verify_epilogue_ray_target(player, ending_roster), "production ray cannot acquire the ending roster"): return
+	if not _require(ending_roster.interact(player), "production roster interactable rejected the restored player"): return
+	if not _require(not gameplay.has_node("EndingOverlay") and not player.is_input_locked(), "restored epilogue locked input before roster narration completed"): return
+	if not _require(await _wait_for_flag("ending_roster_complete"), "restored roster narration did not complete"): return
+	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "restored run did not show credits after the interactive epilogue"): return
+	if not _require(player.is_input_locked() and player._locks.has("ending"), "restored credits did not apply the terminal input lock"): return
+	if not _require(JSON.stringify(GameState.checkpoint) == checkpoint_before_ending, "restored epilogue mutated its checkpoint"): return
 	var finalized_report: Dictionary = gameplay.get_playthrough_pacing_report()
 	if not _require(not bool(finalized_report.get("eligible_full_run", true)), "finalized checkpoint run became eligible for pacing evidence"): return
 	if not _require(finalized_report.get("within_target") == null, "finalized checkpoint run produced a pacing verdict"): return
@@ -364,6 +380,25 @@ func _wait_for_node(parent: Node, node_name: String, max_frames := 30) -> bool:
 			return true
 		await get_tree().process_frame
 	return false
+
+func _wait_for_flag(flag: String, max_frames := 180) -> bool:
+	for _frame in max_frames:
+		if GameState.has_flag(flag):
+			return true
+		await get_tree().process_frame
+	return false
+
+func _verify_epilogue_ray_target(player: CharacterBody3D, target: StoryInteractable) -> bool:
+	var ray := player.get_node("Head/Camera3D/Interaction/RayCast3D") as RayCast3D
+	player.global_position = Vector3(target.global_position.x, 0.02, target.global_position.z + 1.6)
+	player.rotation.y = 0.0
+	var camera_height: float = player.global_position.y + player.head.position.y
+	player.head.rotation.x = atan2(target.global_position.y - camera_height, 1.6)
+	player.velocity = Vector3.ZERO
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	ray.force_raycast_update()
+	return ray.get_collider() == target
 
 func _wait_for_entity_state(entity: CharacterBody3D, expected_state: int, max_frames := 120) -> bool:
 	for _frame in max_frames:

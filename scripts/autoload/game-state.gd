@@ -118,9 +118,9 @@ func restore_checkpoint() -> bool:
 		return false
 	stage = int(checkpoint.get("stage", Stage.LOBBY))
 	objective = str(checkpoint.get("objective", ""))
-	inventory = Array(checkpoint.get("inventory", []))
-	flags = Dictionary(checkpoint.get("flags", {}))
-	completed_events = Dictionary(checkpoint.get("completed_events", {}))
+	inventory = Array(checkpoint.get("inventory", [])).duplicate()
+	flags = Dictionary(checkpoint.get("flags", {})).duplicate(true)
+	completed_events = Dictionary(checkpoint.get("completed_events", {})).duplicate(true)
 	pending_spawn_id = str(checkpoint.get("spawn_id", "start"))
 	stage_changed.emit(stage)
 	objective_changed.emit(objective)

@@ -10,7 +10,6 @@ const ENTITY_PRESENCE_CUE_ID := "chase_entity_presence"
 var entity: CharacterBody3D
 var ending := false
 var recovering := false
-var ending_reveal_duration := 3.0
 var _credits_visible := false
 
 var _player: CharacterBody3D
@@ -49,40 +48,33 @@ func request_failure() -> void:
 	recovering = true
 	_recover_from_failure()
 
-func finish() -> void:
+func finish() -> bool:
 	if ending:
-		return
+		return false
 	ending = true
-	_player.set_input_locked("ending", true)
 	_cancel_failure_recovery()
+	_player.set_input_locked("ending", false)
 	GameState.advance_stage(GameState.Stage.ENDING)
-	GameState.set_objective("23:47. The shift was never scheduled.")
 	if entity != null:
 		entity.stop_chase()
 		entity.visible = false
 	AudioManager.stop_tone(ENTITY_PRESENCE_CUE_ID)
 	AudioManager.stop_tone("chase_drone")
 	_build_abandoned_lobby_reveal()
-	var ending_label := Label3D.new()
-	ending_label.text = "THE SHIFT WAS NEVER SCHEDULED\n\nROOM 407 REMEMBERS"
-	ending_label.font_size = 34
-	ending_label.outline_size = 12
-	ending_label.modulate = Color(0.86, 0.82, 0.74)
-	ending_label.position = _player.global_position + Vector3(0, 1.2, -3.0)
-	ending_label.no_depth_test = true
-	_director.add_child(ending_label)
 	AudioManager.play_tone("ending", 130.0, 2.0, -15.0)
-	_show_credits_after_reveal()
+	return true
 
-func _show_credits_after_reveal() -> void:
-	await get_tree().create_timer(maxf(0.0, ending_reveal_duration)).timeout
-	if not is_instance_valid(_director) or _credits_visible:
-		return
+func show_credits() -> bool:
+	if not ending or not is_instance_valid(_director) or _credits_visible:
+		return false
+	_player.set_input_locked("ending", true)
 	var overlay := ENDING_SCENE.instantiate()
+	overlay.name = "EndingOverlay"
 	_director.add_child(overlay)
 	overlay.show_ending()
 	_credits_visible = true
 	credits_shown.emit()
+	return true
 
 func _recover_from_failure() -> void:
 	_player.set_input_locked("fail", true)
