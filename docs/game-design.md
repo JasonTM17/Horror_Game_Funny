@@ -146,7 +146,7 @@ The failure overlay keeps recovery in-world and does not expose checkpoint termi
 
 - Mouse sensitivity: 0.01–0.25, default 0.08.
 - Field of view: 60–95 degrees, default 74.
-- Master volume, Chase music, Sound effects, and Atmosphere levels: −40 to +6 dB.
+- Master volume, Music, Sound effects, and Atmosphere levels: −40 to +6 dB.
 - Fullscreen toggle.
 - Toggles for light flicker, camera movement, camera shake, and screen texture.
 - Text prompts, objectives, notes, radio feedback, and narrative subtitles.
