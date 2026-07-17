@@ -75,14 +75,17 @@ run_check() {
 
 	if [[ $exit_code -ne 0 ]]; then
 		echo "$name failed with exit code $exit_code. See $log" >&2
+		cat "$log" >&2
 		exit "$exit_code"
 	fi
 	if grep -E -q "$FAIL_PATTERN" "$log"; then
 		echo "$name reported an engine or progression error. See $log" >&2
+		cat "$log" >&2
 		exit 1
 	fi
 	if [[ -n "$expected" ]] && ! grep -F -q "$expected" "$log"; then
 		echo "$name did not reach expected marker '$expected'. See $log" >&2
+		cat "$log" >&2
 		exit 1
 	fi
 	echo "$name OK"
