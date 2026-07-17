@@ -5,7 +5,8 @@
 - The project is source-playable with Godot 4.7.1 standard and targets the Compatibility renderer.
 - No `export_presets.cfg`, exported executable, package, or bundled Godot binary is committed.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
-- Binary export, platform packaging, and redistribution notice checks are not currently automated.
+- Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). It does not ship a player-facing game build, close PDR-07, or prove a physical F5 run.
+- Binary export and commercial platform packaging remain out of scope; redistribution notice checks for a future exported binary are not automated.
 
 ## Persistence
 

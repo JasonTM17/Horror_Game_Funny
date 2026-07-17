@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Structural verification of Docker packaging for ROOM 407.
+# Drives real files on disk; fails if packaging contracts are missing or wrong.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+fail=0
+
+require_file() {
+	local path="$1"
+	if [[ ! -f "$path" ]]; then
+		echo "MISSING: $path" >&2
+		fail=1
+	else
+		echo "OK file: $path"
+	fi
+}
+
+require_grep() {
+	local path="$1"
+	local pattern="$2"
+	local label="$3"
+	if [[ ! -f "$path" ]]; then
+		echo "MISSING for grep: $path ($label)" >&2
+		fail=1
+		return
+	fi
+	if ! grep -E -q "$pattern" "$path"; then
+		echo "MISSING pattern in $path ($label): $pattern" >&2
+		fail=1
+	else
+		echo "OK pattern: $label"
+	fi
+}
+
+require_file "Dockerfile"
+require_file "docker-compose.yml"
+require_file "docker-compose.local.yml"
+require_file ".dockerignore"
+require_file "tests/run-headless-tests.sh"
+require_file "tests/run-headless-tests.ps1"
+
+require_grep "Dockerfile" "4\\.7\\.1" "Dockerfile pins Godot 4.7.1"
+require_grep "Dockerfile" "USER 65532:65532" "Dockerfile non-root user"
+require_grep "Dockerfile" "HEALTHCHECK" "Dockerfile HEALTHCHECK"
+require_grep "Dockerfile" "multi-stage|AS builder|AS runtime" "Dockerfile multi-stage stages"
+require_grep "Dockerfile" "nguyenson1710/horror-game-suite|horror-game-suite" "Dockerfile image identity"
+require_grep "docker-compose.yml" "nguyenson1710/horror-game-suite" "compose image name"
+require_grep "docker-compose.yml" "run-headless-tests\\.sh|ENTRYPOINT" "compose suite entry"
+require_grep "tests/run-headless-tests.sh" "editor-import" "shell runner editor-import"
+require_grep "tests/run-headless-tests.sh" "settings-persistence-read" "shell runner last check"
+require_grep "tests/run-headless-tests.sh" "ALL_TWELVE_HEADLESS_CHECKS_OK" "shell runner completion marker"
+require_grep "tests/run-headless-tests.sh" "PROGRESSION_TEST_OK" "shell runner progression marker"
+require_grep "tests/run-headless-tests.ps1" "settings-persistence-read" "ps1 runner last check"
+
+# Count twelve named checks in the shell runner (must match host runner).
+expected_checks=(
+	editor-import
+	menu
+	gameplay
+	game-state
+	progression
+	checkpoint-layout
+	physical-route
+	player-input
+	visual-effects
+	settings-audio
+	settings-persistence-write
+	settings-persistence-read
+)
+for check in "${expected_checks[@]}"; do
+	require_grep "tests/run-headless-tests.sh" "\"$check\"" "shell check $check"
+	require_grep "tests/run-headless-tests.ps1" "\"$check\"" "ps1 check $check"
+done
+
+if [[ $fail -ne 0 ]]; then
+	echo "DOCKER_PACKAGING_VERIFY_FAILED" >&2
+	exit 1
+fi
+echo "DOCKER_PACKAGING_VERIFY_OK"

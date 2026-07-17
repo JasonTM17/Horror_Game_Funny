@@ -1,0 +1,34 @@
+name: docker-suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  packaging-and-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Docker packaging contracts
+        run: bash tests/verify-docker-packaging.sh
+
+      - name: Build suite image
+        run: docker compose build suite
+
+      - name: Run twelve headless checks in container
+        run: docker compose run --rm suite
+
+      - name: Publish to Docker Hub (main only, when secrets present)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          docker tag nguyenson1710/horror-game-suite:latest "nguyenson1710/horror-game-suite:${GITHUB_SHA}"
+          docker push nguyenson1710/horror-game-suite:latest
+          docker push "nguyenson1710/horror-game-suite:${GITHUB_SHA}"

@@ -1,0 +1,23 @@
+# ROOM 407 headless suite packaging.
+# Build and run the twelve-check suite:
+#   docker compose run --rm suite
+# Optional image name for local/Hub tags under nguyenson1710/horror-game-suite.
+
+services:
+  suite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GODOT_VERSION: "4.7.1"
+    image: nguyenson1710/horror-game-suite:latest
+    container_name: horror-game-suite
+    user: "65532:65532"
+    working_dir: /app
+    environment:
+      GODOT: /usr/local/bin/godot
+      TEMP: /app/.tmp
+      TMP: /app/.tmp
+    # Default entrypoint runs tests/run-headless-tests.sh (twelve checks).
+    # Override for packaging self-check:
+    #   docker compose run --rm suite /app/tests/verify-docker-packaging.sh

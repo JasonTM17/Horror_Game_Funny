@@ -1,0 +1,28 @@
+# Git and AI/editor tooling
+.git
+.gitattributes
+.github
+.agents
+.claude
+.codex
+.godot
+.vscode
+.idea
+
+# Local verification noise (recreated in the container)
+.artifacts
+.tmp
+exports
+builds
+reports
+plans
+*.log
+*.tmp
+
+# Docs media not required for headless suite execution
+docs/screenshots
+docs/journals
+
+# OS junk
+.DS_Store
+Thumbs.db

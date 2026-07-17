@@ -32,9 +32,9 @@ The harness writes seven PNG frames under the ignored `.artifacts/visual-capture
 
 - Godot Engine 4.7.1 standard build, not .NET.
 - A renderer compatible with Godot's Compatibility/OpenGL path.
-- PowerShell to run the bundled Windows headless test runner.
+- PowerShell (Windows host suite) **or** Docker Engine (Linux container suite).
 
-This is a source-only project. The repository has no `export_presets.cfg`, exported executable, or bundled Godot binary.
+This is a source-only project. The repository has no `export_presets.cfg`, exported executable, or bundled Godot binary. A multi-stage Docker image packages Godot 4.7.1 for the headless suite only; it is not a shipped game binary.
 
 ## Run
 
@@ -91,6 +91,8 @@ F5 loads `boot.tscn`, then enters the single continuous `gameplay.tscn`. `Gamepl
 
 ## Test
 
+### Windows host (PowerShell)
+
 Run all twelve headless checks from the repository root:
 
 ```powershell
@@ -103,6 +105,31 @@ Override the portable Godot executable when it is not at the runner's default pa
 powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
+
+### Docker (Linux container suite)
+
+The repo ships multi-stage packaging that downloads Godot 4.7.1 standard (not .NET), runs as non-root `65532`, and executes the same twelve checks via `tests/run-headless-tests.sh`.
+
+```powershell
+docker compose build suite
+docker compose run --rm suite
+```
+
+Structural packaging check (no Godot required):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
+```
+
+Image name: `nguyenson1710/horror-game-suite:latest`. Push to Docker Hub when logged in:
+
+```powershell
+docker tag nguyenson1710/horror-game-suite:latest nguyenson1710/horror-game-suite:<git-sha>
+docker push nguyenson1710/horror-game-suite:latest
+docker push nguyenson1710/horror-game-suite:<git-sha>
+```
+
+CI builds the image and runs the suite on every push/PR to `main` (`.github/workflows/docker-suite.yml`). Hub publish needs repo secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
 
 The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
