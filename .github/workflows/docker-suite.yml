@@ -23,11 +23,15 @@ jobs:
         run: docker compose run --rm suite
 
       - name: Publish to Docker Hub (main only, when secrets present)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
+          if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+            echo "Docker Hub publish skipped: repository secrets are not configured."
+            exit 0
+          fi
           echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
           docker tag nguyenson1710/horror-game-suite:latest "nguyenson1710/horror-game-suite:${GITHUB_SHA}"
           docker push nguyenson1710/horror-game-suite:latest

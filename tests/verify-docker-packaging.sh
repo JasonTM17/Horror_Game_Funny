@@ -35,6 +35,23 @@ require_grep() {
 	fi
 }
 
+require_no_grep() {
+	local path="$1"
+	local pattern="$2"
+	local label="$3"
+	if [[ ! -f "$path" ]]; then
+		echo "MISSING for grep: $path ($label)" >&2
+		fail=1
+		return
+	fi
+	if grep -E -q "$pattern" "$path"; then
+		echo "FORBIDDEN pattern in $path ($label): $pattern" >&2
+		fail=1
+	else
+		echo "OK absent: $label"
+	fi
+}
+
 require_file "Dockerfile"
 require_file "docker-compose.yml"
 require_file "docker-compose.local.yml"
@@ -48,6 +65,11 @@ require_grep "Dockerfile" "HEALTHCHECK" "Dockerfile HEALTHCHECK"
 require_grep "Dockerfile" "multi-stage|AS builder|AS runtime" "Dockerfile multi-stage stages"
 require_grep "Dockerfile" "nguyenson1710/horror-game-suite|horror-game-suite" "Dockerfile image identity"
 require_grep "docker-compose.yml" "nguyenson1710/horror-game-suite" "compose image name"
+require_no_grep ".github/workflows/docker-suite.yml" "^[[:space:]]*if:.*secrets\." "workflow condition does not reference secrets directly"
+require_grep ".github/workflows/docker-suite.yml" "^[[:space:]]*if: github\.ref == 'refs/heads/main' && github\.event_name == 'push'$" "publish step remains main-push only"
+require_grep ".github/workflows/docker-suite.yml" '^[[:space:]]*DOCKERHUB_USERNAME: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}$' "publish username stays step-scoped"
+require_grep ".github/workflows/docker-suite.yml" '^[[:space:]]*DOCKERHUB_TOKEN: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}$' "publish token stays step-scoped"
+require_grep ".github/workflows/docker-suite.yml" 'if \[\[ -z "\$DOCKERHUB_USERNAME" \|\| -z "\$DOCKERHUB_TOKEN" \]\]; then' "publish skips when secrets are absent"
 require_grep "docker-compose.yml" "run-headless-tests\\.sh|ENTRYPOINT" "compose suite entry"
 require_grep "tests/run-headless-tests.sh" "editor-import" "shell runner editor-import"
 require_grep "tests/run-headless-tests.sh" "settings-persistence-read" "shell runner last check"
