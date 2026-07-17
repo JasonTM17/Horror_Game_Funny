@@ -6,6 +6,7 @@ signal finished
 var duration_scale := 1.0
 var _audio_ids: Array[String] = []
 var _light_snapshots: Dictionary = {}
+var _owned_nodes: Array[Node] = []
 var _cleaned_up := false
 
 func setup(scale: float) -> void:
@@ -41,6 +42,11 @@ func play_spatial_on(
 	if not _audio_ids.has(cue_id):
 		_audio_ids.append(cue_id)
 	AudioManager.play_spatial_tone(parent, cue_id, frequency, duration, volume_db)
+
+func own_node(node: Node) -> void:
+	if _cleaned_up or not is_instance_valid(node) or _owned_nodes.has(node):
+		return
+	_owned_nodes.append(node)
 
 func set_light(light: OmniLight3D, energy_factor: float, color: Color) -> void:
 	if _cleaned_up or not is_instance_valid(light):
@@ -88,6 +94,10 @@ func _cleanup() -> void:
 	for cue_id in _audio_ids:
 		AudioManager.stop_tone(cue_id)
 	_audio_ids.clear()
+	for owned_node in _owned_nodes:
+		if is_instance_valid(owned_node):
+			owned_node.queue_free()
+	_owned_nodes.clear()
 	restore_lights()
 
 func _scaled_duration(seconds: float) -> float:

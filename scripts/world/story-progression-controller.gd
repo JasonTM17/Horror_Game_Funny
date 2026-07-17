@@ -263,7 +263,11 @@ func _on_narrative_finished(flag: String) -> void:
 		"chase_ready":
 			GameState.set_objective("RUN. Follow the red lights to the lobby exit.")
 			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
-		"memory_photo_recalled", "memory_cassette_recalled": GameState.set_objective("The corridor remembers another object. Follow it to the impossible corner.")
+		"memory_photo_recalled": GameState.set_objective("The corridor remembers another object. Follow it to the impossible corner.")
+		"memory_cassette_recalled":
+			if is_instance_valid(_horror):
+				_horror.finish_sequence("CassetteTurnAwayScare")
+			GameState.set_objective("The corridor remembers another object. Follow it to the impossible corner.")
 		"memory_rabbit_recalled":
 			GameState.set_objective("The rabbit has opened the impossible corner. Follow the final message.")
 		"memory_echo_3":

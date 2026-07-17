@@ -47,7 +47,8 @@ func _run_floor_arrival() -> void:
 	var light := _find_nearest_light(Vector3(0, 2.8, -55.0))
 	sequence.set_light(light, 0.12, Color(0.72, 0.045, 0.025))
 	sequence.play_spatial_at(Vector3(2.8, 1.0, -48.0), "scare_floor_lift_strain", 39.0, 0.62, -21.0)
-	var apparition := _spawn_apparition(Vector3(2.75, 1.3, -53.0), "FloorArrivalApparition", 3.2, Vector3(0.82, 1.05, 0.68))
+	var apparition := _spawn_apparition(Vector3(2.75, 1.3, -53.0), "FloorArrivalApparition", Vector3(0.82, 1.05, 0.68))
+	sequence.own_node(apparition)
 	apparition.visible = false
 	if not await sequence.wait(0.32):
 		return
@@ -77,7 +78,8 @@ func _run_photo_memory() -> void:
 func _run_rabbit_memory() -> void:
 	var sequence := _create_sequence("RabbitMemoryScare")
 	var position := Vector3(0, 1.25, WorldLayout.LOOP_GATE_Z - 6.0)
-	var apparition := _spawn_apparition(position, "MemoryRabbitApparition", 4.0)
+	var apparition := _spawn_apparition(position, "MemoryRabbitApparition")
+	sequence.own_node(apparition)
 	apparition.visible = false
 	sequence.set_light(_find_nearest_light(position), 0.16, Color(0.68, 0.025, 0.018))
 	sequence.play_spatial_at(position + Vector3(0, -0.6, 3.0), "scare_rabbit_music_box", 144.0, 0.46, -25.0)
@@ -91,7 +93,8 @@ func _run_rabbit_memory() -> void:
 func _run_room_entity_reveal() -> void:
 	var sequence := _create_sequence("RoomEntityRevealScare")
 	var position := Vector3(0, 1.35, WorldLayout.FINAL_CLUE_Z - 14.0)
-	var apparition := _spawn_apparition(position, "RoomEntityManifestation", 5.5, Vector3(1.15, 1.2, 0.82), true)
+	var apparition := _spawn_apparition(position, "RoomEntityManifestation", Vector3(1.15, 1.2, 0.82), true)
+	sequence.own_node(apparition)
 	apparition.visible = false
 	sequence.set_light(_find_nearest_light(position), 0.08, Color(0.52, 0.018, 0.012))
 	sequence.play_spatial_at(position + Vector3(0, 0.1, 4.0), "scare_room_wall_breath", 31.0, 0.86, -23.0)
@@ -111,6 +114,11 @@ func _create_sequence(sequence_name: String) -> HorrorScareSequence:
 	_active_sequences.append(sequence)
 	sequence.tree_exited.connect(_on_sequence_exited.bind(sequence))
 	return sequence
+
+func finish_sequence(sequence_name: String) -> void:
+	var sequence := get_node_or_null(sequence_name) as HorrorScareSequence
+	if sequence != null:
+		sequence.finish()
 
 func _on_sequence_exited(sequence: HorrorScareSequence) -> void:
 	_active_sequences.erase(sequence)
@@ -142,13 +150,10 @@ func _spawn_message(text: String, position: Vector3, color: Color) -> void:
 func _spawn_apparition(
 	position: Vector3,
 	actor_name: String,
-	lifetime: float,
 	actor_scale := Vector3.ONE,
 	add_eyes := false
 ) -> Node3D:
-	var apparition := APPARITION_FACTORY.spawn(self, position, actor_name, actor_scale, add_eyes)
-	_schedule_free(apparition, lifetime)
-	return apparition
+	return APPARITION_FACTORY.spawn(self, position, actor_name, actor_scale, add_eyes)
 
 func _schedule_free(node: Node, seconds: float) -> void:
 	var timer := get_tree().create_timer(_scaled_duration(seconds), false)
@@ -163,6 +168,8 @@ func _scaled_duration(seconds: float) -> float:
 func _spawn_turn_away_apparition() -> void:
 	if not is_instance_valid(_player):
 		return
+	var sequence := _create_sequence("CassetteTurnAwayScare")
 	var apparition := TurnAwayApparition.new()
 	add_child(apparition)
+	sequence.own_node(apparition)
 	apparition.setup(_player, Vector3(0, 1.25, WorldLayout.MEMORY_CASSETTE_Z + 8.0), effect_duration_scale)
