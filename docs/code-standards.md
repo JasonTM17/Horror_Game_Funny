@@ -107,6 +107,8 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - Keep procedural audio inputs positive and respect the 16 MiB cache cap. Audio cache keys must include the semantic ID, sample rate, frequency, effective duration, and loop mode; true LRU eviction must protect streams held by regular or spatial players, and stop/eviction paths must subtract exact byte counts and remove all per-ID variants. Spatial players unregister on finish, parent deletion, and explicit stop.
 - Keep Compatibility-renderer shader syntax and test the shader through editor import.
 - Flashlight flicker must use bounded intervals, pulse duration, and minimum energy; it must run in `PROCESS_MODE_PAUSABLE` and restore base energy when disabled or hidden.
+- Keep raw capture PNGs, AVI files, palettes, and logs under ignored `.artifacts/`. Commit only visually reviewed, optimized documentation media under `docs/screenshots/`, and record exact source paths, tools, settings, and license scope in `asset-credits.md`.
+- Label staged or state-forced media accurately. A capture that disables simulation, teleports the player, or selects state directly must not be called a gameplay recording or used as physical traversal, pacing, fairness, audio, Settings, fullscreen, pixel-determinism, or cross-hardware evidence.
 - Do not claim that the project MIT license relicenses Godot Engine or its third-party components.
 
 ## Error Handling
@@ -125,6 +127,7 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - A focused helper may share an existing lifecycle; `menu-settings-regression.gd` runs inside `settings-audio` and must not change the exact twelve-check runner contract.
 - Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.
 - A headless pass is not evidence of complete physical keyboard/mouse traversal, visual/audio balance, audible output, the physical Settings UI workflow, or 15–20 minute pacing. The targeted movement smoke proves only its listed capsule/door/threshold cases, and the two-process writer/reader pair proves only config persistence.
+- Keep `visual-capture-tour.tscn` separate from `run-headless-tests.ps1` and the manual evidence runner. Its marker and media verify only its staged capture contract; direct state selection must remain explicit in documentation.
 - Record manual evidence separately; never convert an unobserved design target into a verified claim.
 
 ## Documentation and Git
@@ -144,5 +147,6 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
+- [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [Architecture](architecture.md)
 - [Testing matrix](testing.md)

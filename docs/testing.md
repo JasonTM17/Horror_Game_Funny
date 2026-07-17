@@ -79,6 +79,30 @@ The runner passes finite frame/iteration watchdogs through `--quit-after`. In pa
 
 Pacing assertions extend the existing `progression` and `checkpoint-layout` checks. The suite remains exactly twelve checks; there is no separate thirteenth pacing check.
 
+## Reproducible Visual-Capture Tour
+
+`tests/visual-capture-tour.tscn` is a separate staged QA/documentation harness. It is not invoked by `run-headless-tests.ps1`, does not add a thirteenth check, and is not the manual evidence runner.
+
+Run it from the repository root with Godot 4.7.1:
+
+```powershell
+New-Item -ItemType Directory -Force .\.artifacts\visual-capture-current | Out-Null
+godot --path . `
+  --write-movie .artifacts/visual-capture-current/room-407-tour.avi `
+  --fixed-fps 12 `
+  --log-file .artifacts/visual-capture-current/engine.log `
+  res://tests/visual-capture-tour.tscn -- `
+  --output-root=res://.artifacts/visual-capture-current
+```
+
+The harness creates the output directory, instantiates `scenes/gameplay/gameplay.tscn`, waits for runtime composition, disables gameplay processing, player physics, and voice playback, then stages seven viewpoints. It teleports the production player, directly selects hallway/chase/epilogue state, positions the chase entity, and manually instantiates `scenes/ui/ending-overlay.tscn`. The harness writes seven PNGs under `.artifacts/visual-capture-current/`, prints one **VISUAL_CAPTURE_FRAME** line per PNG, and finishes with **VISUAL_CAPTURE_TOUR_OK**; Godot Movie Maker separately writes the 1280×720, 12 fps AVI requested by the command.
+
+The recorded capture environment was Godot 4.7.1 Compatibility/OpenGL 3.3 with NVIDIA driver 581.08 on an NVIDIA GeForce RTX 3060 Laptop GPU. This is single-machine provenance, not pixel determinism or cross-hardware certification.
+
+Four reviewed artifact PNGs were resized and optimized to 960×540 with ImageMagick 7.1.2 and copied to [`docs/screenshots/`](./screenshots/): [lobby](./screenshots/room-407-lobby.png), [Room 407 bedroom](./screenshots/room-407-bedroom.png), [chase entity](./screenshots/room-407-chase-entity.png), and [ending reveal](./screenshots/room-407-ending-reveal.png). The [640×360 visual-reference GIF](./screenshots/room-407-gameplay-tour.gif) was derived separately with FFmpeg 8.1.1 at 8 fps using `palettegen` with `max_colors=96` and `paletteuse` with `sierra2_4a`; GDScript did not generate it. Source AVI, all seven source PNGs, and logs remain ignored artifacts.
+
+This tour checks reproducible scene composition and supplies reviewed documentation views only. Because it freezes simulation and selects state directly, it is not an F5 playthrough, gameplay recording, manual test, pacing sample, progression proof, player-driven chase, fairness review, audible-output review, Settings/fullscreen check, or perceptual certification. Use `tests/run-physical-playthrough.ps1` and the manual matrix below for those gates.
+
 ## Pacing Telemetry Contract
 
 The scene-local `PlaythroughPacingTelemetry` begins after gameplay runtime composition. It snapshots eligibility once, so only a fresh session whose initial stage is `LOBBY` is eligible. It records the first occurrence of each boundary in the order actually observed:
@@ -282,6 +306,8 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
+- [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
+- [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)

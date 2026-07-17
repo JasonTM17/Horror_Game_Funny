@@ -20,6 +20,22 @@ F5 / project start
 
 F6 is editor current-scene execution and can skip the boot scene. The memory loop never changes gameplay scenes: `HallwayTransitionLayer` fades to black, invokes a midpoint hallway swap/reposition, waits, and fades back in.
 
+## Staged Visual-Capture Path
+
+`tests/visual-capture-tour.tscn` is an out-of-band QA/documentation entry point, not part of the F5 flow or the twelve-check runner. Its script instantiates the production gameplay scene and ending overlay, but after composition it disables gameplay-root processing, production player physics, and voice playback. It then teleports the player, selects hallway state directly, starts/positions/finishes the chase entity, begins the epilogue directly, and manually creates the credits overlay.
+
+```text
+visual-capture-tour.tscn
+  -> instantiate production gameplay.tscn
+  -> freeze gameplay/player simulation and disable voice
+  -> stage seven authored viewpoints
+  -> .artifacts/visual-capture-current/ (PNG + AVI + logs; ignored)
+  -> human visual review and media-tool curation
+  -> docs/screenshots/ (four PNGs + derived GIF; committed)
+```
+
+This separation keeps raw capture outputs and logs outside source control while preserving curated media provenance. The harness establishes reproducible scene assembly and selected rendered views only. Direct state selection means its output cannot establish F5 traversal, progression, pacing, player-driven chase fairness, audible output, Settings/fullscreen behavior, pixel determinism, or cross-hardware equivalence. See [Testing](testing.md#reproducible-visual-capture-tour) and [Asset credits](asset-credits.md).
+
 ## Gameplay Controller Split
 
 | Component | Current responsibility |
@@ -238,4 +254,6 @@ The movement checks teleport between focused gates and the input check positions
 - [`environmental-interaction-route-verifier.gd`](../tests/environmental-interaction-route-verifier.gd)
 - [`visual-effects-test.gd`](../tests/visual-effects-test.gd)
 - [`menu-settings-regression.gd`](../tests/menu-settings-regression.gd)
+- [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
+- [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
 - [Testing matrix](testing.md)

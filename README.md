@@ -4,6 +4,30 @@ A short first-person psychological horror game built with Godot 4.7.1 and GDScri
 
 The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
 
+## Visual Reference Tour
+
+[![Derived ROOM 407 visual-reference tour](docs/screenshots/room-407-gameplay-tour.gif)](docs/screenshots/room-407-gameplay-tour.gif)
+
+Reviewed in-engine stills: [lobby](docs/screenshots/room-407-lobby.png), [Room 407 bedroom](docs/screenshots/room-407-bedroom.png), [chase entity](docs/screenshots/room-407-chase-entity.png), and [ending reveal](docs/screenshots/room-407-ending-reveal.png).
+
+These images come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The GIF is a derived visual-reference montage, not a gameplay recording. It does not prove physical F5 traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
+
+### Reproduce the staged capture
+
+From the repository root, with `godot` resolving to Godot 4.7.1:
+
+```powershell
+New-Item -ItemType Directory -Force .\.artifacts\visual-capture-current | Out-Null
+godot --path . `
+  --write-movie .artifacts/visual-capture-current/room-407-tour.avi `
+  --fixed-fps 12 `
+  --log-file .artifacts/visual-capture-current/engine.log `
+  res://tests/visual-capture-tour.tscn -- `
+  --output-root=res://.artifacts/visual-capture-current
+```
+
+The harness writes seven PNG frames under the ignored `.artifacts/visual-capture-current/` directory while Godot Movie Maker writes the 1280×720, 12 fps AVI. The four linked PNGs were reviewed, resized/optimized with ImageMagick, and copied to `docs/screenshots/`; the GIF was derived separately with FFmpeg. See [Testing](docs/testing.md) for the capture contract and [Asset credits and provenance](docs/asset-credits.md) for the curation settings.
+
 ## Requirements
 
 - Godot Engine 4.7.1 standard build, not .NET.
@@ -118,7 +142,7 @@ The generated Markdown includes an unchecked human-review matrix. The capture pa
 
 There is no third-party art or recorded-sound pack. Corridor geometry, props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 76 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
 
-No gameplay captures are committed. Add only verified in-engine captures under `docs/screenshots/` after a manual visual pass; do not present concept art as gameplay. See [Asset credits and provenance](docs/asset-credits.md).
+Four reviewed staged in-engine stills and one derived visual-reference GIF are committed under `docs/screenshots/`. They are documentation media, not evidence of a physical gameplay run. Add only verified in-engine captures after a visual pass; do not present concept art or staged media as physical-playthrough evidence. See [Asset credits and provenance](docs/asset-credits.md).
 
 ## Known Limitations
 

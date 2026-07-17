@@ -146,6 +146,12 @@ The boot menu exposes Continue when a checkpoint exists in the current process. 
 
 Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; a failed write returns an `Error`, leaves the modal open, displays the failure, and offers **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Discarding closes without writing a new file, so those values remain session-only. Boot and pause menus trap focus inside the modal and return it to the Settings launcher. Automated tests inspect controls/clamps and use separate writer/reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
 
+## Visual Reference Material
+
+The committed [visual-reference montage](./screenshots/room-407-gameplay-tour.gif) and stills for the [lobby](./screenshots/room-407-lobby.png), [Room 407 bedroom](./screenshots/room-407-bedroom.png), [chase entity](./screenshots/room-407-chase-entity.png), and [ending reveal](./screenshots/room-407-ending-reveal.png) show selected authored presentation states. They were visually reviewed after a reproducible staged in-engine capture.
+
+The capture tour is intentionally not player-driven: it freezes gameplay/player simulation, disables voice, teleports the player, chooses hallway/chase/epilogue state directly, and manually creates credits. Therefore the montage is not a gameplay recording and cannot validate encounter pacing, progression clarity, tension waves, chase readability or fairness under motion, audio, Settings/fullscreen, or physical controls. Those design targets remain in the manual evidence matrix.
+
 ## Completion Evidence Required
 
 Automated checks cover progression guards, fourth-floor/Room 407 scare dressing, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. The existing physical-route check also exercises the optional drawer and painted door through the production ray, including structural visibility/alignment, feedback/cooldowns, drawer sweep and animation safety, unchanged story state, and spatial-audio/lock cleanup. Checks also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
@@ -171,5 +177,6 @@ Release validation still needs a recorded manual run covering:
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
+- [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [Testing matrix](testing.md)
 - [Known limitations](limitations.md)

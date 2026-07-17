@@ -13,11 +13,11 @@ The current implementation uses Godot 4.7.1 with the Compatibility renderer, pro
 | PDR-01 | One continuous `gameplay.tscn` run from lobby to credits | Scene construction, progression and checkpoint tests | Implemented |
 | PDR-02 | Guarded lobby, blackout, memory, radio, Room 407 and final-clue progression | `progression-test.tscn`, exact flags/objectives | Implemented |
 | PDR-03 | Voice-backed narrative with exact subtitle contracts | 76 cues, 22 groups, `settings-audio` regression | Implemented |
-| PDR-04 | Fair chase with physical alternating obstructions and connected navigation | Layout, physical-route and live-LOS tests | Implemented |
+| PDR-04 | Physical chase route with alternating obstructions and connected navigation | Layout, physical-route and live-LOS tests; human fairness review remains open | Implemented; fairness unverified |
 | PDR-05 | Ending wins over capture recovery and gates credits behind two in-world reveals | Phase 3 progression/checkpoint tests | Implemented |
 | PDR-06 | Settings, pause, comfort and process-local checkpoint behavior | Input, visual, audio and persistence tests | Implemented |
 | PDR-07 | 15–20 minute pacing verified from one fresh physical run | Same-run eligible telemetry plus human traversal review | Open |
-| PDR-08 | Final documentation includes real gameplay screenshots and an optimized GIF | Rendered files under `docs/screenshots/` with repository links | Open |
+| PDR-08 | Final documentation includes reviewed in-engine screenshots and an optimized visual-reference GIF | Four 960×540 PNGs and one 640×360 derived GIF under `docs/screenshots/`, with links and provenance | Complete |
 
 ## Player Experience
 
@@ -39,11 +39,11 @@ The implementation is release-ready only when all of the following are true:
 2. A fresh physical F5 run reaches visible credits with no manual method calls or Continue checkpoint.
 3. That same run emits one eligible, complete and order-valid `PLAYTHROUGH_PACING` payload with active total between 900 and 1200 seconds and chapter durations in range.
 4. A human review records chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles.
-5. Real gameplay screenshots and an optimized GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly.
+5. Reviewed in-engine screenshots and an optimized derived GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly. **Complete for PDR-08; staged media is not physical-playthrough evidence.**
 
 ## Current Release Decision
 
-Source implementation and automated contracts are green at `aaae49a`. The physical/perceptual and media gates remain intentionally open. Headless Godot uses a dummy display driver and cannot create valid gameplay pixels; no placeholder or AI-generated image counts as evidence.
+Source implementation and automated contracts are green. PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. PDR-07 and the physical/perceptual release gates remain open: no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
 
 ## References
 
@@ -52,4 +52,5 @@ Source implementation and automated contracts are green at `aaae49a`. The physic
 - [Testing matrix](./testing.md)
 - [Known limitations](./limitations.md)
 - [Project roadmap](./project-roadmap.md)
+- [Visual-capture tour contract](./testing.md#reproducible-visual-capture-tour)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)

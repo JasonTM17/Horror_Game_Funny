@@ -51,7 +51,8 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 ## Content and Presentation Scope
 
 - Geometry, materials, labels, shader effects, and sound effects are intentionally procedural and asset-light. The exception is the committed generated English story voice set. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
-- The project contains no committed screenshots or gameplay-capture directory.
+- The repository commits four reviewed 960×540 staged in-engine stills and one 640×360 derived visual-reference GIF under `docs/screenshots/`. The reproducible capture harness uses production gameplay/ending scenes but freezes gameplay and player simulation, disables voice, teleports the player, directly selects presentation states, and creates credits manually. These files demonstrate selected rendered views only; they are not a gameplay recording or evidence of physical F5 traversal, pacing, progression, chase fairness, audio, Settings/fullscreen behavior, pixel determinism, or cross-hardware consistency.
+- Seven source PNGs, the 1280×720 12 fps source AVI, and capture logs stay machine-local under ignored `.artifacts/`; only reviewed, optimized documentation media belongs under `docs/screenshots/`.
 - Generated English narration/character delivery is implemented for every sequenced story line; human-performed acting, external hero props, crouch, and a secondary ending remain out of scope. Voice quality and mix still require a physical listening pass.
 - The radio, subtitles, and credits use runtime UI/default theme behavior rather than committed font assets.
 - The current story and credits are English-only.
@@ -72,4 +73,6 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
+- [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
+- [Staged capture testing boundary](testing.md#reproducible-visual-capture-tour)
 - [Godot Engine license](https://godotengine.org/license/)
