@@ -45,6 +45,8 @@ The final clue starts the escape. At the exit, the current gameplay scene constr
 
 All beats occupy one `gameplay.tscn` runtime. Memory-loop changes happen while a full-screen blackout curtain is opaque; the controller reconfigures the hallway and, on the first two loops, returns the player to the memory start during that hidden midpoint. These are not loading-screen scene transitions.
 
+The gameplay HUD presents the current story direction without an `OBJECTIVE` header. Empty inventory chrome stays hidden; when the player carries an item, the HUD shows its player-facing display name rather than its internal state ID.
+
 ## Pacing Targets
 
 | Chapter | Target | Main beats |
@@ -123,7 +125,7 @@ Configured speed values are:
 
 The automated layout test proves `walk < entity < sprint`, verifies `STALK`, checks physical lane blocking and capsule clearance, confirms the path turns through all three bypasses, and drives the live-LOS entity across the first obstruction without failure or despawn. It does not prove rendered readability, player-driven traversal through all three barriers, collision feel, or human chase fairness; those remain manual checks.
 
-The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, stops the chase, and builds the abandoned-lobby reveal in the same gameplay scene. The player remains in control and must inspect two separated physical props in order: the 2007 condemnation notice, then the night roster. Each interaction delivers three voiced revelations; the roster stays gated until the notice narration finishes, and credits stay gated until the roster narration finishes. Only visible credits lock input and finalize pacing.
+The ending gate requires all three memories, radio completion, Room 407 recording and drawing, final clue, and chase start. Success advances the ending stage, stops the chase, and builds the abandoned-lobby reveal in the same gameplay scene. The player remains in control and must inspect two separated physical props in order: the 2007 condemnation notice, then the night roster. Each interaction delivers three voiced revelations; the roster stays gated until the notice narration finishes, and credits stay gated until the roster narration finishes. Visible credits hide the gameplay HUD, lock input, and finalize pacing.
 
 ## Failure and Recovery
 
@@ -138,13 +140,13 @@ Checkpoints are created at the Room 407 entrance and chase start. On capture, th
 
 Retreating beyond the authored chase boundary requests this same recovery instead of disabling pursuit for the remainder of the run.
 
-The boot menu exposes **CONTINUE SHIFT** when a checkpoint exists in the current process. Checkpoints are not written to disk and cannot survive an application restart.
+The failure overlay keeps recovery in-world and does not expose checkpoint terminology. The boot menu opens with the 23:47 story setup and exposes **CONTINUE SHIFT** when a checkpoint exists in the current process. Checkpoints are not written to disk and cannot survive an application restart.
 
 ## Settings and Accessibility
 
 - Mouse sensitivity: 0.01–0.25, default 0.08.
 - Field of view: 60–95 degrees, default 74.
-- Overall, chase-music, sound-effects, and atmosphere levels: −40 to +6 dB.
+- Master volume, Chase music, Sound effects, and Atmosphere levels: −40 to +6 dB.
 - Fullscreen toggle.
 - Toggles for light flicker, camera movement, camera shake, and screen texture.
 - Text prompts, objectives, notes, radio feedback, and narrative subtitles.
