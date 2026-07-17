@@ -67,6 +67,7 @@ func set_film_grain_enabled(enabled: bool) -> void:
 func set_fullscreen_enabled(enabled: bool) -> void:
 	fullscreen_enabled = enabled
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED)
+	SceneRouter.call_deferred("apply_player_window_title")
 	setting_changed.emit("fullscreen_enabled", fullscreen_enabled)
 
 func reset_defaults() -> void:

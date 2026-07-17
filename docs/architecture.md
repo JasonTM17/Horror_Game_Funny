@@ -65,7 +65,7 @@ The navigation surface is a real `NavigationRegion3D` named `ContinuousCorridorN
 | Service | Owns | Persistence |
 |---|---|---|
 | `GameState` | stage, objective, subtitle, inventory, flags, completed events, checkpoint dictionary, pending spawn ID | memory only |
-| `SceneRouter` | serialized scene replacement and checkpoint scene reload | none |
+| `SceneRouter` | serialized scene replacement, checkpoint scene reload, and player-facing native window title restoration | none |
 | `AudioManager` | runtime buses, procedural PCM cache, named tones and drones | none |
 | `SettingsManager` | bounded controls/display/audio/comfort values and config I/O | `user://room407.cfg` |
 

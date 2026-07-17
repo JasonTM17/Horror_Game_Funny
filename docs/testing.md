@@ -2,9 +2,18 @@
 
 ## Overview
 
-The repository has one PowerShell runner that executes twelve Godot 4.7.1 headless checks. These checks prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
+The repository has two equivalent twelve-check Godot 4.7.1 headless runners:
+
+| Runner | Host | Entry |
+|---|---|---|
+| `tests/run-headless-tests.ps1` | Windows + installed Godot 4.7.1 | PowerShell |
+| `tests/run-headless-tests.sh` | Linux / Docker | bash + `godot` on `PATH` or `$GODOT` |
+
+Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/leak/assert failures. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
 
 ## Run the Suite
+
+### Windows host
 
 From the repository root:
 
@@ -25,7 +34,22 @@ powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
 
-The runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. It combines Godot's engine log with captured console output, so stderr-only leak warnings are still scanned. Because Godot mirrors `print()` output to both sources, a combined artifact can contain two identical pacing lines even though the runtime emitted once. Writer and reader checks share this temporary profile, and guaranteed teardown removes it after success or failure. This prevents the suite from reading or overwriting the normal `user://room407.cfg`.
+### Docker
+
+```powershell
+docker compose build suite
+docker compose run --rm suite
+```
+
+The image is multi-stage, pins Godot **4.7.1** standard (not .NET), runs as non-root UID **65532**, and uses `HEALTHCHECK` via `godot --version`. Image tag: `nguyenson1710/horror-game-suite`. Structural packaging contracts (no Docker Engine required):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
+```
+
+On Linux: `bash tests/verify-docker-packaging.sh`.
+
+The host PowerShell runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. The shell runner isolates under `.tmp/godot-user-*` with XDG paths. Both combine engine log with captured console output and tear the profile down after success or failure so they do not overwrite the normal `user://room407.cfg`.
 
 ## Recorded Environment
 
@@ -256,7 +280,7 @@ The shader source also contains grain, scanline, ordered-dither, VHS tracking/ji
 | field of view `12.0` | `60.0` |
 | master volume `-99.0` | `-40.0` dB |
 
-It also verifies settings controls for music, SFX, ambience, fullscreen, camera shake, film grain, and reset; parameter-complete one-shot/loop cache keys; capped-duration reuse; LRU recency; protection of cached streams held by regular or spatial players; spatial finish/queued-parent/stop cleanup; `stop_tone()` variant reclamation; and `stop_all()` cache/player/byte-accounting reset. The nested `menu-settings-regression.gd` helper verifies boot/pause modal focus traversal, launcher focus return, hidden-control focus release, and full-rect modal blocking. Its copy checks require **Camera movement**, **Music**, **Atmosphere**, and **Screen texture**; positively anchor the 23:47 opening, in-world failure line, creator attribution, and closing thank-you; reject checkpoint wording and production metadata; and ensure a failed config save keeps the panel open for retry or discard without showing a raw system error. It also checks a visible **CONTINUE SHIFT** button after creating an in-memory checkpoint.
+It also verifies settings controls for music, SFX, ambience, fullscreen, camera shake, film grain, and reset; parameter-complete one-shot/loop cache keys; capped-duration reuse; LRU recency; protection of cached streams held by regular or spatial players; spatial finish/queued-parent/stop cleanup; `stop_tone()` variant reclamation; and `stop_all()` cache/player/byte-accounting reset. The nested `menu-settings-regression.gd` helper verifies boot/pause modal focus traversal, launcher focus return, hidden-control focus release, and full-rect modal blocking. Its presentation checks require the configured native window title to remain player-facing; require **Camera movement**, **Music**, **Atmosphere**, and **Screen texture**; positively anchor the 23:47 opening, in-world failure line, creator attribution, and closing thank-you; reject checkpoint wording and production metadata; and ensure a failed config save keeps the panel open for retry or discard without showing a raw system error. It also checks a visible **CONTINUE SHIFT** button after creating an in-memory checkpoint. Headless mode cannot inspect the operating-system title bar, so the runtime suffix removal still requires a non-headless visual check.
 
 The nested `voice-over-regression.gd` helper validates the 22 expected narrative groups and all 76 importable OGG cues, schema/field/role/path rejection, exact cue/subtitle matching, lazy stream loading, SFX routing, real-cue playback-position pause/resume, external-subtitle interruption, replacement/stop behavior, a long line whose voice duration cannot be shortened by compressed test timing, and at least 21 seconds across the six ending cues. It also drives production `NarrativeSequencer` queue ordering, active/pending duplicate rejection, synchronous signal reentrancy, pause freeze/resume, completion flags, and free-during-wait cancellation. The full progression fixture independently records every accepted production sequence and requires exact manifest matches for all 76 cue IDs/texts. Progression, physical-route, and player-input fixtures disable actual voice output so their compressed timing remains intentional rather than depending on asset duration.
 
