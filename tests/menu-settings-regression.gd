@@ -62,12 +62,14 @@ func _verify_player_facing_copy() -> bool:
 		(settings.get_node("Panel/AmbienceLabel") as Label).text,
 		(settings.get_node("Panel/FilmGrain") as CheckButton).text,
 	])
-	if not _require(settings_copy == "Camera movement Chase music Atmosphere Screen texture", "settings still use implementation-oriented presentation labels"): return false
+	if not _require(settings_copy == "Camera movement Music Atmosphere Screen texture", "settings still use implementation-oriented presentation labels"): return false
 	var failure_copy := (fail_overlay.get_node("Panel/Message") as Label).text
-	if not _require(not failure_copy.to_lower().contains("checkpoint"), "failure overlay exposes checkpoint terminology"): return false
+	if not _require(failure_copy == "THE HALLWAY SWALLOWED YOU\nIt is waiting where you fell." and not failure_copy.to_lower().contains("checkpoint"), "failure overlay lost its in-world recovery message or exposes checkpoint terminology"): return false
 	var credits_copy := (ending_overlay.get_node("Panel/Credits") as Label).text
+	if not _require(credits_copy == "ROOM 407: THE LAST SHIFT\n\nCreated by JasonTM17 and contributors\n\nThank you for taking the last shift.", "ending credits lost their concise player-facing attribution"): return false
+	var normalized_credits := credits_copy.to_lower()
 	for technical_term in ["Engine", "4.7.1", "shader", "Procedural", "MIT licensed"]:
-		if not _require(not credits_copy.contains(technical_term), "ending credits expose technical production metadata: %s" % technical_term): return false
+		if not _require(not normalized_credits.contains(technical_term.to_lower()), "ending credits expose technical production metadata: %s" % technical_term): return false
 	settings.queue_free()
 	fail_overlay.queue_free()
 	ending_overlay.queue_free()
@@ -139,12 +141,15 @@ func _verify_boot_focus_return() -> bool:
 	return true
 
 func _boot_copy_is_immersive(boot_menu: Node) -> bool:
+	var found_story_setup := false
 	for node in boot_menu.find_children("*", "Label", true, false):
 		var label := node as Label
+		if label.text == "23:47. One last room remains unchecked.\nKeep the light on. Finish the shift.":
+			found_story_setup = true
 		var copy := label.text.to_lower()
 		if copy.contains("minute") or copy.contains("no combat") or copy.contains("checkpoint"):
 			return false
-	return true
+	return found_story_setup
 
 func _make_escape_event() -> InputEventAction:
 	var event := InputEventAction.new()

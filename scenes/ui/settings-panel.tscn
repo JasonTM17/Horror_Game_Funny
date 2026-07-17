@@ -96,7 +96,7 @@ offset_left = 38.0
 offset_top = 213.0
 offset_right = 200.0
 offset_bottom = 241.0
-text = "Chase music"
+text = "Music"
 
 [node name="Music" type="HSlider" parent="Panel"]
 offset_left = 205.0
