@@ -128,8 +128,16 @@ func _verify_voice_enabled_sequencer(host: Node) -> bool:
 	var position_during_pause := voice_player.get_playback_position()
 	host.get_tree().paused = false
 	if not _require(position_before_pause > 0.0 and absf(position_during_pause - position_before_pause) < 0.08, "real voice playback advanced while the scene tree was paused"): return false
-	await host.get_tree().create_timer(0.1).timeout
-	if not _require(voice_player.get_playback_position() > position_during_pause, "real voice playback did not resume after pause"): return false
+	# Headless audio servers can take more than one short fixed sleep to advance
+	# stream position after NOTIFICATION_UNPAUSED; poll the production player.
+	var resume_deadline_msec := Time.get_ticks_msec() + 1500
+	var resumed := false
+	while Time.get_ticks_msec() < resume_deadline_msec:
+		await host.get_tree().process_frame
+		if voice_player.playing and voice_player.get_playback_position() > position_during_pause + 0.01:
+			resumed = true
+			break
+	if not _require(resumed, "real voice playback did not resume after pause"): return false
 	GameState.set_subtitle("The fuse box interrupts the narration.")
 	if not _require(not voice_player.playing and voice_player.stream == null, "external subtitle feedback did not stop mismatched narration"): return false
 	sequencer.queue_free()
