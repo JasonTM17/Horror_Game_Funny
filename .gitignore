@@ -1,6 +1,7 @@
 # Godot imports and editor state
 .godot/
 .import/
+docs/screenshots/*.import
 
 # Local verification artifacts and temporary files
 .artifacts/
