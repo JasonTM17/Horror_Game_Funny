@@ -73,7 +73,7 @@ offset_left = 480.0
 offset_top = 166.0
 offset_right = 740.0
 offset_bottom = 204.0
-text = "Comfort head bob"
+text = "Camera movement"
 
 [node name="VolumeLabel" type="Label" parent="Panel"]
 offset_left = 38.0
@@ -96,7 +96,7 @@ offset_left = 38.0
 offset_top = 213.0
 offset_right = 200.0
 offset_bottom = 241.0
-text = "Music / chase"
+text = "Chase music"
 
 [node name="Music" type="HSlider" parent="Panel"]
 offset_left = 205.0
@@ -128,7 +128,7 @@ offset_left = 38.0
 offset_top = 303.0
 offset_right = 200.0
 offset_bottom = 331.0
-text = "Ambience"
+text = "Atmosphere"
 
 [node name="Ambience" type="HSlider" parent="Panel"]
 offset_left = 205.0
@@ -158,7 +158,7 @@ offset_left = 480.0
 offset_top = 256.0
 offset_right = 740.0
 offset_bottom = 294.0
-text = "Film grain / scanlines"
+text = "Screen texture"
 
 [node name="SaveStatus" type="Label" parent="Panel"]
 visible = false
@@ -168,7 +168,7 @@ offset_right = 742.0
 offset_bottom = 398.0
 theme_override_colors/font_color = Color(0.92, 0.42, 0.34, 1)
 theme_override_font_sizes/font_size = 14
-text = "SAVE FAILED. Settings remain active for this session."
+text = "Your settings could not be saved. They will remain active until you close the game."
 autowrap_mode = 2
 
 [node name="Reset" type="Button" parent="Panel"]

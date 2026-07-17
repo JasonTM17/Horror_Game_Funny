@@ -29,7 +29,7 @@ At 23:47, a student covering a night shift at an old apartment block receives a 
 
 Clocks point to 00:07, room numbers repeat, a radio carries the protagonist's voice, and an apparition watches from the corridor. A burned photograph, cassette, and red toy rabbit reveal that the protagonist lived in Room 407 as a child.
 
-The final clue starts the escape. At the exit, the current gameplay scene constructs an abandoned-lobby reveal: a condemned desk, a 2007 condemnation notice, and a notice that no night staff were assigned. A credits overlay identifies the game, design/development attribution, Godot version, procedural art/audio/shader provenance, and project source license.
+The final clue starts the escape. At the exit, the current gameplay scene constructs an abandoned-lobby reveal: a condemned desk, a 2007 condemnation notice, and a notice that no night staff were assigned. A credits overlay identifies the game, gives concise creator attribution, and closes with an in-world thank-you instead of production metadata.
 
 ## Gameplay Loop
 
@@ -138,23 +138,23 @@ Checkpoints are created at the Room 407 entrance and chase start. On capture, th
 
 Retreating beyond the authored chase boundary requests this same recovery instead of disabling pursuit for the remainder of the run.
 
-The boot menu exposes Continue when a checkpoint exists in the current process. Checkpoints are not written to disk and cannot survive an application restart.
+The boot menu exposes **CONTINUE SHIFT** when a checkpoint exists in the current process. Checkpoints are not written to disk and cannot survive an application restart.
 
 ## Settings and Accessibility
 
 - Mouse sensitivity: 0.01–0.25, default 0.08.
 - Field of view: 60–95 degrees, default 74.
-- Master, music/chase, SFX, and ambience: −40 to +6 dB.
+- Overall, chase-music, sound-effects, and atmosphere levels: −40 to +6 dB.
 - Fullscreen toggle.
-- Toggles for light flicker, comfort head bob, camera shake, and film grain/scanlines.
+- Toggles for light flicker, camera movement, camera shake, and screen texture.
 - Text prompts, objectives, notes, radio feedback, and narrative subtitles.
 - Pause-menu access to the same settings panel as the boot menu.
 
-Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; a failed write returns an `Error`, leaves the modal open, displays the failure, and offers **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Discarding closes without writing a new file, so those values remain session-only. Boot and pause menus trap focus inside the modal and return it to the Settings launcher. Automated tests inspect controls/clamps and use separate writer/reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
+Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; a failed write returns an internal `Error`, leaves the modal open, shows a plain-language recovery message without the system error code, and offers **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Discarding closes without writing a new file, so those values remain session-only. Boot and pause menus trap focus inside the modal and return it to the Settings launcher. Automated tests inspect controls/clamps and use separate writer/reader processes to verify all 11 values persist across relaunch. Physical panel interaction, fullscreen display behavior, and audible results still require manual evidence.
 
 ## Visual Reference Material
 
-The committed [visual-reference montage](./screenshots/room-407-gameplay-tour.gif) and stills for the [lobby](./screenshots/room-407-lobby.png), [Room 407 bedroom](./screenshots/room-407-bedroom.png), [chase entity](./screenshots/room-407-chase-entity.png), and [ending reveal](./screenshots/room-407-ending-reveal.png) show selected authored presentation states. They were visually reviewed after a reproducible staged in-engine capture.
+The committed [visual-reference montage](./screenshots/room-407-gameplay-tour.gif) and stills for the [lobby](./screenshots/room-407-lobby.png), [Room 407 bedroom](./screenshots/room-407-bedroom.png), [chase entity](./screenshots/room-407-chase-entity.png), and [ending reveal](./screenshots/room-407-ending-reveal.png) show selected authored presentation states. They were refreshed and visually reviewed after the immersive HUD/menu copy pass: story directions stand alone, empty inventory is suppressed, and credits hide gameplay HUD.
 
 The capture tour is intentionally not player-driven: it freezes gameplay/player simulation, disables voice, teleports the player, chooses hallway/chase/epilogue state directly, and manually creates credits. Therefore the montage is not a gameplay recording and cannot validate encounter pacing, progression clarity, tension waves, chase readability or fairness under motion, audio, Settings/fullscreen, or physical controls. Those design targets remain in the manual evidence matrix.
 

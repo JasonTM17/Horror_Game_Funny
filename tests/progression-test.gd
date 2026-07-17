@@ -48,7 +48,7 @@ func _ready() -> void:
 	if not _require(director.handle_story_action("logbook", player), "logbook should grant key"): return
 	if not _require(GameState.has_item("floor_key"), "logbook should add the floor key"): return
 	var hud := gameplay.get_node("HUD")
-	if not _require("Fourth-floor key" in hud.inventory_label.text and not "floor_key" in hud.inventory_label.text, "HUD exposed the internal floor-key ID"): return
+	if not _require(hud.inventory_label.visible and hud.inventory_label.text == "Fourth-floor key" and not "floor_key" in hud.inventory_label.text and not "POCKETS" in hud.inventory_label.text, "HUD did not present the carried key as a clean player-facing name"): return
 	if not _require(not director.handle_story_action("logbook", player), "logbook signing must be one-shot"): return
 	var floor_door := gameplay.get_node("floor_door") as DoorInteractable
 	GameState.consume_item("floor_key")
@@ -325,6 +325,7 @@ func _ready() -> void:
 	if not _require(await _wait_for_flag("ending_roster_complete"), "night roster narration did not complete"): return
 	if not _require(await _wait_for_node(gameplay, "EndingOverlay"), "credits did not follow the completed interactive epilogue"): return
 	if not _require(credits_count[0] == 1 and player._locks.has("ending") and player.is_input_locked(), "visible credits did not apply exactly one terminal input lock and signal"): return
+	if not _require(not (gameplay.get_node("HUD") as CanvasLayer).visible, "credits left gameplay directions visible behind the ending panel"): return
 	if not _require(JSON.stringify(GameState.checkpoint) == checkpoint_before_ending, "interactive epilogue mutated the chase checkpoint"): return
 	await get_tree().create_timer(1.4).timeout
 	if not _require(GameState.stage == GameState.Stage.ENDING, "capture recovery overwrote the terminal ending stage"): return

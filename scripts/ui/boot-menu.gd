@@ -20,7 +20,7 @@ func _ready() -> void:
 	title.add_theme_color_override("font_color", Color(0.84, 0.86, 0.88))
 	panel.add_child(title)
 	var subtitle := Label.new()
-	subtitle.text = "A continuous 15–20 minute night shift.\nNo combat. Keep the light on."
+	subtitle.text = "23:47. One last room remains unchecked.\nKeep the light on. Finish the shift."
 	subtitle.position = Vector2(92, 215)
 	subtitle.add_theme_font_size_override("font_size", 18)
 	subtitle.add_theme_color_override("font_color", Color(0.48, 0.55, 0.62))
@@ -35,7 +35,7 @@ func _ready() -> void:
 	panel.add_child(_start_button)
 	_continue_button = Button.new()
 	_continue_button.name = "Continue"
-	_continue_button.text = "CONTINUE CHECKPOINT"
+	_continue_button.text = "CONTINUE SHIFT"
 	_continue_button.position = Vector2(92, 378)
 	_continue_button.size = Vector2(220, 42)
 	_continue_button.visible = not GameState.checkpoint.is_empty()

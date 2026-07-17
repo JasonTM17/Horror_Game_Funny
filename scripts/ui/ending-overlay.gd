@@ -5,6 +5,9 @@ func _ready() -> void:
 	visible = false
 
 func show_ending() -> void:
+	var hud := get_parent().get_node_or_null("HUD") as CanvasLayer
+	if hud != null:
+		hud.visible = false
 	visible = true
 	$Panel/Replay.grab_focus()
 

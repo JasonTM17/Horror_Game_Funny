@@ -3,6 +3,8 @@ extends Node
 const SETTINGS_SCENE := preload("res://scenes/ui/settings-panel.tscn")
 const PAUSE_SCENE := preload("res://scenes/ui/pause-menu.tscn")
 const BOOT_SCENE := preload("res://scenes/boot/boot.tscn")
+const FAIL_SCENE := preload("res://scenes/ui/fail-overlay.tscn")
+const ENDING_SCENE := preload("res://scenes/ui/ending-overlay.tscn")
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 
 var _save_failure_path := ""
@@ -12,6 +14,7 @@ var _panel_closed_count := 0
 func run() -> bool:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if not await _verify_save_failure_feedback(): return false
+	if not await _verify_player_facing_copy(): return false
 	if not await _verify_pause_focus_return(): return false
 	if not await _verify_boot_focus_return(): return false
 	GameState.reset_run()
@@ -35,13 +38,39 @@ func _verify_save_failure_feedback() -> bool:
 	if not _require(_save_failure_path == missing_directory_path and _save_failure_error != OK, "settings manager did not return and report the save failure"): return false
 	var status := panel.get_node("Panel/SaveStatus") as Label
 	var close_without_saving := panel.get_node("Panel/CloseWithoutSaving") as Button
-	if not _require(status.visible and status.text.contains("SAVE FAILED") and close_without_saving.visible, "save failure did not expose a readable recovery choice"): return false
+	if not _require(status.visible and status.text.begins_with("Your settings could not be saved.") and not status.text.contains("(") and close_without_saving.visible, "save failure exposed technical error text or omitted a readable recovery choice"): return false
 	if not _require(_has_modal_mouse_blocker(panel), "settings panel does not block mouse input outside its dialog"): return false
 	panel._unhandled_input(_make_escape_event())
 	if not _require(not panel.visible and _panel_closed_count == 1, "Escape did not close the panel for this session after a save failure"): return false
 	var focus_owner := get_viewport().gui_get_focus_owner()
 	if not _require(not is_instance_valid(focus_owner) or not panel.get_node("Panel").is_ancestor_of(focus_owner), "hidden settings control retained keyboard focus"): return false
 	panel.queue_free()
+	await get_tree().process_frame
+	return true
+
+func _verify_player_facing_copy() -> bool:
+	var settings := SETTINGS_SCENE.instantiate()
+	var fail_overlay := FAIL_SCENE.instantiate()
+	var ending_overlay := ENDING_SCENE.instantiate()
+	add_child(settings)
+	add_child(fail_overlay)
+	add_child(ending_overlay)
+	await get_tree().process_frame
+	var settings_copy := " ".join([
+		(settings.get_node("Panel/HeadBob") as CheckButton).text,
+		(settings.get_node("Panel/MusicLabel") as Label).text,
+		(settings.get_node("Panel/AmbienceLabel") as Label).text,
+		(settings.get_node("Panel/FilmGrain") as CheckButton).text,
+	])
+	if not _require(settings_copy == "Camera movement Chase music Atmosphere Screen texture", "settings still use implementation-oriented presentation labels"): return false
+	var failure_copy := (fail_overlay.get_node("Panel/Message") as Label).text
+	if not _require(not failure_copy.to_lower().contains("checkpoint"), "failure overlay exposes checkpoint terminology"): return false
+	var credits_copy := (ending_overlay.get_node("Panel/Credits") as Label).text
+	for technical_term in ["Engine", "4.7.1", "shader", "Procedural", "MIT licensed"]:
+		if not _require(not credits_copy.contains(technical_term), "ending credits expose technical production metadata: %s" % technical_term): return false
+	settings.queue_free()
+	fail_overlay.queue_free()
+	ending_overlay.queue_free()
 	await get_tree().process_frame
 	return true
 
@@ -83,7 +112,7 @@ func _verify_boot_focus_return() -> bool:
 	var settings_button := fresh_boot.find_child("Settings", true, false) as Button
 	var quit_button := fresh_boot.find_child("Quit", true, false) as Button
 	if not _require(start_button != null and continue_button != null and not continue_button.visible and get_viewport().gui_get_focus_owner() == start_button, "fresh boot menu did not focus Start"): return false
-	if not _require(_boot_subtitle_is_clean(fresh_boot), "boot subtitle contains damaged 15–20 minute text"): return false
+	if not _require(_boot_copy_is_immersive(fresh_boot), "boot menu exposes runtime, combat, or checkpoint terminology"): return false
 	settings_button.grab_focus()
 	fresh_boot._show_settings()
 	var boot_settings := fresh_boot.get_node("SettingsPanel")
@@ -103,17 +132,19 @@ func _verify_boot_focus_return() -> bool:
 	await get_tree().process_frame
 	continue_button = checkpoint_boot.find_child("Continue", true, false) as Button
 	if not _require(continue_button != null and continue_button.visible and get_viewport().gui_get_focus_owner() == continue_button, "checkpoint boot menu did not focus Continue"): return false
+	if not _require(continue_button.text == "CONTINUE SHIFT", "continue action exposes checkpoint terminology"): return false
 	checkpoint_boot.queue_free()
 	GameState.reset_run()
 	await get_tree().process_frame
 	return true
 
-func _boot_subtitle_is_clean(boot_menu: Node) -> bool:
+func _boot_copy_is_immersive(boot_menu: Node) -> bool:
 	for node in boot_menu.find_children("*", "Label", true, false):
 		var label := node as Label
-		if label.text.begins_with("A continuous"):
-			return label.text.contains("15–20") and not label.text.contains("â")
-	return false
+		var copy := label.text.to_lower()
+		if copy.contains("minute") or copy.contains("no combat") or copy.contains("checkpoint"):
+			return false
+	return true
 
 func _make_escape_event() -> InputEventAction:
 	var event := InputEventAction.new()

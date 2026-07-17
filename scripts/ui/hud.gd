@@ -51,17 +51,20 @@ func get_objective_focus_time() -> float:
 	return _objective_focus_time
 
 func _on_objective_changed(text: String) -> void:
-	objective_label.text = "OBJECTIVE\n" + text
+	objective_label.text = text.strip_edges()
+	objective_label.visible = not objective_label.text.is_empty()
 	_focus_objective(OBJECTIVE_CHANGE_FOCUS_SECONDS)
 
 func _on_inventory_changed(items: Array[String]) -> void:
 	if items.is_empty():
-		inventory_label.text = "POCKETS\n(empty)"
+		inventory_label.text = ""
+		inventory_label.visible = false
 	else:
 		var display_items: Array[String] = []
 		for item_id: String in items:
 			display_items.append(str(INVENTORY_LABELS.get(item_id, item_id.capitalize())))
-		inventory_label.text = "POCKETS\n" + "\n".join(display_items)
+		inventory_label.text = "\n".join(display_items)
+		inventory_label.visible = true
 
 func _on_prompt_changed(text: String) -> void:
 	prompt_label.text = text

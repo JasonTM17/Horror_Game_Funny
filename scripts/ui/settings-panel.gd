@@ -81,7 +81,7 @@ func _sync_controls() -> void:
 
 func _show_save_error(save_error: Error) -> void:
 	_last_save_error = save_error
-	$Panel/SaveStatus.text = "SAVE FAILED (%s). Settings remain active for this session." % error_string(save_error)
+	$Panel/SaveStatus.text = "Your settings could not be saved. They will remain active until you close the game."
 	$Panel/SaveStatus.visible = true
 	$Panel/CloseWithoutSaving.visible = true
 	$Panel/Close.text = "RETRY SAVE"

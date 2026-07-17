@@ -57,6 +57,8 @@ func _verify_production_interaction(player: CharacterBody3D, interaction: Node) 
 func _verify_objective_review() -> bool:
 	var hud := _gameplay.get_node("HUD")
 	if not _require(hud.has_method("get_objective_focus_time"), "HUD does not consume the objective review action"): return false
+	if not _require(hud.objective_label.text == GameState.objective and not hud.objective_label.text.contains("OBJECTIVE"), "HUD wraps the story direction in a technical objective header"): return false
+	if not _require(not hud.inventory_label.visible and hud.inventory_label.text.is_empty(), "HUD exposes an empty inventory panel before the player carries anything"): return false
 	var focus_before: float = hud.get_objective_focus_time()
 	var objective_event := InputEventAction.new()
 	objective_event.action = "show_objective"

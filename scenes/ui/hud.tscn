@@ -17,12 +17,11 @@ theme_override_constants/separation = 10
 [node name="Objective" type="Label" parent="Margin/Column"]
 theme_override_colors/font_color = Color(0.82, 0.86, 0.9, 1)
 theme_override_font_sizes/font_size = 16
-text = "OBJECTIVE"
 
 [node name="Inventory" type="Label" parent="Margin/Column"]
+visible = false
 theme_override_colors/font_color = Color(0.52, 0.6, 0.66, 1)
 theme_override_font_sizes/font_size = 13
-text = "POCKETS\n(empty)"
 
 [node name="Prompt" type="Label" parent="."]
 offset_left = 350.0
