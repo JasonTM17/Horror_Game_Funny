@@ -73,6 +73,8 @@ After crossing the first barrier, a maintenance notice establishes why the floor
 
 Crossing the threshold is a one-shot authored scare: the elevator display changes from `3` to `4`, the real floor door closes behind the player, and a distant, non-colliding arrival apparition appears before the display burns back to `--`. The fourth-floor shell uses alternating procedural wall panels, lights, and notices to make the route feel occupied without adding a second level or scene.
 
+The scare begins with a distant lift-strain cue and a local red light response. The silhouette and two quieter spatial layers reveal after the warning; the display failure, light restoration, and actor/audio removal form its aftermath.
+
 The painted elevator-side false door is optional. Trying it returns a clear explanation that the handle is painted onto the panel; the panel stays fixed and does not gate or advance progression.
 
 ### Memory Hallway
@@ -87,6 +89,8 @@ Three memory objects are ordered and idempotent. After each object returns its m
 
 The hallway controller exposes four visual roots: the initial corridor and three progressively distorted variants. Blackouts hide their visibility swap and loop repositioning.
 
+The three-memory suite stays authored and story-ordered. The photograph moves a low whisper from left to right around its message and briefly colors the nearest light. The cassette waits for the camera to turn away, places a non-colliding silhouette behind the player, then layers a breath and two reveal cues when the player looks back; an unrevealed silhouette is removed when `memory_cassette_recalled` completes. The rabbit uses a quiet music-box warning, a red light response, and a non-colliding apparition/presence reveal. These beats do not select randomly or change progression beyond their existing memory actions.
+
 ### Radio Code
 
 - The input accepts at most four numeric digits.
@@ -99,7 +103,9 @@ The hallway controller exposes four visual roots: the initial corridor and three
 
 ### Room 407
 
-The family recording must finish before the drawing can be inspected. The player then searches the child's bed, wardrobe, and family table for three physical clues; all five Room 407 clue interactions are required before the final note opens. Wallpaper panels, ceiling ribs, height marks, and a warning label sell the impossible childhood room while keeping the central navigation lane clear. Closing the note triggers a visible, non-colliding manifestation and begins the chase setup; the `chase_start` checkpoint is created after the narrative beat completes.
+The family recording must finish before the drawing can be inspected. The player then searches the child's bed, wardrobe, and family table for three physical clues; all five Room 407 clue interactions are required before the final note opens. Wallpaper panels, ceiling ribs, height marks, and a warning label sell the impossible childhood room while keeping the central navigation lane clear. Closing the note starts the climax with a low wall-breath warning and local light response, then reveals a visible, eyed, non-colliding manifestation with layered low/sting cues. The sequence clears before chase ownership starts; the `chase_start` checkpoint is created after the narrative beat completes.
+
+Across the four story-aligned buildup beats—floor arrival, photograph, cassette turn-away, and rabbit—and the Room 407 climax, the direction pattern is anticipation → reveal → aftermath. Volumes remain low/moderate in source and spatial range stays bounded through the audio service, but audible balance and rendered timing/quality still require a physical review.
 
 ### Chase and Ending
 
@@ -154,7 +160,7 @@ The capture tour is intentionally not player-driven: it freezes gameplay/player 
 
 ## Completion Evidence Required
 
-Automated checks cover progression guards, fourth-floor/Room 407 scare dressing, hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. The existing physical-route check also exercises the optional drawer and painted door through the production ray, including structural visibility/alignment, feedback/cooldowns, drawer sweep and animation safety, unchanged story state, and spatial-audio/lock cleanup. Checks also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
+Automated checks cover progression guards, fourth-floor/memory/Room 407 scare staging, unique cue IDs, non-colliding actors, pause-safe waits, one-shot/repeated-trigger behavior, light restoration, actor/audio ownership, cassette narration-bound cleanup, and scene-exit cleanup. They also cover hallway transition completion, radio wrong/correct UI behavior, checkpoint restoration, layout/navigation invariants, chase APPEAR/STALK/CHASE/LOS/search/reacquisition/DESPAWN behavior, pause-safe flashlight bounds, ending success, and the reveal node. The existing physical-route check exercises the optional drawer and painted door through the production ray, including structural visibility/alignment, feedback/cooldowns, drawer sweep and animation safety, unchanged story state, and spatial-audio/lock cleanup. Checks also verify fresh-run pacing eligibility, checkpoint ineligibility, pause exclusion, actual milestone order, complete/null chapter semantics, visible-credits finalization, reset immutability, report-copy isolation, modal focus/save-failure behavior, and deliberate rejection of compressed or out-of-order evidence. The Settings helper is nested inside `settings-audio`; the runner remains exactly twelve checks.
 
 Release validation still needs a recorded manual run covering:
 
@@ -171,6 +177,10 @@ Release validation still needs a recorded manual run covering:
 
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
+- [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)
+- [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
+- [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
+- [`turn-away-apparition.gd`](../scripts/world/turn-away-apparition.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
 - [`ending-epilogue-controller.gd`](../scripts/world/ending-epilogue-controller.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)

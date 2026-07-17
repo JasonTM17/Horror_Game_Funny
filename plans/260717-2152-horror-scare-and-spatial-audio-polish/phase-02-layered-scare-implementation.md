@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: "Layered scare implementation"
-status: pending
+status: completed
 effort: "medium"
 ---
 
@@ -24,7 +24,7 @@ Implement deliberate, story-specific sequences without progression side effects.
 
 ## Success Criteria
 
-- [ ] Four production sequences have distinct anticipation/reveal/aftermath timing.
-- [ ] No temporary actor, emitter, or altered light survives cleanup.
-- [ ] No collider, movement lock, checkpoint, inventory, or voice contract changes.
-- [ ] Files stay modular and public APIs remain compatible.
+- [x] Four planned production targets—floor arrival, photo, cassette, and Room 407—have distinct anticipation/reveal/aftermath timing; the rabbit memory also retains its staged story-aligned sub-beat.
+- [x] No temporary actor, emitter, or altered light survives normal, narration-bound, or scene-exit cleanup.
+- [x] No collider, movement lock, checkpoint, inventory, or voice contract changes.
+- [x] Files stay modular and public APIs remain compatible.

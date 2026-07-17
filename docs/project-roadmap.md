@@ -23,10 +23,17 @@ The implementation roadmap is sequential and preserves one continuous gameplay s
 
 The current source-level route/timing audit is recorded in [`phase-04-pacing-audit-20260716.md`](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-04-pacing-audit-20260716.md). It is planning evidence only; it does not replace the physical capture gate.
 
+## Completed Scare Lifecycle Slice
+
+The focused [horror scare and spatial-audio plan](../plans/260717-2152-horror-scare-and-spatial-audio-polish/plan.md) is complete. The fixed floor-arrival, photograph, cassette turn-away, and rabbit buildup beats now lead into a separate Room 407 climax with authored anticipation, reveal, and aftermath; low/moderate procedural spatial layers; local light response where available; and non-colliding temporary actors. Shared sequence/factory ownership handles unique cue IDs, pause-safe waits, exact light restoration, actor/audio teardown, cassette cleanup at `memory_cassette_recalled`, and scene-exit cleanup without replacing voice-over.
+
+Focused `progression` and `settings-audio` passed. The final 2026-07-17 canonical run passed 12/12 in 63.5 seconds with exactly 12 logs, zero scanned current failure lines including lambda/leak patterns, and zero remaining runner profiles. Final review found zero Critical, High, or Medium issues after two Medium lifecycle defects were fixed. This closes only that focused source slice; it does not change Phase 4 or PDR-07.
+
 ## Guardrails
 
 - Do not add loading screens or split the route into levels to manufacture duration.
 - Do not treat compressed headless timing, checkpoint-start sessions, screenshots of editor views, concept art, or AI-generated images as physical gameplay evidence.
+- Do not treat scare lifecycle assertions as audible-mix, spatial-perception, rendered timing/quality, or physical-input evidence.
 - Keep media files small and readable; preserve the original capture outside Git.
 - Monitor C:/D: before and after recording, voice processing or media encoding.
 - Commit small focused clusters and verify `HEAD == origin/main` after every push.

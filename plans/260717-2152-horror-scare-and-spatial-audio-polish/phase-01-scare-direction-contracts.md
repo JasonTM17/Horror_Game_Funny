@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: "Scare direction contracts"
-status: in-progress
+status: completed
 effort: "small"
 ---
 
@@ -24,4 +24,4 @@ four-beat direction contract before production edits.
 
 - [x] Existing scare/audio/light contracts inspected.
 - [x] Scope and acceptance criteria recorded in `plan.md`.
-- [ ] Plan validates and receives implementation review.
+- [x] Plan validated and implementation completed under the recorded contracts.

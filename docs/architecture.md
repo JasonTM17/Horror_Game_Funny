@@ -46,7 +46,9 @@ This separation keeps raw capture outputs and logs outside source control while 
 | `EndingEpilogueController` | Same-scene condemnation notice/roster props, ordered narration gates, ending prompts/actions, and credits request |
 | `PlaythroughPacingTelemetry` | Scene-local eligibility snapshot, first-occurrence milestone order, pause-aware timing, target evaluation, visible-credits finalization, and one runtime JSON line |
 | `DynamicHallwayController` | Four visibility-switched corridor variants and memory-driven dressing changes |
-| `HorrorEventDirector` | Idempotent, local visual/audio events and apparitions |
+| `HorrorEventDirector` | One-shot story-event dispatch, authored scare composition, and active-sequence cancellation on scene exit |
+| `HorrorScareSequence` | Pause-safe scaled waits; temporary spatial-cue, light-snapshot, and actor ownership; idempotent finish/cancel cleanup |
+| `HorrorApparitionFactory` | Shared primitive-mesh, non-colliding apparition construction, with optional Room 407 eyes |
 | `NarrativeSequencer` | Timed subtitle lines, exact manifest-backed voice cues, fallback ticks, and completion flags |
 | `VisualEffectsLayer` | Full-screen retro shader, settings visibility, and stage-driven fear intensity |
 
@@ -95,6 +97,16 @@ LOBBY
 ```
 
 Stable lowercase IDs, not display text, identify flags, inventory items, and completed events.
+
+## Authored Scare Lifecycle
+
+`HorrorEventDirector.trigger(event_id)` calls `GameState.mark_event_complete()` before dispatch. A repeated event ID therefore returns before it can create another sequence, actor, light change, or cue. Fixed story progression owns trigger order; there is no random scare selector.
+
+The four story-aligned buildup beats are floor arrival, photograph, cassette turn-away, and rabbit. Room 407 is their separate pre-chase climax. Floor arrival, photograph, rabbit, and Room 407 create a `HorrorScareSequence`; each snapshots a nearby light when applicable, plays uniquely named procedural SFX through spatial players, owns temporary actors, and uses pause-safe scene-tree timers for anticipation, reveal, and aftermath. `HorrorApparitionFactory` creates the shared floor/rabbit/Room silhouettes from primitive meshes without a collision object. Room 407 optionally adds two eye meshes.
+
+The cassette keeps its camera-driven `TurnAwayApparition`, but the director owns it through `CassetteTurnAwayScare`. Its internal warning/reveal timers are pause-safe. Looking away arms the behind-player actor and breath cue; looking back layers low and snap cues before teardown. If it remains unrevealed, `StoryProgressionController` calls `finish_sequence("CassetteTurnAwayScare")` when `memory_cassette_recalled` completes, rather than retaining the actor for its 18-second fallback lifetime.
+
+Sequence cleanup is idempotent across normal finish, cancellation, and `_exit_tree()`: every owned cue ID is stopped, owned actors are queued for deletion, and valid lights regain their exact saved energy/color. `HorrorEventDirector._exit_tree()` cancels every active sequence. `TurnAwayApparition._exit_tree()` stops its three cue IDs. These paths do not call the narrative sequencer or voice player, so scare teardown does not stop or replace voice-over.
 
 ## Pacing Telemetry Data Flow and Lifecycle
 
@@ -203,6 +215,8 @@ These are the current extension points verified against the source and headless 
 3. Store durable run state through stable `GameState` flags/items/stages, update the objective explicitly, and send timed lines through `NarrativeSequencer` when completion must occur after playback.
 4. Extend `progression-test.gd` with premature rejection, accepted progression, one-shot behavior, and exact state side effects. Add checkpoint restore assertions when the beat can exist before a Continue reload.
 
+For a temporary authored scare, build non-physical actors through `HorrorApparitionFactory`, create one `HorrorScareSequence`, use cue IDs unique across all concurrent beats, and let that sequence own every altered light, temporary actor, and spatial cue. Add narration-bound cleanup when an actor can remain unrevealed.
+
 ### Hallway Variant
 
 `DynamicHallwayController._build_variant_props()` owns the geometry below `Variant0` through `Variant3`; add or replace dressing under the intended `variant_roots[index]`. A new state beyond those four also requires increasing the root-creation count, changing the clamp in `reconfigure_for_memory()`, extending the ordered memory IDs/count thresholds in `StoryProgressionController`, and updating the restored-variant assertions in `checkpoint-layout-test.gd`. The current three-memory contract deliberately caps the final state at index 3.
@@ -221,7 +235,7 @@ Create a focused `.gd` script and `.tscn` harness under `tests/`, print one uniq
 
 The exact twelve checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
-Together they verify import, canonical `project.godot` serialization, and scene construction; state snapshots, post-restore collection isolation, and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, elevator/arrival scare invariants, chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, entity-parented SFX cue start/recovery/teardown, terminal failure/ending overlap, ray-reachable two-step epilogue gates, pre-credits movement, and exactly-once credits locking; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam, 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; optional drawer/painted-door visibility alignment, ray acquisition, cooldown, mapped feedback, drawer motion safety, unchanged story state, and spatial-tone/lock teardown; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; all 76 manifest-backed English voice resources and sequencing/fallback contracts; and settings persistence across two Godot processes.
+Together they verify import, canonical `project.godot` serialization, and scene construction; state snapshots, post-restore collection isolation, and guarded progression; radio cooldown across close/reopen; pacing eligibility, pause accounting, actual boundary order, deep-copy isolation, visible-credits finalization, incomplete/null semantics, reset immutability, and out-of-order rejection; layout, navigation, restored hallway, and authored scare anticipation/reveal/aftermath contracts, including unique cue ownership, non-colliding actors, pause freeze, repeated-trigger rejection, exact light restoration, cassette narration-bound cleanup, and director-exit cleanup; chase APPEAR pause, measured STALK/CHASE speed, LOS/last-seen/reacquisition, bounded search/DESPAWN, restart/exit behavior, retreat and capture recovery, entity-parented SFX cue start/recovery/teardown, terminal failure/ending overlap, ray-reachable two-step epilogue gates, pre-credits movement, and exactly-once credits locking; synthesized production-player movement through three doors; physical E binding and production ray acquisition; phone interaction, objective review, pause/flashlight locks, bounded pause-safe flicker, note Escape, door spam, 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; optional drawer/painted-door visibility alignment, ray acquisition, cooldown, mapped feedback, drawer motion safety, unchanged story state, and spatial-tone/lock teardown; shader uniforms, stage-driven fear intensity, and the film-grain visibility toggle; settings controls/clamps, modal focus traversal/launcher return, visible save-failure handling, first-run bus defaults, parameter-complete audio variants/LRU/live-player protection/spatial teardown, and in-memory Continue visibility; all 76 manifest-backed English voice resources and sequencing/fallback contracts; and settings persistence across two Godot processes.
 
 The movement checks teleport between focused gates and the input check positions the player at selected production targets. The telemetry checks extend progression and checkpoint/layout; they do not add a thirteenth runner check. The suite does not generate a complete physical F5 keyboard/mouse playthrough or verify a same-run physical capture, monitor output, rendered effect quality, audible output or mix balance, live chase navigation/fairness, the physical Settings UI workflow, or 15–20 minute pacing. These require the manual matrix in `testing.md`.
 
@@ -234,6 +248,10 @@ The movement checks teleport between focused gates and the input check positions
 - [`ending-epilogue-controller.gd`](../scripts/world/ending-epilogue-controller.gd)
 - [`chase-entity.gd`](../scripts/world/chase-entity.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)
+- [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)
+- [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
+- [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
+- [`turn-away-apparition.gd`](../scripts/world/turn-away-apparition.gd)
 - [`continuous-world-builder.gd`](../scripts/world/continuous-world-builder.gd)
 - [`continuous-story-layout.gd`](../scripts/world/continuous-story-layout.gd)
 - [`hallway-transition-layer.gd`](../scripts/ui/hallway-transition-layer.gd)

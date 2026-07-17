@@ -18,6 +18,7 @@ The current implementation uses Godot 4.7.1 with the Compatibility renderer, pro
 | PDR-06 | Settings, pause, comfort and process-local checkpoint behavior | Input, visual, audio and persistence tests | Implemented |
 | PDR-07 | 15–20 minute pacing verified from one fresh physical run | Same-run eligible telemetry plus human traversal review | Open |
 | PDR-08 | Final documentation includes reviewed in-engine screenshots and an optimized visual-reference GIF | Four 960×540 PNGs and one 640×360 derived GIF under `docs/screenshots/`, with links and provenance | Complete |
+| PDR-09 | Fixed story-aligned scares use anticipation → reveal → aftermath with one-shot, pause-safe, teardown-safe spatial audio/light/actor ownership | `horror-event-director.gd`, `horror-scare-sequence.gd`, apparition factory/turn-away actor, focused progression/settings-audio, final 12-check run | Implemented; perceptual quality unverified |
 
 ## Player Experience
 
@@ -43,7 +44,9 @@ The implementation is release-ready only when all of the following are true:
 
 ## Current Release Decision
 
-Source implementation and automated contracts are green. PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. PDR-07 and the physical/perceptual release gates remain open: no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
+Source implementation and automated contracts are green. The fixed scare slice passed focused `progression`/`settings-audio` plus the final 2026-07-17 canonical 12/12 run in 63.5 seconds, with exactly 12 logs, zero scanned current failure lines including lambda/leak patterns, and zero remaining runner profiles. Its final review had zero Critical, High, or Medium findings after two Medium lifecycle defects were fixed. This verifies source lifecycle contracts, not audible mix, rendered scare timing/quality, or physical play.
+
+PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. PDR-07 and the parent physical/perceptual release gates remain open: no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
 
 ## References
 
@@ -52,5 +55,7 @@ Source implementation and automated contracts are green. PDR-08's documentation-
 - [Testing matrix](./testing.md)
 - [Known limitations](./limitations.md)
 - [Project roadmap](./project-roadmap.md)
+- [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
+- [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
 - [Visual-capture tour contract](./testing.md#reproducible-visual-capture-tour)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)

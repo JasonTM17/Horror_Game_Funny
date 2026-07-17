@@ -30,6 +30,8 @@ The current primary boundary is deliberate: `GameplayDirector` is the runtime fa
 | Autoload | cross-scene state, routing, audio service, persisted settings | scene nodes, local animations, story choreography |
 | Gameplay facade | runtime assembly, zone observation, delegation | detailed puzzle UI or chase internals |
 | Story controller | prompts, guards, flags/items, narrative completion, memory-loop swaps | player movement or enemy physics |
+| Horror event director | one-shot scare dispatch and active sequence tracking | random scare selection, voice queue ownership, or unrelated progression mutation |
+| Scare sequence | pause-safe waits plus temporary cue/light/actor cleanup | permanent world state, inventory, checkpoints, or voice playback |
 | Chase controller | entity lifecycle, failure recovery, chase lighting/audio, ending reveal | general story interactions |
 | Player | movement, look, flashlight, input locks, comfort effects | story stage decisions |
 | Interactable | local enabled/cooldown state and semantic call | unrelated global progression |
@@ -49,6 +51,7 @@ The current primary boundary is deliberate: `GameplayDirector` is the runtime fa
 - Do not emit success signals when a guard rejects a mutation.
 - Protect tweens, timers, transitions, chase recovery, and UI cooldowns with explicit busy/idempotency flags.
 - After `await`, confirm referenced nodes still exist before mutating them.
+- Use pausable scene-tree timers for authored scare waits. Scaled test durations must clamp above zero, and each continuation must confirm the sequence still owns the lifecycle before revealing or finishing.
 
 ## Physics and Navigation
 
@@ -105,6 +108,9 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - Record every committed or generated asset source in `asset-credits.md`.
 - Do not add media with unclear copyright or license terms.
 - Keep procedural audio inputs positive and respect the 16 MiB cache cap. Audio cache keys must include the semantic ID, sample rate, frequency, effective duration, and loop mode; true LRU eviction must protect streams held by regular or spatial players, and stop/eviction paths must subtract exact byte counts and remove all per-ID variants. Spatial players unregister on finish, parent deletion, and explicit stop.
+- Give every scare layer a unique semantic cue ID. The owning sequence must stop those IDs on finish, cancellation, and scene exit; it must also restore exact light snapshots and delete owned temporary actors. Camera-driven actors must stop their own cue IDs in `_exit_tree()`.
+- Build temporary scare silhouettes without `CollisionObject3D` children. Reuse `HorrorApparitionFactory` for the shared primitive silhouette; keep specialized camera behavior inside `TurnAwayApparition`.
+- Scare code must not stop, replace, or reorder narrative voice playback. Low/moderate source volumes and bounded spatial distance are implementation constraints, not audible-mix certification.
 - Keep Compatibility-renderer shader syntax and test the shader through editor import.
 - Flashlight flicker must use bounded intervals, pulse duration, and minimum energy; it must run in `PROCESS_MODE_PAUSABLE` and restore base energy when disabled or hidden.
 - Keep raw capture PNGs, AVI files, palettes, and logs under ignored `.artifacts/`. Commit only visually reviewed, optimized documentation media under `docs/screenshots/`, and record exact source paths, tools, settings, and license scope in `asset-credits.md`.
@@ -123,6 +129,7 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 
 - Run the narrowest relevant check first, then the complete twelve-check runner for shared contracts.
 - Automated progression tests must cover success, early rejection, duplicate rejection, and recovery where applicable.
+- Scare regressions must cover anticipation/reveal ordering, repeated-trigger rejection, pause freeze, non-colliding actors, duration scaling, unique cue ownership, exact light restoration, narration-bound cassette cleanup, and director-exit cleanup.
 - Keep expected success markers and assertion prefixes synchronized with `run-headless-tests.ps1`.
 - A focused helper may share an existing lifecycle; `menu-settings-regression.gd` runs inside `settings-audio` and must not change the exact twelve-check runner contract.
 - Logs belong under `.artifacts/test-<name>.log`; do not commit them as source evidence.
@@ -144,6 +151,10 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - [`project.godot`](../project.godot)
 - [`gameplay-director.gd`](../scripts/world/gameplay-director.gd)
 - [`story-progression-controller.gd`](../scripts/world/story-progression-controller.gd)
+- [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)
+- [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
+- [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
+- [`turn-away-apparition.gd`](../scripts/world/turn-away-apparition.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)

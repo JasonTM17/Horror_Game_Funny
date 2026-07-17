@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "Regression QA review and delivery"
-status: pending
+status: completed
 effort: "medium"
 ---
 
@@ -20,12 +20,13 @@ and deliver small commits to `origin/main`.
    scan logs for engine/script/parse/assertion/leak failures.
 3. Run adversarial code review and apply evidence-backed findings.
 4. Update design, architecture, testing, roadmap/limitations only where behavior is
-   verified; record disk, Git, and remote-parity evidence.
-5. Commit by concern and push non-force.
+   verified; preserve the parent physical/perceptual gate.
+5. Hand the verified focused slice to the controller for any requested commit/push;
+   documentation closure itself does not claim remote parity.
 
 ## Success Criteria
 
-- [ ] Focused and complete automated suites pass.
-- [ ] Review finds no unresolved critical/high defects.
-- [ ] Documentation matches code without claiming audible/manual certification.
-- [ ] Worktree clean; local, origin tracking, and GitHub remote SHAs match.
+- [x] Focused `progression`/`settings-audio` and complete 12-check automated suites pass.
+- [x] Review finds no unresolved Critical, High, or Medium defects after two Medium lifecycle fixes.
+- [x] Documentation matches code without claiming audible/manual certification.
+- [x] Focused plan is ready for controller-owned delivery; parent physical and remote-delivery gates are not closed here.

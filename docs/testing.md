@@ -49,7 +49,7 @@ This inventory records the current Windows verification machine. It is reproduci
 | 2 | `menu` / `test-menu.log` | `scenes/boot/boot.tscn` | boot scene loads under its configured `--quit-after 8` smoke limit | button navigation with physical input, visual layout |
 | 3 | `gameplay` / `test-gameplay.log` | `scenes/gameplay/gameplay.tscn` | continuous runtime scene constructs and survives the smoke window | full route traversal or progression |
 | 4 | `game-state` / `test-game-state.log` | `game-state-test.gd` | item/flag idempotency, checkpoint inventory restore, and post-restore collection isolation from the saved snapshot | scene recovery, disk persistence |
-| 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression, production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, terminal capture/ending overlap, two-step epilogue gating, delayed exactly-once credits/input lock, checkpoint immutability, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, rendered presentation |
+| 5 | `progression` / `test-progression.log` | `progression-test.tscn`; `--quit-after 1200` | guarded progression; fixed floor/photo/cassette/rabbit/Room scare anticipation and reveal, unique cue IDs, non-colliding actors, scaled pause-safe waits, repeated-trigger rejection, light/audio/actor ownership, cassette narration-bound cleanup, director-exit cleanup; production stage thresholds, blackout/radio/final-note gates, production-threshold chase start, scheduled-physics proximity capture, terminal capture/ending overlap, two-step epilogue gating, delayed exactly-once credits/input lock, checkpoint immutability, and complete fresh-run pacing order/pause/finalization/deep-copy assertions | physical input, player-driven chase traversal, real pacing, rendered scare/presentation quality, audible mix |
 | 6 | `checkpoint-layout` / `test-checkpoint-layout.log` | `checkpoint-layout-test.tscn`; `--quit-after 2000` | room spawn and Variant3 restore, barriers/doors, alternating chase obstruction collision and capsule clearance, connected navigation bypass path, real-LOS entity traversal, APPEAR pause, measured STALK/CHASE speeds, pause freeze, LOS/last-seen, reacquisition, bounded SEARCH/DESPAWN, restart/exit behavior, retreat recovery, entity-parented SFX cue at start/recovery plus teardown, authored distances, production-ray acquisition of both epilogue props, same-scene interaction order and lock timing, restored checkpoint immutability, plus restored-run pacing ineligibility/null verdict, visible-credits finalization, reset immutability, and out-of-order rejection | player-driven chase feel, rendered route/epilogue readability, audible cue/mix quality, fresh-run pacing |
 | 7 | `physical-route` / `test-physical-route.log` | `physical-route-smoke-test.tscn` | optional drawer/painted-door visibility alignment, production-ray acquisition, mapped feedback/cooldowns, drawer sweep/animation lock safety, unchanged story state, and spatial-tone/lock teardown; production `CharacterBody3D` receives synthesized movement through three locked/open doors; prerequisite thresholds, Room 407 checkpoint, and chase creation | rendered optional-prop quality, audible tone/mix quality, OS-delivered E/W, complete route, puzzles, timing, chase feel |
 | 8 | `player-input` / `test-player-input.log` | `player-input-integration-test.tscn`; `--quit-after 600` | physical E binding exists; production ray/handlers accept synthesized actions for phone, objective, pause, flashlight, note Escape, and door cycles; unsafe open/close inside the 1.5 m sweep has no state side effect; safe tweens hold only movement and release it; flashlight flicker stays within energy bounds and freezes while paused; authored head pose and head-bob reset | OS-delivered keys/mouse, input latency, mouse-look/door feel, full traversal |
@@ -129,7 +129,9 @@ The total target is independent of the chapter verdicts. A missing boundary pair
 
 ## Recorded Automated Evidence
 
-The fresh post-environmental-interaction run on 2026-07-16 passed all twelve checks in 64.7 seconds with 12 logs, 10 required markers, zero scanned failure lines, and zero temporary profiles. Its fresh compressed payload measured `6.68 s` active, `6.96 s` wall, and `0.26 s` paused, with `complete: true`, `boundary_order_valid: true`, and `within_target: false`; checkpoint/layout also passed with an incomplete, ineligible report and a `null` total verdict. These compressed results validate instrumentation behavior, not 15–20 minute physical pacing. Earlier focused and canonical runs remain historical evidence only (see the dated plan reports).
+The final scare-lifecycle run on 2026-07-17 passed all twelve checks in 63.5 seconds. It produced exactly 12 canonical logs, zero scanned current failure lines including lambda and leak patterns, and zero remaining `godot-user-*` runner profiles. Focused `progression` and `settings-audio` runs also passed. Review first identified two Medium lifecycle defects; after their fixes, the final review reported zero Critical, High, or Medium findings.
+
+This evidence proves automated contracts only. The compressed progression fixture remains unsuitable for 15–20 minute pacing evidence, and no headless result certifies rendered scare timing/quality, audible mix, spatial perception, physical input, or a full physical route. Earlier automated runs remain historical evidence only.
 
 ## Synthetic Actions Versus Physical Input
 
@@ -149,6 +151,10 @@ Physical keyboard/mouse traversal, event delivery, mouse capture, and input feel
 - direct action calls reject premature lobby, floor, memory-loop, radio, and Room 407 interactions instead of relying only on hidden prompts;
 - phone briefing, stopped-clock and night-register observations, logbook, floor-notice observation, fuse pickup/install, and power stabilization;
 - phone, observations, logbook, fuse, memories, radio, and Room 407 actions preserve one-shot behavior and expected inventory side effects;
+- the four fixed buildup scares—floor arrival, photograph, cassette turn-away, and rabbit—plus the Room 407 climax stage anticipation before reveal and clean their aftermath without random selection;
+- every scare cue ID is unique; local lights restore exactly; shared factory actors have no collision objects; repeated event triggers cannot duplicate actors or sequences;
+- scaled waits and cassette reveal cleanup freeze while paused; an unrevealed cassette actor ends at `memory_cassette_recalled`; director exit releases owned audio/cache entries, lights, and actors;
+- scare lifecycle code does not stop or replace the narrative voice queue;
 - ordered photo, cassette, and rabbit collection with one completed environmental echo required after each memory;
 - first, second, and final blackout transition completion;
 - duplicate memory rejection;
@@ -296,7 +302,7 @@ No current automated check fully verifies the following. Record each result, env
 | Physical traversal | Walk/sprint through every closed/open door, loop return, Room 407, and chase route | no snag/bypass report and capture |
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
 | Visual balance | Check corridor darkness, flashlight, blackout, flicker, grain, red guide lights, and ending reveal | screenshots/video on target hardware |
-| Audio balance | Listen to all 76 English story cues, including the six ending revelations, plus phone, procedural feedback, ambience, footsteps, radio static, the positional entity cue at chase start/recovery, chase drone, fail, and ending | device plus bus-level observations |
+| Audio balance | Listen to all 76 English story cues, including the six ending revelations, plus phone, fixed story-scare layers, procedural feedback, ambience, footsteps, radio static, the positional entity cue at chase start/recovery, chase drone, fail, and ending | device plus bus-level and spatial observations |
 | Settings UI workflow | Change values through the panel, **SAVE & CLOSE**, quit, relaunch, and inspect the controls; separately force/observe a failed save and choose retry or discard | before/after capture; automated config persistence and failure UI already pass |
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
 
@@ -310,6 +316,10 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
+- [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)
+- [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
+- [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
+- [`turn-away-apparition.gd`](../scripts/world/turn-away-apparition.gd)
 - [`checkpoint-layout-test.gd`](../tests/checkpoint-layout-test.gd)
 - [`chase-sequence-controller.gd`](../scripts/world/chase-sequence-controller.gd)
 - [`chase-entity.gd`](../scripts/world/chase-entity.gd)
