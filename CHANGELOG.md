@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+#### Story jumpscare staging polish — 2026-07-18
+
+- Apparitions use elongated humanoid silhouettes (shoulders/arms), face the player on reveal, and Room 407 flashes emission eyes.
+- Scare sequences jolt camera shake (comfort-gated) and pulse monitor-safe fear vignette without random spam.
+- Cassette turn-away silhouette matches factory language; look-back snap faces the player with layered cues.
+
 ### Fixed
 
 #### Physical playthrough evidence capture — 2026-07-18

@@ -21,6 +21,12 @@ The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 4
 
 Reviewed in-engine stills: [lobby](docs/screenshots/room-407-lobby.png), [Room 407 bedroom](docs/screenshots/room-407-bedroom.png), [chase entity](docs/screenshots/room-407-chase-entity.png), and [ending reveal](docs/screenshots/room-407-ending-reveal.png).
 
+Project-authored source stills used in the menu and story props:
+
+| Menu corridor | Memory photo | Room 407 drawing | Family table |
+|---|---|---|---|
+| ![Menu corridor still](assets/images/menu-hotel-corridor.png) | ![Memory photo still](assets/images/memory-photo-rabbit.png) | ![Room 407 drawing still](assets/images/room-drawing-rabbit.png) | ![Family table still](assets/images/family-table-memory.png) |
+
 These images come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The GIF is a derived visual-reference montage, not a gameplay recording. It does not prove physical F5 traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
 
 ### Reproduce the staged capture

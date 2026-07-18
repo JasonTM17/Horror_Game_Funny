@@ -46,6 +46,7 @@ func _run_floor_arrival() -> void:
 		floor_door.close_for_event()
 	var apparition_position := _floor_arrival_position()
 	var light := _find_nearest_light(apparition_position)
+	# Anticipation: corridor dies, lift groans before anything is visible.
 	sequence.set_light(light, 0.12, Color(0.72, 0.045, 0.025))
 	sequence.play_spatial_at(apparition_position + Vector3(0.05, -0.3, 4.0), "scare_floor_lift_strain", 39.0, 0.62, -12.0)
 	var apparition := _spawn_apparition(apparition_position, "FloorArrivalApparition", Vector3(0.82, 1.05, 0.68))
@@ -53,9 +54,13 @@ func _run_floor_arrival() -> void:
 	apparition.visible = false
 	if not await sequence.wait(0.32):
 		return
+	# Reveal: face the player, heel + presence, short jolt, vignette spike.
+	sequence.face_player(apparition, _player)
 	apparition.visible = true
 	sequence.play_spatial_on(apparition, "scare_floor_heel_step", 73.0, 0.24, -8.0)
 	sequence.play_spatial_on(apparition, "scare_floor_presence", 46.0, 0.54, -11.0)
+	sequence.jolt_player(_player, 0.045, 0.28)
+	sequence.pulse_fear(0.42, 0.7)
 	if not await sequence.wait(0.55):
 		return
 	if is_instance_valid(display):
@@ -67,12 +72,16 @@ func _run_photo_memory() -> void:
 	var sequence := _create_sequence("PhotoMemoryScare")
 	var position := Vector3(0, 2.2, WorldLayout.MEMORY_PHOTO_Z - 5.0)
 	var light := _find_nearest_light(position)
-	sequence.set_light(light, 0.28, Color(0.38, 0.1, 0.08))
+	# Anticipation: left whisper + cold light dip.
+	sequence.set_light(light, 0.22, Color(0.42, 0.08, 0.06))
 	sequence.play_spatial_at(position + Vector3(-3.2, -0.8, 2.0), "scare_photo_whisper_left", 132.0, 0.52, -15.0)
 	if not await sequence.wait(0.22):
 		return
+	# Reveal: message + answering whisper, mild fear spike (no actor spam).
 	_spawn_message("YOU WERE HERE", position, Color(0.72, 0.2, 0.18))
 	sequence.play_spatial_at(position + Vector3(3.2, -0.8, -1.0), "scare_photo_whisper_right", 198.0, 0.48, -14.0)
+	sequence.jolt_player(_player, 0.028, 0.18)
+	sequence.pulse_fear(0.28, 0.55)
 	if await sequence.wait(0.58):
 		sequence.finish()
 
@@ -82,12 +91,17 @@ func _run_rabbit_memory() -> void:
 	var apparition := _spawn_apparition(position, "MemoryRabbitApparition")
 	sequence.own_node(apparition)
 	apparition.visible = false
-	sequence.set_light(_find_nearest_light(position), 0.16, Color(0.68, 0.025, 0.018))
+	sequence.set_light(_find_nearest_light(position), 0.14, Color(0.68, 0.025, 0.018))
+	# Anticipation: music-box only, red wash, empty corridor.
 	sequence.play_spatial_at(position + Vector3(0, -0.6, 3.0), "scare_rabbit_music_box", 144.0, 0.46, -15.0)
 	if not await sequence.wait(0.28):
 		return
+	# Reveal: silhouette snaps on, faces player, presence fills the lane.
+	sequence.face_player(apparition, _player)
 	apparition.visible = true
 	sequence.play_spatial_on(apparition, "scare_rabbit_presence", 54.0, 0.82, -9.0)
+	sequence.jolt_player(_player, 0.055, 0.34)
+	sequence.pulse_fear(0.58, 0.85)
 	if await sequence.wait(0.72):
 		sequence.finish()
 
@@ -97,13 +111,22 @@ func _run_room_entity_reveal() -> void:
 	var apparition := _spawn_apparition(position, "RoomEntityManifestation", Vector3(1.15, 1.2, 0.82), true)
 	sequence.own_node(apparition)
 	apparition.visible = false
-	sequence.set_light(_find_nearest_light(position), 0.08, Color(0.52, 0.018, 0.012))
+	var light := _find_nearest_light(position)
+	# Anticipation: wall-breath, near-black corridor, nothing visible yet.
+	sequence.set_light(light, 0.06, Color(0.52, 0.018, 0.012))
 	sequence.play_spatial_at(position + Vector3(0, 0.1, 4.0), "scare_room_wall_breath", 31.0, 0.86, -12.0)
+	sequence.pulse_fear(0.35, 0.4)
 	if not await sequence.wait(0.36):
 		return
+	# Climax reveal: eyes flash, layered low + sting, hard jolt, deep vignette.
+	sequence.face_player(apparition, _player)
 	apparition.visible = true
+	HorrorApparitionFactory.flash_eyes(apparition)
 	sequence.play_spatial_on(apparition, "scare_room_entity_low", 47.0, 0.9, -8.0)
 	sequence.play_spatial_on(apparition, "scare_room_entity_sting", 119.0, 0.26, -6.0)
+	sequence.jolt_player(_player, 0.09, 0.55)
+	sequence.pulse_fear(0.92, 1.15)
+	sequence.set_light(light, 0.04, Color(0.78, 0.02, 0.012))
 	if await sequence.wait(1.0):
 		sequence.finish()
 
@@ -112,12 +135,16 @@ func _run_fuse_power() -> void:
 	var sequence := _create_sequence("FusePowerScare")
 	var first_light := _find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 5.0))
 	var second_light := _find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 18.0))
+	# Anticipation: cold arc, first light surges.
 	sequence.set_light(first_light, 1.7, Color(0.45, 0.62, 0.72))
 	sequence.play_spatial_at(Vector3(0, 1.2, WorldLayout.FUSE_BOX_Z - 9.0), "scare_fuse_arc", 91.0, 0.34, -12.0)
 	if not await sequence.wait(0.24):
 		return
+	# Reveal: answering warm slam + jolt (no full jumpscare actor — power beat).
 	sequence.set_light(second_light, 1.5, Color(0.58, 0.16, 0.1))
 	sequence.play_spatial_at(Vector3(2.8, 1.2, WorldLayout.FUSE_BOX_Z - 12.0), "scare_fuse_door_slam", 52.0, 0.44, -8.0)
+	sequence.jolt_player(_player, 0.04, 0.22)
+	sequence.pulse_fear(0.32, 0.5)
 	if await sequence.wait(0.82):
 		sequence.finish()
 

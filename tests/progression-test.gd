@@ -200,7 +200,7 @@ func _ready() -> void:
 	director._narrative.duration_scale = 0.001
 	if not _require(director.handle_story_action("memory_cassette", player), "cassette should collect"): return
 	var turn_away := _find_turn_away_apparition(director._horror)
-	if not _require(turn_away != null and is_equal_approx(turn_away._duration_scale, director._horror.effect_duration_scale) and is_equal_approx(turn_away._scaled_duration(2.0), 0.1) and not _contains_collision_object(turn_away), "cassette scare did not inherit duration scaling or remained physical"): return
+	if not _require(turn_away != null and turn_away.get_node_or_null("ArmLeft") is MeshInstance3D and turn_away.get_node_or_null("ArmRight") is MeshInstance3D and is_equal_approx(turn_away._duration_scale, director._horror.effect_duration_scale) and is_equal_approx(turn_away._scaled_duration(2.0), 0.1) and not _contains_collision_object(turn_away), "cassette scare did not build its complete non-physical silhouette or inherit duration scaling"): return
 	director._horror.trigger("memory_cassette")
 	if not _require(_count_turn_away_apparitions(director._horror) == 1 and director._horror.has_node("CassetteTurnAwayScare"), "cassette scare trigger spam duplicated or lost its owned apparition"): return
 	if not _require(await _wait_for_flag("memory_cassette_recalled"), "cassette memory should finish"): return
@@ -239,6 +239,7 @@ func _ready() -> void:
 	if not _require(_count_named_children(director._horror, "RabbitMemoryScare") == 1 and _count_named_children(director._horror, "MemoryRabbitApparition") == 1, "rabbit scare trigger spam duplicated its sequence or apparition"): return
 	await get_tree().create_timer(0.025).timeout
 	if not _require(is_instance_valid(rabbit_apparition) and rabbit_apparition.visible and _has_spatial_cue("scare_rabbit_presence"), "rabbit apparition did not reveal with its spatial presence cue"): return
+	if not _require(_apparition_faces_player(rabbit_apparition, player), "rabbit apparition did not face the player on reveal"): return
 	if not _require(await _wait_for_flag("memory_rabbit_recalled"), "rabbit memory should finish"): return
 	if not _require(await _wait_for_node_removed(director._horror, "RabbitMemoryScare"), "rabbit scare did not finish within its bounded duration"): return
 	if not _require(not director._horror.has_node("MemoryRabbitApparition") and not _has_spatial_cue("scare_rabbit_music_box") and not _has_spatial_cue("scare_rabbit_presence"), "rabbit scare left its owned actor, audio, or sequence state behind"): return
@@ -349,6 +350,12 @@ func _ready() -> void:
 	if not _require(_count_named_children(director._horror, "RoomEntityManifestation") == 1 and _count_named_children(director._horror, "RoomEntityRevealScare") == 1, "pre-chase manifestation or sequence duplicated"): return
 	await get_tree().create_timer(0.03).timeout
 	if not _require(room_manifestation.visible and _has_spatial_cue("scare_room_entity_low") and _has_spatial_cue("scare_room_entity_sting"), "Room 407 manifestation did not synchronize eyes and layered reveal cues"): return
+	if not _require(
+		_apparition_faces_player(room_manifestation, player)
+		and room_eye_material.emission_energy_multiplier >= HorrorApparitionFactory.EYE_EMISSION_FLASH - 0.01
+		and room_eye_right_material.emission_energy_multiplier >= HorrorApparitionFactory.EYE_EMISSION_FLASH - 0.01,
+		"Room 407 reveal did not face the player or flash emission eyes"
+	): return
 	if not _require(await _wait_for_node_removed(director._horror, "RoomEntityRevealScare"), "pre-chase manifestation did not finish within its bounded duration"): return
 	if not _require(not director._horror.has_node("RoomEntityManifestation") and not _has_spatial_cue("scare_room_wall_breath") and not _has_spatial_cue("scare_room_entity_low") and not _has_spatial_cue("scare_room_entity_sting"), "pre-chase manifestation did not clean up actor/sequence/audio"): return
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
@@ -585,6 +592,21 @@ func _textured_quad_matches_source_aspect(parent: Node, child_name: String) -> b
 
 func _has_spatial_cue(cue_id: String) -> bool:
 	return AudioManager._spatial_player_ids.values().has(cue_id)
+
+func _apparition_faces_player(actor: Node3D, player: Node3D) -> bool:
+	if actor == null or player == null:
+		return false
+	var to_player := player.global_position - actor.global_position
+	to_player.y = 0.0
+	if to_player.length_squared() < 0.0001:
+		return true
+	to_player = to_player.normalized()
+	# Node3D.look_at orients local -Z toward the target.
+	var forward := -actor.global_transform.basis.z
+	forward.y = 0.0
+	if forward.length_squared() < 0.0001:
+		return false
+	return forward.normalized().dot(to_player) > 0.7
 
 func _find_turn_away_apparition(parent: Node) -> TurnAwayApparition:
 	for child in parent.get_children():

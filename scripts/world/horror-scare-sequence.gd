@@ -61,6 +61,24 @@ func set_light(light: OmniLight3D, energy_factor: float, color: Color) -> void:
 	light.light_energy = maxf(0.0, float(_light_snapshots[instance_id]["energy"]) * energy_factor)
 	light.light_color = color
 
+func jolt_player(player: Node3D, strength: float, duration: float) -> void:
+	if _cleaned_up or not is_instance_valid(player):
+		return
+	if player.has_method("add_camera_shake"):
+		player.call("add_camera_shake", strength, duration)
+
+func face_player(actor: Node3D, player: Node3D) -> void:
+	if _cleaned_up or not is_instance_valid(actor) or not is_instance_valid(player):
+		return
+	HorrorApparitionFactory.face_toward(actor, player.global_position)
+
+func pulse_fear(intensity: float, hold_seconds: float) -> void:
+	if _cleaned_up:
+		return
+	var layer := get_tree().get_first_node_in_group("visual_effects")
+	if layer != null and layer.has_method("pulse_fear"):
+		layer.call("pulse_fear", intensity, _scaled_duration(hold_seconds))
+
 func restore_lights() -> void:
 	for snapshot_value in _light_snapshots.values():
 		var snapshot := snapshot_value as Dictionary

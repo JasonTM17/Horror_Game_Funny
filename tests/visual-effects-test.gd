@@ -20,6 +20,17 @@ func _ready() -> void:
 		if not _require(_shader_has_uniform(shader, uniform_name), "%s shader uniform is missing" % uniform_name): return
 	if not _require(float(material.get_shader_parameter("base_vignette_strength")) <= 0.09 and float(material.get_shader_parameter("fear_vignette_strength")) <= 0.35, "monitor-safe vignette ceilings regressed"): return
 	if not _require(is_zero_approx(_layer.get_fear_intensity()), "fear vignette started outside the chase"): return
+	if not _require(_layer.has_method("pulse_fear"), "visual layer does not expose story-scare fear pulse"): return
+	_layer.pulse_fear(0.8, 0.35)
+	await get_tree().create_timer(0.12).timeout
+	if not _require(_layer.get_fear_intensity() > 0.35, "story-scare fear pulse did not raise vignette intensity"): return
+	# The pulse must retain readable pressure midway through its authored hold.
+	# This catches frame-by-frame multiplicative fade, which is invisible in a
+	# simple start/end assertion but makes a scare feel like a visual glitch.
+	await get_tree().create_timer(0.10).timeout
+	if not _require(_layer.get_fear_intensity() > 0.22, "story-scare fear pulse collapsed before its authored hold elapsed"): return
+	await get_tree().create_timer(0.55).timeout
+	if not _require(_layer.get_fear_intensity() < 0.2, "story-scare fear pulse did not decay outside chase"): return
 
 	GameState.advance_stage(GameState.Stage.CHASE)
 	await get_tree().create_timer(0.4).timeout

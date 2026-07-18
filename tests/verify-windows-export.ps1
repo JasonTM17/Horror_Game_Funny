@@ -12,8 +12,19 @@ $expectedArchiveHash = "86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5
 $expectedGodotCopyrightHash = "cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path.TrimEnd("\")
 $artifactRoot = Join-Path $root ".artifacts"
+$tempRoot = Join-Path $root ".tmp"
 $outputRoot = [System.IO.Path]::GetFullPath((Join-Path $root $OutputDirectory)).TrimEnd("\")
 $expectedOutputPrefix = $artifactRoot.TrimEnd("\") + "\"
+$bundlePayloadNames = @(
+    "GODOT_COPYRIGHT.txt",
+    "LICENSE",
+    "ROOM_407_THE_LAST_SHIFT.exe",
+    "THIRD_PARTY_NOTICES.md",
+    "export-console.log",
+    "export.log",
+    "smoke-console.log",
+    "smoke-engine.log"
+)
 
 function Get-UniqueIniKeyMap([string]$SectionText, [string]$Context) {
     $result = [System.Collections.Generic.Dictionary[string,string]]::new([System.StringComparer]::Ordinal)
@@ -54,29 +65,38 @@ function Merge-ProcessOutput([string]$StandardOutputPath,[string]$StandardErrorP
     return $combined
 }
 
-function Get-ProcessTreeIds([int]$RootProcessId) {
-    $processes=@(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId)
-    $ids=[System.Collections.Generic.List[int]]::new(); $queue=[System.Collections.Generic.Queue[int]]::new(); $queue.Enqueue($RootProcessId)
-    while($queue.Count -gt 0){$parentId=$queue.Dequeue();foreach($child in $processes|Where-Object ParentProcessId -eq $parentId){$childId=[int]$child.ProcessId;if(-not $ids.Contains($childId)){[void]$ids.Add($childId);$queue.Enqueue($childId)}}}
-    [void]$ids.Add($RootProcessId); return ,$ids.ToArray()
-}
-
-function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
-    if($Process.HasExited){return}; $treeIds=@(Get-ProcessTreeIds $Process.Id); $taskkill=Join-Path $env:SystemRoot 'System32\taskkill.exe'; $killed=$false
-    try{$killer=Start-Process $taskkill -ArgumentList @('/PID',$Process.Id,'/T','/F') -WindowStyle Hidden -PassThru;if($killer.WaitForExit(10000)){$killed=$killer.ExitCode -eq 0}else{$killer.Kill();[void]$killer.WaitForExit(5000)};$killer.Dispose()}catch{$killed=$false}
-    if(-not $killed){foreach($processId in ($treeIds|Sort-Object -Descending)){Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue}}
-    $deadline=[DateTime]::UtcNow.AddSeconds(10)
-    do{$remaining=@($treeIds|Where-Object {Get-Process -Id $_ -ErrorAction SilentlyContinue});if($remaining.Count -eq 0){return};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $deadline)
-    throw "Failed to terminate process tree; remaining PIDs: $($remaining -join ', ')"
+if ($null -eq ("Room407ExportJobRun" -as [type])) {
+    $jobRunnerSource = Join-Path $PSScriptRoot "windows-export-job-runner.cs"
+    if (-not (Test-Path -LiteralPath $jobRunnerSource -PathType Leaf)) {
+        throw "Windows export Job Object runner source is missing: $jobRunnerSource"
+    }
+    Add-Type -Path $jobRunnerSource
 }
 
 function Invoke-ProcessWithTimeout([string]$FilePath,[string[]]$Arguments,[string]$StandardOutputPath,[string]$StandardErrorPath,[int]$TimeoutSeconds,[string]$Context) {
-    $nativeArguments=(($Arguments|ForEach-Object {ConvertTo-NativeArgument $_}) -join ' '); $process=$null
+    $nativeArguments=(($Arguments|ForEach-Object {ConvertTo-NativeArgument $_}) -join ' ')
+    $commandLine=ConvertTo-NativeArgument $FilePath
+    if(-not [string]::IsNullOrWhiteSpace($nativeArguments)){$commandLine+=' '+$nativeArguments}
+    $run=$null
+    $processError=$null
+    $processResult=$null
     try{
-        $process=Start-Process $FilePath -ArgumentList $nativeArguments -WorkingDirectory $root -RedirectStandardOutput $StandardOutputPath -RedirectStandardError $StandardErrorPath -WindowStyle Hidden -PassThru
-        if(-not $process.WaitForExit($TimeoutSeconds*1000)){try{Stop-ProcessTree $process}catch{throw "$Context timed out after $TimeoutSeconds seconds; $($_.Exception.Message)"};throw "$Context timed out after $TimeoutSeconds seconds"}
-        $process.WaitForExit();$process.Refresh();[int]$exitCode=$process.ExitCode;return $exitCode
-    }finally{if($null -ne $process){$process.Dispose()}}
+        $run=[Room407ExportJobRun]::Launch($FilePath,$commandLine,$root,$StandardOutputPath,$StandardErrorPath)
+        if(-not $run.WaitForExit($TimeoutSeconds*1000)){
+            try{$run.TerminateTreeAndWait(10000)}catch{throw "$Context timed out after $TimeoutSeconds seconds and process-tree shutdown failed: $($_.Exception.Message)"}
+            throw "$Context timed out after $TimeoutSeconds seconds"
+        }
+        $processResult=[int]$run.GetExitCode()
+        $run.EnsureNoDescendants(10000)
+    }catch{$processError=$_}
+    finally{
+        if($null -ne $run){
+            try{$run.EnsureNoDescendants(10000)}catch{if($null -eq $processError){$processError=$_}else{$processError=[System.Exception]::new("$($processError.Exception.Message); process-tree cleanup also failed: $($_.Exception.Message)",$processError.Exception)}}
+            $run.Dispose()
+        }
+    }
+    if($null -ne $processError){throw $processError}
+    return [int]$processResult
 }
 
 function Assert-NoReparsePointPath(
@@ -108,6 +128,12 @@ function Assert-NoReparsePointPath(
     }
 }
 
+$transactionModule = Join-Path $PSScriptRoot "windows-export-transaction.ps1"
+if (-not (Test-Path -LiteralPath $transactionModule -PathType Leaf)) {
+    throw "Windows export transaction module is missing: $transactionModule"
+}
+. $transactionModule
+
 if (-not $outputRoot.StartsWith($expectedOutputPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Refusing to export outside the repository .artifacts directory: $outputRoot"
 }
@@ -118,13 +144,36 @@ if (-not (Test-Path -LiteralPath $TemplateArchive)) {
     throw "Official Godot export-template archive not found: $TemplateArchive"
 }
 
-$version = (& $Godot --headless --version 2>&1 | Select-Object -First 1).ToString().Trim()
+Assert-NoReparsePointPath $root $tempRoot "Temporary profile root"
+New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+Assert-NoReparsePointPath $root $tempRoot "Temporary profile root"
+$versionRunId = [guid]::NewGuid().ToString("N")
+$versionStdout = Join-Path $tempRoot ("godot-version-"+$versionRunId+"-stdout.log")
+$versionStderr = Join-Path $tempRoot ("godot-version-"+$versionRunId+"-stderr.log")
+$versionConsole = Join-Path $tempRoot ("godot-version-"+$versionRunId+"-console.log")
+try {
+    $versionExitCode = Invoke-ProcessWithTimeout -FilePath $Godot -Arguments @('--headless','--version') -StandardOutputPath $versionStdout -StandardErrorPath $versionStderr -TimeoutSeconds 30 -Context 'Godot version preflight'
+    $versionText = Merge-ProcessOutput $versionStdout $versionStderr $versionConsole
+    if ($versionExitCode -ne 0) { throw "Godot version preflight failed with exit code $versionExitCode" }
+    $versionLine = @([regex]::Split($versionText,'\r?\n') | Where-Object {-not [string]::IsNullOrWhiteSpace($_)} | Select-Object -First 1)
+    if ($versionLine.Count -ne 1) { throw "Godot version preflight returned no version line" }
+    $version = $versionLine[0].Trim()
+}
+finally {
+    foreach ($versionPath in @($versionStdout,$versionStderr,$versionConsole)) {
+        if (Test-Path -LiteralPath $versionPath) {
+            Assert-NoReparsePointPath $root $versionPath "Godot version preflight cleanup"
+            Remove-Item -LiteralPath $versionPath -Force
+        }
+    }
+}
 if (-not $version.StartsWith("4.7.1.stable.official")) {
     throw "Expected Godot 4.7.1 standard, got: $version"
 }
 
 $presetPath = Join-Path $root "export_presets.cfg"
 $presetText = Get-Content -LiteralPath $presetPath -Raw
+$presetHash = (Get-FileHash -LiteralPath $presetPath -Algorithm SHA256).Hash.ToLowerInvariant()
 $sectionMatches = [regex]::Matches(
     $presetText,
     '(?ms)^\[(?<name>[^\]\r\n]+)\]\r?\n(?<body>.*?)(?=^\[|\z)'
@@ -212,7 +261,6 @@ if ($godotCopyrightHash -ne $expectedGodotCopyrightHash) {
     throw "Pinned Godot 4.7.1 COPYRIGHT.txt hash mismatch: $godotCopyrightHash"
 }
 
-$tempRoot = Join-Path $root ".tmp"
 $outputParent = Split-Path -Parent $outputRoot
 $rollbackRoot = $outputRoot + ".previous"
 Assert-NoReparsePointPath $root $artifactRoot "Artifact root"
@@ -241,9 +289,10 @@ catch {
 
 $runId = [guid]::NewGuid().ToString("N")
 $stagingParent = Join-Path $artifactRoot "staging"
-$stagingRoot = Join-Path $stagingParent ("windows-export-" + $runId)
+$stagingRoot = Join-Path $stagingParent ("windows-export-stage-" + $runId)
 $publishRoot = $outputRoot + ".publishing-" + $runId
 $failedPublishRoot = $outputRoot + ".failed-" + $runId
+$recoveryQuarantine = $outputRoot + ".recovery-" + $runId
 $stageExe = Join-Path $stagingRoot "ROOM_407_THE_LAST_SHIFT.exe"
 $exportLog = Join-Path $stagingRoot "export.log"
 $exportConsole = Join-Path $stagingRoot "export-console.log"
@@ -255,14 +304,23 @@ $smokeStdout = Join-Path $stagingRoot "smoke-stdout.log"
 $smokeStderr = Join-Path $stagingRoot "smoke-stderr.log"
 $oldAppData = $env:APPDATA
 $oldLocalAppData = $env:LOCALAPPDATA
-$profile = Join-Path $tempRoot ("windows-export-" + $runId)
+$profile = Join-Path $tempRoot ("windows-export-profile-" + $runId)
 $primaryError=$null
 $cleanupErrors=[System.Collections.Generic.List[string]]::new()
 $verificationResult=$null
 $publishActivated=$false
 $previousOutputMoved=$false
+$previousBundleIdentity=$null
+$newBundleIdentity=$null
 
 try {
+    $previousBundleIdentity = Recover-PreviousWindowsExport $outputRoot $rollbackRoot $recoveryQuarantine
+    $outputLeaf = Split-Path -Leaf $outputRoot
+    Remove-StaleVerifierDirectories $outputParent ($outputLeaf+".publishing-") "Windows export stale publish cleanup"
+    Remove-StaleVerifierDirectories $outputParent ($outputLeaf+".failed-") "Windows export stale rollback cleanup"
+    Remove-StaleVerifierDirectories $outputParent ($outputLeaf+".recovery-") "Windows export stale recovery cleanup"
+    Remove-StaleVerifierDirectories $stagingParent "windows-export-stage-" "Windows export stale staging cleanup"
+    Remove-StaleVerifierDirectories $tempRoot "windows-export-profile-" "Windows export stale profile cleanup"
     Assert-NoReparsePointPath $root $stagingRoot "Windows export staging"
     Assert-NoReparsePointPath $root $publishRoot "Windows export publish staging"
     Assert-NoReparsePointPath $root $profile "Windows export profile"
@@ -315,28 +373,7 @@ try {
     }
 
     $hash = (Get-FileHash -LiteralPath $stageExe -Algorithm SHA256).Hash.ToLowerInvariant()
-    $stream = [System.IO.File]::OpenRead($stageExe)
-    $reader = [System.IO.BinaryReader]::new($stream)
-    try {
-        if ($stream.Length -lt 64) {
-            throw "Exported executable is too small to contain a PE header"
-        }
-        $stream.Position = 0x3c
-        $peOffset = $reader.ReadInt32()
-        if ($peOffset -lt 0 -or ($peOffset + 6) -gt $stream.Length) {
-            throw "Exported executable contains an invalid PE header offset"
-        }
-        $stream.Position = $peOffset
-        $signature = $reader.ReadUInt32()
-        if ($signature -ne 0x00004550) {
-            throw ("Expected PE signature 0x00004550, got 0x{0:x8}" -f $signature)
-        }
-        $machine = $reader.ReadUInt16()
-    }
-    finally {
-        $reader.Dispose()
-        $stream.Dispose()
-    }
+    $machine = Get-PeMachine $stageExe
     if ($machine -ne 0x8664) {
         throw ("Expected PE x86_64 machine 0x8664, got 0x{0:x}" -f $machine)
     }
@@ -353,49 +390,76 @@ try {
         @{ Source = $stageExe; Name = "ROOM_407_THE_LAST_SHIFT.exe" }
     )
     foreach ($publishFile in $publishFiles) {
-        Copy-Item -LiteralPath $publishFile.Source -Destination (Join-Path $publishRoot $publishFile.Name) -Force
+        $publishDestination = Join-Path $publishRoot $publishFile.Name
+        Copy-Item -LiteralPath $publishFile.Source -Destination $publishDestination -Force
+        $sourceItem = Get-Item -LiteralPath $publishFile.Source
+        $destinationItem = Get-Item -LiteralPath $publishDestination
+        if ($sourceItem.Length -ne $destinationItem.Length -or
+            (Get-FileHash -LiteralPath $publishFile.Source -Algorithm SHA256).Hash -cne
+            (Get-FileHash -LiteralPath $publishDestination -Algorithm SHA256).Hash) {
+            throw "Prepared Windows export payload copy does not match its verified source: $($publishFile.Name)"
+        }
     }
-    $manifest=@("WINDOWS_EXPORT_SHA256=$hash","WINDOWS_EXPORT_SIZE_BYTES=$($stageItem.Length)",'WINDOWS_EXPORT_PE=x86_64','WINDOWS_EXPORTED_PROCESS_SMOKE_OK') -join "`r`n"
-    [System.IO.File]::WriteAllText((Join-Path $publishRoot 'VERIFY_COMPLETE.txt'),$manifest+"`r`n",[System.Text.UTF8Encoding]::new($false))
-    $publishExe=Join-Path $publishRoot 'ROOM_407_THE_LAST_SHIFT.exe'
-    if((Get-FileHash $publishExe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash){throw 'Prepared Windows export bundle does not match the verified staging artifact'}
+
+    $publishPayloadRecords = @(Get-BundlePayloadRecords $publishRoot)
+    $publishExeRecord = $publishPayloadRecords | Where-Object Name -ceq "ROOM_407_THE_LAST_SHIFT.exe"
+    if ($publishExeRecord.Hash -cne $hash -or $publishExeRecord.Size -ne $stageItem.Length -or (Get-PeMachine $publishExeRecord.Path) -ne 0x8664) {
+        throw "Prepared Windows export executable does not match the verified staging artifact"
+    }
+    $manifestText = New-BundleManifestText $runId $presetHash $installedTemplateHash $publishPayloadRecords
+    $manifestTemporaryPath = Join-Path $publishRoot "VERIFY_COMPLETE.txt.tmp"
+    $manifestPath = Join-Path $publishRoot "VERIFY_COMPLETE.txt"
+    [System.IO.File]::WriteAllText($manifestTemporaryPath,$manifestText,[System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::Move($manifestTemporaryPath,$manifestPath)
+    $newBundleIdentity = Get-VerifiedBundleIdentity $publishRoot
+    if ($newBundleIdentity.ExportHash -cne $hash -or $newBundleIdentity.SizeBytes -ne $stageItem.Length) {
+        throw "Prepared Windows export bundle identity does not match the staged executable"
+    }
+
     $env:APPDATA=$oldAppData;$env:LOCALAPPDATA=$oldLocalAppData
-    if(Test-Path $profile){Assert-NoReparsePointPath $root $profile 'Windows export profile cleanup';Remove-Item $profile -Recurse -Force}
-    if(Test-Path $stagingRoot){Assert-NoReparsePointPath $root $stagingRoot 'Windows export staging cleanup';Remove-Item $stagingRoot -Recurse -Force}
+    if(Test-Path -LiteralPath $profile){Remove-TrustedDirectoryTree $profile 'Windows export profile cleanup'}
+    if(Test-Path -LiteralPath $stagingRoot){Remove-TrustedDirectoryTree $stagingRoot 'Windows export staging cleanup'}
     Assert-NoReparsePointPath $root $outputRoot 'Windows export output activation'
     Assert-NoReparsePointPath $root $rollbackRoot 'Windows export rollback activation'
     Assert-NoReparsePointPath $root $publishRoot 'Windows export publish activation'
-    if(Test-Path $rollbackRoot){Remove-Item $rollbackRoot -Recurse -Force}
-    if(Test-Path $outputRoot){Move-Item $outputRoot $rollbackRoot;$previousOutputMoved=$true}
-    Move-Item $publishRoot $outputRoot;$publishActivated=$true
-
-    $outputExe = Join-Path $outputRoot "ROOM_407_THE_LAST_SHIFT.exe"
-    $item = Get-Item -LiteralPath $outputExe
-    $publishedHash = (Get-FileHash -LiteralPath $outputExe -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($publishedHash -ne $hash -or $item.Length -ne $stageItem.Length) {
-        throw "Published Windows executable does not match the verified staging artifact"
+    $activationOutputState = Get-BundleState $outputRoot
+    if ($null -eq $previousBundleIdentity) {
+        if ($activationOutputState.Exists) { throw "Windows export output appeared unexpectedly before initial activation" }
     }
-    if(-not (Test-Path (Join-Path $outputRoot 'VERIFY_COMPLETE.txt'))){throw 'Published Windows bundle is missing its completion manifest'}
+    elseif ($null -eq $activationOutputState.Identity -or $activationOutputState.Identity.Fingerprint -cne $previousBundleIdentity.Fingerprint) {
+        throw "Windows export output changed after preflight recovery and before activation"
+    }
+    if(Test-Path -LiteralPath $rollbackRoot){
+        if($null -eq $previousBundleIdentity){throw "Initial Windows export unexpectedly has a rollback slot"}
+        Remove-TrustedDirectoryTree $rollbackRoot 'Windows export obsolete rollback cleanup'
+    }
+    if(Test-Path -LiteralPath $outputRoot){
+        Move-TrustedDirectory $outputRoot $rollbackRoot 'Windows export previous bundle staging'
+        $previousOutputMoved=$true
+    }
+    Move-TrustedDirectory $publishRoot $outputRoot 'Windows export activation'
+    $publishActivated=$true
 
-    $verificationResult=[pscustomobject]@{ArchiveHash=$archiveHash;TemplateHash=$installedTemplateHash;CopyrightHash=$godotCopyrightHash;SizeBytes=$item.Length;ExportHash=$publishedHash}
+    $publishedIdentity = Get-VerifiedBundleIdentity $outputRoot
+    if ($publishedIdentity.Fingerprint -cne $newBundleIdentity.Fingerprint) {
+        throw "Published Windows bundle does not exactly match the prepared bundle identity"
+    }
+
+    $verificationResult=[pscustomobject]@{ArchiveHash=$archiveHash;TemplateHash=$installedTemplateHash;CopyrightHash=$godotCopyrightHash;SizeBytes=$publishedIdentity.SizeBytes;ExportHash=$publishedIdentity.ExportHash;BundleId=$publishedIdentity.BundleId}
 }
 catch{$primaryError=$_}
 finally {
     try{$env:APPDATA=$oldAppData;$env:LOCALAPPDATA=$oldLocalAppData}catch{[void]$cleanupErrors.Add("environment restore: $($_.Exception.Message)")}
     foreach($cleanup in @(@{Path=$profile;Label='profile'},@{Path=$stagingRoot;Label='staging'},@{Path=$publishRoot;Label='publish'})){
-        try{if(Test-Path $cleanup.Path){Assert-NoReparsePointPath $root $cleanup.Path "Windows export $($cleanup.Label) cleanup";Remove-Item $cleanup.Path -Recurse -Force}}catch{[void]$cleanupErrors.Add("$($cleanup.Label) cleanup: $($_.Exception.Message)")}
+        try{if(Test-Path -LiteralPath $cleanup.Path){Remove-TrustedDirectoryTree $cleanup.Path "Windows export $($cleanup.Label) cleanup"}}catch{[void]$cleanupErrors.Add("$($cleanup.Label) cleanup: $($_.Exception.Message)")}
     }
     $mustRollback=$null -ne $primaryError -or $cleanupErrors.Count -gt 0
     if($mustRollback -and ($publishActivated -or $previousOutputMoved)){
         try{
-            Assert-NoReparsePointPath $root $outputRoot 'Windows export rollback current output';Assert-NoReparsePointPath $root $rollbackRoot 'Windows export rollback previous output';Assert-NoReparsePointPath $root $failedPublishRoot 'Windows export rollback failed output'
-            if(Test-Path $failedPublishRoot){Remove-Item $failedPublishRoot -Recurse -Force};if(Test-Path $outputRoot){Move-Item $outputRoot $failedPublishRoot};if($previousOutputMoved -and (Test-Path $rollbackRoot)){Move-Item $rollbackRoot $outputRoot};if(Test-Path $failedPublishRoot){Remove-Item $failedPublishRoot -Recurse -Force};$publishActivated=$false;$previousOutputMoved=$false
+            Restore-PreviousWindowsExportBundle $outputRoot $rollbackRoot $failedPublishRoot $previousBundleIdentity $newBundleIdentity ([ref]$publishActivated) ([ref]$previousOutputMoved)
         }catch{[void]$cleanupErrors.Add("artifact rollback: $($_.Exception.Message)")}
     }
     try{if($null -ne $lockStream){$lockStream.Dispose()}}catch{[void]$cleanupErrors.Add("lock cleanup: $($_.Exception.Message)")}
-    if($cleanupErrors.Count -gt 0 -and $publishActivated){
-        try{if(Test-Path $failedPublishRoot){Remove-Item $failedPublishRoot -Recurse -Force};Move-Item $outputRoot $failedPublishRoot;if($previousOutputMoved -and (Test-Path $rollbackRoot)){Move-Item $rollbackRoot $outputRoot};Remove-Item $failedPublishRoot -Recurse -Force;$publishActivated=$false}catch{[void]$cleanupErrors.Add("post-lock artifact rollback: $($_.Exception.Message)")}
-    }
 }
 
 if($null -ne $primaryError){if($cleanupErrors.Count -gt 0){throw "$($primaryError.Exception.Message); cleanup also failed: $([string]::Join('; ',$cleanupErrors))"};throw $primaryError}
@@ -406,6 +470,7 @@ Write-Host "WINDOWS_TEMPLATE_BINARY_SHA256=$($verificationResult.TemplateHash)"
 Write-Host "GODOT_COPYRIGHT_SHA256=$($verificationResult.CopyrightHash)"
 Write-Host "WINDOWS_EXPORT_SIZE_BYTES=$($verificationResult.SizeBytes)"
 Write-Host "WINDOWS_EXPORT_SHA256=$($verificationResult.ExportHash)"
+Write-Host "WINDOWS_EXPORT_BUNDLE_SHA256=$($verificationResult.BundleId)"
 Write-Host 'WINDOWS_EXPORT_PE=x86_64'
 Write-Host 'WINDOWS_EXPORTED_PROCESS_SMOKE_OK'
 Write-Host 'WINDOWS_EXPORT_VERIFY_OK'
