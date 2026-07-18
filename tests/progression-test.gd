@@ -522,8 +522,9 @@ func _room_drawing_faces_corridor_center(parent: Node) -> bool:
 	var mesh_instance := parent.get_node_or_null("RoomDrawingImage") as MeshInstance3D
 	if mesh_instance == null:
 		return false
-	# Local +Z after Y = -PI/2 points world -X (toward corridor center from the right wall).
-	return mesh_instance.transform.basis.z.x < -0.9
+	# The authored right-wall drawing must still face world -X even if an ancestor rotates.
+	var world_normal := mesh_instance.global_transform.basis.z.normalized()
+	return world_normal.dot(Vector3.LEFT) > 0.9
 
 func _room_drawing_surfaces_align(parent: Node) -> bool:
 	var backing := parent.get_node_or_null("PaperClue") as MeshInstance3D
@@ -531,19 +532,22 @@ func _room_drawing_surfaces_align(parent: Node) -> bool:
 	var writing := parent.get_node_or_null("PaperWriting") as Label3D
 	if backing == null or image == null or writing == null:
 		return false
-	var backing_normal := backing.transform.basis.z.normalized()
-	var image_normal := image.transform.basis.z.normalized()
-	var writing_normal := writing.transform.basis.z.normalized()
+	var backing_normal := backing.global_transform.basis.z.normalized()
+	var image_normal := image.global_transform.basis.z.normalized()
+	var writing_normal := writing.global_transform.basis.z.normalized()
 	if backing_normal.dot(image_normal) < 0.999 or backing_normal.dot(writing_normal) < 0.999:
 		return false
-	# The image and label sit just beyond the backing's -X face without lateral drift.
-	var image_depth := image.position.dot(backing_normal)
-	var writing_depth := writing.position.dot(backing_normal)
+	# Image and label use the exact shallow offsets authored by the builder, in one world plane.
+	var image_delta := image.global_position - backing.global_position
+	var writing_delta := writing.global_position - backing.global_position
+	var image_depth := image_delta.dot(backing_normal)
+	var writing_depth := writing_delta.dot(backing_normal)
 	return (
-		image_depth > 0.0225
-		and writing_depth > image_depth
-		and (image.position - backing_normal * image_depth).length() < 0.001
-		and (writing.position - backing_normal * writing_depth).length() < 0.001
+		absf(image_depth - 0.027) <= 0.001
+		and absf(writing_depth - 0.035) <= 0.001
+		and absf((writing_depth - image_depth) - 0.008) <= 0.001
+		and (image_delta - backing_normal * image_depth).length() < 0.001
+		and (writing_delta - backing_normal * writing_depth).length() < 0.001
 	)
 
 func _textured_quad_matches_source_aspect(parent: Node, child_name: String) -> bool:
