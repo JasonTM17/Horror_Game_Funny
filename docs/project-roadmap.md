@@ -27,7 +27,13 @@ The current source-level route/timing audit is recorded in [`phase-04-pacing-aud
 
 The focused [horror scare and spatial-audio plan](../plans/260717-2152-horror-scare-and-spatial-audio-polish/plan.md) is complete. The fixed floor-arrival, photograph, cassette turn-away, and rabbit buildup beats now lead into a separate Room 407 climax with authored anticipation, reveal, and aftermath; low/moderate procedural spatial layers; local light response where available; and non-colliding temporary actors. Shared sequence/factory ownership handles unique cue IDs, pause-safe waits, exact light restoration, actor/audio teardown, cassette cleanup at `memory_cassette_recalled`, and scene-exit cleanup without replacing voice-over.
 
-Focused `progression` and `settings-audio` passed. The final 2026-07-17 canonical run passed 12/12 in 63.5 seconds with exactly 12 logs, zero scanned current failure lines including lambda/leak patterns, and zero remaining runner profiles. Final review found zero Critical, High, or Medium issues after two Medium lifecycle defects were fixed. This closes only that focused source slice; it does not change Phase 4 or PDR-07.
+Focused `progression` and `settings-audio` passed. Host and container twelve-check suites remain the automated source of truth. This closes only that focused source slice; it does not change Phase 4 or PDR-07.
+
+## Completed packaging and public-repo hygiene (source-level)
+
+- Docker multi-stage suite image and compose service; POSIX twelve-check runner; packaging verify scripts; `docker-suite` CI (including Linux `physical-route` frame-budget fix).
+- `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
+- These items improve professional maintainability. They **do not** close Phase 4 or PDR-07.
 
 ## Guardrails
 

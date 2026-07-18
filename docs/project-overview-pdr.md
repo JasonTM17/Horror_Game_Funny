@@ -30,7 +30,7 @@ The player should understand each immediate goal through an objective, a readabl
 - World: one gameplay scene; no level-loading split for the main route.
 - Audio: project-authored procedural SFX plus Piper-generated English OGG voice; voice streams are SFX-routed and pause-aware.
 - State: `GameState` is process-local; restored inventory, flags and completed-event collections are copied so live state cannot mutate a saved checkpoint.
-- Delivery: Windows headless test runner, focused regression checks, conventional commits, non-force pushes to `main`.
+- Delivery: Windows headless test runner, Linux/Docker twelve-check suite image, packaging-contract CI, conventional commits, non-force pushes to `main`.
 
 ## Acceptance Criteria
 
@@ -44,9 +44,9 @@ The implementation is release-ready only when all of the following are true:
 
 ## Current Release Decision
 
-Source implementation and automated contracts are green. The fixed scare slice passed focused `progression`/`settings-audio` plus the final 2026-07-17 canonical 12/12 run in 63.5 seconds, with exactly 12 logs, zero scanned current failure lines including lambda/leak patterns, and zero remaining runner profiles. Its final review had zero Critical, High, or Medium findings after two Medium lifecycle defects were fixed. This verifies source lifecycle contracts, not audible mix, rendered scare timing/quality, or physical play.
+Source implementation and automated contracts are green. The fixed scare slice and subsequent Docker packaging are verified by the host twelve-check suite and the GitHub Actions container suite (`nguyenson1710/horror-game-suite`). This verifies source lifecycle and packaging contracts, not audible mix, rendered scare timing/quality, or physical play.
 
-PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. PDR-07 and the parent physical/perceptual release gates remain open: no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
+PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 remains open:** no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
 
 ## References
 

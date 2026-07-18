@@ -1,0 +1,48 @@
+# Lightweight non-Docker CI: packaging contracts without the full container suite.
+# Full twelve-check container run remains in docker-suite.yml.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  packaging-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Docker packaging contracts
+        run: bash tests/verify-docker-packaging.sh
+
+      - name: Assert professional root docs exist
+        run: |
+          set -euo pipefail
+          for f in SECURITY.md CONTRIBUTING.md .editorconfig LICENSE README.md CHANGELOG.md; do
+            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
+            echo "OK $f"
+          done
+          grep -q 'SECURITY.md' README.md
+          grep -q 'CONTRIBUTING.md' README.md
+          grep -Eiq 'PDR-07|physical|15.?20' README.md
+          echo "PRO_DOCS_OK"
+
+  secret-patterns:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for common secret patterns
+        run: |
+          set -euo pipefail
+          # Fail if committed trees contain obvious credential material.
+          if git grep -nIE 'ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|BEGIN (RSA |OPENSSH )?PRIVATE KEY|DOCKERHUB_TOKEN=[^[:space:]]+' -- . \
+            ':(exclude)*.md' ':(exclude)docs/**' ':(exclude)plans/**' ':(exclude)CHANGELOG.md'; then
+            echo "SECRET_PATTERN_HIT" >&2
+            exit 1
+          fi
+          echo "SECRET_PATTERN_SCAN_OK"

@@ -2,6 +2,17 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
+**Project status:** source-complete with green automated contracts (host twelve-check suite + Docker packaging suite). **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots are documentation media, not physical-playthrough evidence.
+
+| Doc | Purpose |
+|---|---|
+| [Contributing](CONTRIBUTING.md) | Local play, suite, Docker, commit style |
+| [Security](SECURITY.md) | Vulnerability reporting |
+| [Changelog](CHANGELOG.md) | Notable changes |
+| [Testing](docs/testing.md) | Twelve-check matrix and Docker suite |
+| [Limitations](docs/limitations.md) | Open gates and evidence boundaries |
+| [Roadmap](docs/project-roadmap.md) | Phase status (Phase 4 physical still open) |
+
 The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
 
 ## Visual Reference Tour
@@ -188,7 +199,9 @@ No export preset is committed or release-tested. To prepare a local binary, inst
 
 ## Contributing
 
-Keep changes focused, use Conventional Commit messages, and do not commit `.godot/`, `.artifacts/`, local tools, exports, or credentials. Before submitting a change, run the twelve-check suite and `git diff --check`, then update documentation only for behavior the current source or recorded manual evidence proves.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, suite commands, Conventional Commits, and PR expectations. Report security issues per **[SECURITY.md](SECURITY.md)**.
+
+Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, exports, or credentials. Before submitting a change, run packaging verify and the twelve-check suite when possible, then update documentation only for behavior the current source or recorded manual evidence proves.
 
 ## Project Layout
 
@@ -208,10 +221,12 @@ Keep changes focused, use Conventional Commit messages, and do not commit `.godo
 | `scripts/world/` | World construction, progression, horror events, navigation, chase, and ending logic |
 | `assets/audio/voice-over/` | Generated English OGG cues, Godot import sidecars, and cue manifest |
 | `shaders/` | Project-authored Compatibility canvas shader |
-| `tests/` | Native GDScript checks and PowerShell runner |
+| `tests/` | Native GDScript checks, PowerShell/POSIX runners, packaging verify |
 | `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
 | `docs/` | PDR, roadmap, design, architecture, standards, testing, provenance, and limitations |
 | `plans/` | Project planning and historical verification artifacts |
+| `Dockerfile` / `docker-compose.yml` | Multi-stage Godot 4.7.1 suite image (`nguyenson1710/horror-game-suite`) |
+| `.github/` | `ci.yml` packaging/secret-pattern jobs, `docker-suite.yml`, Dependabot |
 
 Geometry and procedural effects are generated at runtime. The only committed audio assets are the manifest-backed English voice cues under `assets/audio/voice-over/`; the project-authored icon is `icon.svg` at the repository root.
 

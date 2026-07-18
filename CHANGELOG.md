@@ -6,6 +6,20 @@ All notable changes to this project are documented here.
 
 ### Added
 
+#### Public-repo professionalism — 2026-07-18
+
+- `SECURITY.md`, `CONTRIBUTING.md`, and root `.editorconfig` for disclosure, contributor setup, and editor defaults.
+- `.github/dependabot.yml` for weekly GitHub Actions and Docker base-image updates.
+- `.github/workflows/ci.yml` for packaging-contract verification, professional-doc presence checks, and a lightweight committed-tree secret-pattern scan (does not replace the twelve Godot checks).
+- `.github/CODEOWNERS` defaulting to `@JasonTM17`.
+
+#### Docker / CI test packaging — 2026-07-18
+
+- Multi-stage non-root `Dockerfile` and compose service image `nguyenson1710/horror-game-suite` (Godot 4.7.1 standard, not .NET).
+- POSIX `tests/run-headless-tests.sh` mirroring the twelve host checks; large frame budgets for uncapped Linux headless.
+- `tests/verify-docker-packaging.ps1` / `.sh` structural contracts; CI `docker-suite.yml` build + suite + optional Hub publish when secrets exist.
+- Container suite proven green on GitHub Actions (including `physical-route` and `ALL_TWELVE_HEADLESS_CHECKS_OK`).
+
 - Godot 4.7.1 Compatibility-renderer project foundation, boot scene, input map, and project icon.
 - One continuous lobby-to-ending gameplay scene with guarded phone, logbook, fuse, memory, radio, Room 407, chase, and ending progression.
 - `GameplayDirector` facade with dedicated `StoryProgressionController` and `ChaseSequenceController` collaborators.
