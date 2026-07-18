@@ -65,6 +65,8 @@ Require-Grep "tests/run-headless-tests.sh" "editor-import" "shell runner editor-
 Require-Grep "tests/run-headless-tests.sh" "settings-persistence-read" "shell runner last check"
 Require-Grep "tests/run-headless-tests.sh" "ALL_TWELVE_HEADLESS_CHECKS_OK" "shell runner completion marker"
 Require-Grep "tests/run-headless-tests.sh" "PROGRESSION_TEST_OK" "shell runner progression marker"
+Require-Grep "tests/run-headless-tests.sh" "quit-after 120000" "shell runner physical-route frame budget"
+Require-Grep "tests/run-headless-tests.ps1" "120000" "ps1 runner physical-route frame budget"
 Require-Grep "tests/run-headless-tests.ps1" "settings-persistence-read" "ps1 runner last check"
 
 $checks = @(

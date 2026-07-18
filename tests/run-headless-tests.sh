@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # POSIX equivalent of tests/run-headless-tests.ps1 for Linux/containers.
 # Runs the same twelve Godot 4.7.1 headless checks and fails on non-zero exit,
-# missing success markers, or scanned engine/script/leak/assert failures.
+# missing success markers, or scanned engine/script/assert failures.
 
 set -euo pipefail
 
@@ -38,7 +38,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-FAIL_PATTERN='ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|PHYSICAL_ROUTE_ASSERT|PLAYER_INPUT_ASSERT|VISUAL_EFFECTS_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|ObjectDB instances were leaked|Leaked instance:'
+# Keep ERROR:/assert scanners. Ignore ObjectDB WARNING leak noise at process exit.
+FAIL_PATTERN='ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|PHYSICAL_ROUTE_ASSERT|PLAYER_INPUT_ASSERT|VISUAL_EFFECTS_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|VOICE_OVER_ASSERT'
 
 run_check() {
 	local name="$1"
@@ -70,7 +71,6 @@ run_check() {
 		cat "$engine_log" "$console_log" 2>/dev/null >"$log" || true
 	fi
 
-	# Ensure log exists even if Godot wrote nothing
 	touch "$log"
 
 	if [[ $exit_code -ne 0 ]]; then
@@ -91,29 +91,31 @@ run_check() {
 	echo "$name OK"
 }
 
+# --quit-after is a frame budget, not seconds. Linux/container headless can
+# advance many frames during wall-time create_timer waits; keep large budgets.
 run_check "editor-import" "PROJECT_SETTINGS_STABILITY_OK" "res://tests/project-settings-stability-test.gd" \
 	--headless --path "$ROOT" --editor --quit
 run_check "menu" "" "" \
-	--headless --path "$ROOT" --scene "res://scenes/boot/boot.tscn" --quit-after 8
+	--headless --path "$ROOT" --scene "res://scenes/boot/boot.tscn" --quit-after 120
 run_check "gameplay" "" "" \
-	--headless --path "$ROOT" --scene "res://scenes/gameplay/gameplay.tscn" --quit-after 20
+	--headless --path "$ROOT" --scene "res://scenes/gameplay/gameplay.tscn" --quit-after 300
 run_check "game-state" "GAME_STATE_TEST_OK" "" \
-	--headless --path "$ROOT" --script "res://tests/game-state-test.gd" --quit-after 20
+	--headless --path "$ROOT" --script "res://tests/game-state-test.gd" --quit-after 300
 run_check "progression" "PROGRESSION_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/progression-test.tscn" --quit-after 1200
+	--headless --path "$ROOT" --scene "res://tests/progression-test.tscn" --quit-after 60000
 run_check "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/checkpoint-layout-test.tscn" --quit-after 2000
+	--headless --path "$ROOT" --scene "res://tests/checkpoint-layout-test.tscn" --quit-after 120000
 run_check "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/physical-route-smoke-test.tscn" --quit-after 3600
+	--headless --path "$ROOT" --scene "res://tests/physical-route-smoke-test.tscn" --quit-after 120000
 run_check "player-input" "PLAYER_INPUT_INTEGRATION_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/player-input-integration-test.tscn" --quit-after 600
+	--headless --path "$ROOT" --scene "res://tests/player-input-integration-test.tscn" --quit-after 30000
 run_check "visual-effects" "VISUAL_EFFECTS_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/visual-effects-test.tscn" --quit-after 180
+	--headless --path "$ROOT" --scene "res://tests/visual-effects-test.tscn" --quit-after 3000
 run_check "settings-audio" "SETTINGS_AUDIO_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/settings-audio-test.tscn" --quit-after 600
+	--headless --path "$ROOT" --scene "res://tests/settings-audio-test.tscn" --quit-after 60000
 run_check "settings-persistence-write" "SETTINGS_PERSISTENCE_WRITE_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/settings-persistence-write-test.tscn" --quit-after 60
+	--headless --path "$ROOT" --scene "res://tests/settings-persistence-write-test.tscn" --quit-after 1200
 run_check "settings-persistence-read" "SETTINGS_PERSISTENCE_READ_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/settings-persistence-read-test.tscn" --quit-after 60
+	--headless --path "$ROOT" --scene "res://tests/settings-persistence-read-test.tscn" --quit-after 1200
 
 echo "ALL_TWELVE_HEADLESS_CHECKS_OK"

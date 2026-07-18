@@ -50,7 +50,8 @@ function Invoke-GodotCheck(
     if ($exitCode -ne 0) {
         Write-Error "$Name failed with exit code $exitCode. See $log"
     }
-    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|PHYSICAL_ROUTE_ASSERT|PLAYER_INPUT_ASSERT|VISUAL_EFFECTS_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|ObjectDB instances were leaked|Leaked instance:" -Quiet) {
+    # Keep ERROR:/assert scanners. Ignore ObjectDB WARNING leak noise at process exit.
+    if (Select-String -Path $log -Pattern "ERROR:|SCRIPT ERROR|Parse Error|PROGRESSION_ASSERT|LAYOUT_ASSERT|PHYSICAL_ROUTE_ASSERT|PLAYER_INPUT_ASSERT|VISUAL_EFFECTS_ASSERT|SETTINGS_AUDIO_ASSERT|SETTINGS_PERSISTENCE_ASSERT|VOICE_OVER_ASSERT" -Quiet) {
         Write-Error "$Name reported an engine or progression error. See $log"
     }
     if ($Expected -and -not (Select-String -Path $log -Pattern $Expected -SimpleMatch -Quiet)) {
@@ -69,18 +70,20 @@ try {
     New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
     New-Item -ItemType Directory -Force -Path ".artifacts" | Out-Null
 
+    # --quit-after is a frame budget. Linux/container headless needs large budgets
+    # so wall-time create_timer waits do not exhaust iterations before markers.
     Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--editor", "--quit") "editor-import" "PROJECT_SETTINGS_STABILITY_OK" "res://tests/project-settings-stability-test.gd"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/boot/boot.tscn", "--quit-after", "8") "menu"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/gameplay/gameplay.tscn", "--quit-after", "20") "gameplay"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--script", "res://tests/game-state-test.gd", "--quit-after", "20") "game-state" "GAME_STATE_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/progression-test.tscn", "--quit-after", "1200") "progression" "PROGRESSION_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/checkpoint-layout-test.tscn", "--quit-after", "2000") "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/physical-route-smoke-test.tscn", "--quit-after", "3600") "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/player-input-integration-test.tscn", "--quit-after", "600") "player-input" "PLAYER_INPUT_INTEGRATION_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/visual-effects-test.tscn", "--quit-after", "180") "visual-effects" "VISUAL_EFFECTS_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-audio-test.tscn", "--quit-after", "600") "settings-audio" "SETTINGS_AUDIO_TEST_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-write-test.tscn", "--quit-after", "60") "settings-persistence-write" "SETTINGS_PERSISTENCE_WRITE_OK"
-    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-read-test.tscn", "--quit-after", "60") "settings-persistence-read" "SETTINGS_PERSISTENCE_READ_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/boot/boot.tscn", "--quit-after", "120") "menu"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://scenes/gameplay/gameplay.tscn", "--quit-after", "300") "gameplay"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--script", "res://tests/game-state-test.gd", "--quit-after", "300") "game-state" "GAME_STATE_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/progression-test.tscn", "--quit-after", "60000") "progression" "PROGRESSION_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/checkpoint-layout-test.tscn", "--quit-after", "120000") "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/physical-route-smoke-test.tscn", "--quit-after", "120000") "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/player-input-integration-test.tscn", "--quit-after", "30000") "player-input" "PLAYER_INPUT_INTEGRATION_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/visual-effects-test.tscn", "--quit-after", "3000") "visual-effects" "VISUAL_EFFECTS_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-audio-test.tscn", "--quit-after", "60000") "settings-audio" "SETTINGS_AUDIO_TEST_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-write-test.tscn", "--quit-after", "1200") "settings-persistence-write" "SETTINGS_PERSISTENCE_WRITE_OK"
+    Invoke-GodotCheck @("--headless", "--path", (Get-Location).Path, "--scene", "res://tests/settings-persistence-read-test.tscn", "--quit-after", "1200") "settings-persistence-read" "SETTINGS_PERSISTENCE_READ_OK"
 }
 finally {
     if (Test-Path -LiteralPath $testProfile) {

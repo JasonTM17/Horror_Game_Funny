@@ -75,6 +75,8 @@ require_grep "tests/run-headless-tests.sh" "editor-import" "shell runner editor-
 require_grep "tests/run-headless-tests.sh" "settings-persistence-read" "shell runner last check"
 require_grep "tests/run-headless-tests.sh" "ALL_TWELVE_HEADLESS_CHECKS_OK" "shell runner completion marker"
 require_grep "tests/run-headless-tests.sh" "PROGRESSION_TEST_OK" "shell runner progression marker"
+require_grep "tests/run-headless-tests.sh" "quit-after 120000" "shell runner physical-route frame budget"
+require_grep "tests/run-headless-tests.ps1" "120000" "ps1 runner physical-route frame budget"
 require_grep "tests/run-headless-tests.ps1" "settings-persistence-read" "ps1 runner last check"
 
 # Count twelve named checks in the shell runner (must match host runner).
