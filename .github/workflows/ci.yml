@@ -37,12 +37,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Scan for common secret patterns
-        run: |
-          set -euo pipefail
-          # Fail if committed trees contain obvious credential material.
-          if git grep -nIE 'ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|BEGIN (RSA |OPENSSH )?PRIVATE KEY|DOCKERHUB_TOKEN=[^[:space:]]+' -- . \
-            ':(exclude)*.md' ':(exclude)docs/**' ':(exclude)plans/**' ':(exclude)CHANGELOG.md'; then
-            echo "SECRET_PATTERN_HIT" >&2
-            exit 1
-          fi
-          echo "SECRET_PATTERN_SCAN_OK"
+        run: bash tests/scan-secret-patterns.sh
