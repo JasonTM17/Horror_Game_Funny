@@ -142,6 +142,7 @@ func _ready() -> void:
 	if not await menu_settings_regression.run(): return
 	menu_settings_regression.queue_free()
 	await get_tree().process_frame
+	if not _verify_malformed_settings_rejected(): return
 	SettingsManager.reset_defaults()
 	print("SETTINGS_AUDIO_TEST_OK")
 	panel.queue_free()
@@ -163,6 +164,39 @@ func _verify_initial_audio_bus_volumes() -> bool:
 		if not _require(is_equal_approx(actual_volume, expected_volume), "%s bus started at %.1f dB instead of %.1f dB" % [bus_name, actual_volume, expected_volume]):
 			return false
 	return true
+
+func _verify_malformed_settings_rejected() -> bool:
+	var malformed_path := "user://room407-malformed-test.cfg"
+	var config := ConfigFile.new()
+	config.set_value("controls", "mouse_sensitivity", "fast")
+	config.set_value("display", "field_of_view", "wide")
+	config.set_value("audio", "master_volume", "loud")
+	config.set_value("audio", "music_volume", [])
+	config.set_value("audio", "sfx_volume", true)
+	config.set_value("audio", "ambience_volume", "quiet")
+	config.set_value("accessibility", "flicker_enabled", "false")
+	config.set_value("accessibility", "comfort_head_bob", 0)
+	config.set_value("accessibility", "camera_shake_enabled", "false")
+	config.set_value("accessibility", "film_grain_enabled", 1)
+	config.set_value("display", "fullscreen_enabled", "false")
+	if not _require(config.save(malformed_path) == OK, "malformed settings fixture could not be written"): return false
+	SettingsManager.reset_defaults()
+	SettingsManager.load_settings(malformed_path)
+	var kept_defaults := (
+		is_equal_approx(SettingsManager.mouse_sensitivity, 0.08)
+		and is_equal_approx(SettingsManager.field_of_view, 74.0)
+		and is_equal_approx(SettingsManager.master_volume, 0.0)
+		and is_equal_approx(SettingsManager.music_volume, -10.0)
+		and is_equal_approx(SettingsManager.sfx_volume, -4.0)
+		and is_equal_approx(SettingsManager.ambience_volume, -8.0)
+		and SettingsManager.flicker_enabled
+		and SettingsManager.comfort_head_bob
+		and SettingsManager.camera_shake_enabled
+		and SettingsManager.film_grain_enabled
+		and not SettingsManager.fullscreen_enabled
+	)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(malformed_path))
+	return _require(kept_defaults, "malformed persisted values changed runtime settings")
 
 func _require(condition: bool, message: String) -> bool:
 	if condition:

@@ -101,25 +101,36 @@ func save_settings(config_path: String = CONFIG_PATH) -> Error:
 		settings_save_failed.emit(config_path, save_error)
 	return save_error
 
-func load_settings() -> void:
+func load_settings(config_path: String = CONFIG_PATH) -> void:
 	var config := ConfigFile.new()
-	if config.load(CONFIG_PATH) != OK:
+	if config.load(config_path) != OK:
 		set_master_volume(master_volume)
 		set_music_volume(music_volume)
 		set_sfx_volume(sfx_volume)
 		set_ambience_volume(ambience_volume)
 		return
-	set_mouse_sensitivity(float(config.get_value("controls", "mouse_sensitivity", mouse_sensitivity)))
-	set_field_of_view(float(config.get_value("display", "field_of_view", field_of_view)))
-	set_master_volume(float(config.get_value("audio", "master_volume", master_volume)))
-	set_music_volume(float(config.get_value("audio", "music_volume", music_volume)))
-	set_sfx_volume(float(config.get_value("audio", "sfx_volume", sfx_volume)))
-	set_ambience_volume(float(config.get_value("audio", "ambience_volume", ambience_volume)))
-	set_flicker_enabled(bool(config.get_value("accessibility", "flicker_enabled", flicker_enabled)))
-	set_comfort_head_bob(bool(config.get_value("accessibility", "comfort_head_bob", comfort_head_bob)))
-	set_camera_shake_enabled(bool(config.get_value("accessibility", "camera_shake_enabled", camera_shake_enabled)))
-	set_film_grain_enabled(bool(config.get_value("accessibility", "film_grain_enabled", film_grain_enabled)))
-	set_fullscreen_enabled(bool(config.get_value("display", "fullscreen_enabled", fullscreen_enabled)))
+	set_mouse_sensitivity(_finite_number(config, "controls", "mouse_sensitivity", mouse_sensitivity))
+	set_field_of_view(_finite_number(config, "display", "field_of_view", field_of_view))
+	set_master_volume(_finite_number(config, "audio", "master_volume", master_volume))
+	set_music_volume(_finite_number(config, "audio", "music_volume", music_volume))
+	set_sfx_volume(_finite_number(config, "audio", "sfx_volume", sfx_volume))
+	set_ambience_volume(_finite_number(config, "audio", "ambience_volume", ambience_volume))
+	set_flicker_enabled(_boolean(config, "accessibility", "flicker_enabled", flicker_enabled))
+	set_comfort_head_bob(_boolean(config, "accessibility", "comfort_head_bob", comfort_head_bob))
+	set_camera_shake_enabled(_boolean(config, "accessibility", "camera_shake_enabled", camera_shake_enabled))
+	set_film_grain_enabled(_boolean(config, "accessibility", "film_grain_enabled", film_grain_enabled))
+	set_fullscreen_enabled(_boolean(config, "display", "fullscreen_enabled", fullscreen_enabled))
+
+func _finite_number(config: ConfigFile, section: String, key: String, fallback: float) -> float:
+	var value: Variant = config.get_value(section, key, fallback)
+	if typeof(value) != TYPE_FLOAT and typeof(value) != TYPE_INT:
+		return fallback
+	var number := float(value)
+	return number if is_finite(number) else fallback
+
+func _boolean(config: ConfigFile, section: String, key: String, fallback: bool) -> bool:
+	var value: Variant = config.get_value(section, key, fallback)
+	return bool(value) if typeof(value) == TYPE_BOOL else fallback
 
 func _set_bus_volume(bus_name: String, volume_db: float) -> void:
 	var index := AudioServer.get_bus_index(bus_name)
