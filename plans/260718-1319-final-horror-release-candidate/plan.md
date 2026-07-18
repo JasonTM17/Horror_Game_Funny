@@ -91,3 +91,10 @@ public runtime contracts. Green tests alone are not completion.
 Every evidence-map row must have current proof, the exported build must launch, all
 open perceptual limits must be explicit, docs/plans must match reality, and final Git
 delivery must be intentional before the parent goal can close.
+
+## Source polish landing (2026-07-18)
+
+Source-level RC polish landed on `main` as `2ecf78a` + dual-key residual `89042b5`.
+Phases 1–4 stay **Completed**. Phase 5 (physical F5 / PDR-07) and Phase 6
+(Windows export) remain **open** until real same-run physical evidence and an
+export smoke exist. Details: [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md).
