@@ -50,7 +50,8 @@ static func _build_paper_clue(parent: Node3D, id: String, color: Color) -> void:
 	if id == "memory_photo":
 		_add_textured_quad(parent, "MemoryPhotoImage", MEMORY_PHOTO_TEXTURE, Vector2(0.69, 0.46), Vector3(0, 0.027, 0), Vector3(-PI / 2.0, 0, 0))
 	elif id == "room_drawing":
-		_add_textured_quad(parent, "RoomDrawingImage", ROOM_DRAWING_TEXTURE, Vector2(0.79, 0.87), Vector3(0, 0, 0.027), Vector3.ZERO)
+		# Right-wall prop: face corridor center (-X) so the single-sided still is visible on the -Z approach.
+		_add_textured_quad(parent, "RoomDrawingImage", ROOM_DRAWING_TEXTURE, Vector2(0.79, 0.87), Vector3(-0.027, 0, 0), Vector3(0, -PI / 2.0, 0))
 	var text: String = {
 		"floor_notice": "FLOOR 4\nCLOSED 2007",
 		"memory_photo": "00:07",

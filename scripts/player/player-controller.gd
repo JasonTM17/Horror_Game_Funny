@@ -3,8 +3,8 @@ extends CharacterBody3D
 signal input_lock_changed(locked: bool)
 signal flashlight_changed(enabled: bool)
 
-@export var walk_speed := 2.6
-@export var sprint_multiplier := 1.65
+@export var walk_speed := 2.0
+@export var sprint_multiplier := 1.55
 @export var gravity := 12.0
 @export var mouse_sensitivity := 0.08
 @onready var head: Node3D = $Head

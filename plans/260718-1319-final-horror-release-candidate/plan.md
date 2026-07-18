@@ -94,7 +94,13 @@ delivery must be intentional before the parent goal can close.
 
 ## Source polish landing (2026-07-18)
 
-Source-level RC polish landed on `main` as `2ecf78a` + dual-key residual `89042b5`.
+Source-level RC polish landed on `main` through:
+`2ecf78a` (scare/audio/chase polish), `89042b5` (dual-key InputMap),
+`298467b` (menu + story stills), `821ef26` (chapter scare fallback + dual-key/eyes
+contracts), and subsequent docs/audit commits. Multi-agent re-verify reports live
+under `reports/` (tester/reviewer/scout/docs/export-readiness).
+
 Phases 1–4 stay **Completed**. Phase 5 (physical F5 / PDR-07) and Phase 6
 (Windows export) remain **open** until real same-run physical evidence and an
-export smoke exist. Details: [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md).
+export smoke exist. Details: [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md),
+[final-automated-audit-2026-07-18.md](./reports/final-automated-audit-2026-07-18.md).

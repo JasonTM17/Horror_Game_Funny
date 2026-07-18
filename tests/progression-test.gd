@@ -19,6 +19,23 @@ func _ready() -> void:
 		and _has_textured_mesh(gameplay.get_node("room_family_table"), "FamilyTableImage"),
 		"story clue image textures did not instantiate with imported materials"
 	): return
+	if not _require(
+		_room_drawing_faces_corridor_center(gameplay.get_node("room_drawing")),
+		"Room 407 drawing still does not face the corridor approach (-X)"
+	): return
+	var horror: Node = director._horror
+	var saved_player: Node3D = horror._player as Node3D
+	horror.set_player(null)
+	var rabbit_fallback: Vector3 = horror.call("_scare_position_ahead", 10.0, 1.25, 0.0, WorldLayout.MEMORY_RABBIT_Z - 10.0) as Vector3
+	var room_fallback: Vector3 = horror.call("_scare_position_ahead", 9.0, 1.35, 0.0, WorldLayout.FINAL_CLUE_Z - 9.0) as Vector3
+	horror.set_player(saved_player)
+	if not _require(
+		is_equal_approx(rabbit_fallback.z, WorldLayout.MEMORY_RABBIT_Z - 10.0)
+		and is_equal_approx(room_fallback.z, WorldLayout.FINAL_CLUE_Z - 9.0)
+		and rabbit_fallback.distance_to(Vector3(0, 1.25, WorldLayout.MEMORY_RABBIT_Z)) <= 18.0
+		and room_fallback.distance_to(Vector3(0, 1.35, WorldLayout.FINAL_CLUE_Z)) <= 18.0,
+		"player-less scare fallback left the authored chapter Z anchors"
+	): return
 	var pacing_before_pause: Dictionary = director.get_playthrough_pacing_report()
 	get_tree().paused = true
 	await get_tree().process_frame
@@ -492,7 +509,14 @@ func _has_textured_mesh(parent: Node, child_name: String) -> bool:
 	if mesh_instance == null or not mesh_instance.mesh is QuadMesh:
 		return false
 	var material := mesh_instance.material_override as StandardMaterial3D
-	return material != null and material.albedo_texture != null
+	return material != null and material.albedo_texture != null and material.cull_mode == BaseMaterial3D.CULL_DISABLED
+
+func _room_drawing_faces_corridor_center(parent: Node) -> bool:
+	var mesh_instance := parent.get_node_or_null("RoomDrawingImage") as MeshInstance3D
+	if mesh_instance == null:
+		return false
+	# Local +Z after Y = -PI/2 points world -X (toward corridor center from the right wall).
+	return mesh_instance.transform.basis.z.x < -0.9
 
 func _has_spatial_cue(cue_id: String) -> bool:
 	return AudioManager._spatial_player_ids.values().has(cue_id)
