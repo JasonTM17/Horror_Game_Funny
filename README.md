@@ -2,7 +2,7 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** source-complete with green host/container contracts plus a tracked Windows x86_64 export preset and automated exported-build startup smoke. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots and headless export startup are not physical-playthrough evidence.
+**Project status:** source-complete with recorded green host/container contracts plus a tracked Windows x86_64 export preset and automated exported-build startup smoke. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots and headless export startup are not physical-playthrough evidence.
 
 | Doc | Purpose |
 |---|---|
