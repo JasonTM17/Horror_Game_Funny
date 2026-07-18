@@ -12,6 +12,9 @@ static func textured_material(texture: Texture2D, tint := Color.WHITE, roughness
 	result.albedo_texture = texture
 	result.albedo_color = tint
 	result.roughness = roughness
+	# Clue cards are thin authored surfaces. Render both sides so a nearby wall
+	# angle or checkpoint approach cannot cull the only readable image.
+	result.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return result
 
 static func add_box(parent: Node3D, name: String, position: Vector3, size: Vector3, color: Color, collision_layer := 1) -> StaticBody3D:

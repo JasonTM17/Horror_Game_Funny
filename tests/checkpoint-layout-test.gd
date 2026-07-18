@@ -176,6 +176,7 @@ func _ready() -> void:
 	var measured_chase_distance := chase_entity.global_position.distance_to(chase_origin)
 	if not _require(chase_entity.state == chase_entity.State.CHASE and measured_chase_distance > stalk_distance * 1.7, "full chase is not materially faster than stalking"): return
 	if not _require(absf(chase_entity.velocity.length() - chase_entity.speed) < 0.05, "chase state does not use its authored speed"): return
+	if not _require(is_equal_approx(player.walk_speed, 2.0) and is_equal_approx(player.sprint_multiplier, 1.55) and is_equal_approx(chase_entity.speed, 3.0), "production walk/sprint/chase speed contract drifted from 2.0/3.1/3.0"): return
 	if not _require(chase_entity.speed > player.walk_speed, "enemy cannot catch a walking player"): return
 	if not _require(chase_entity.speed < player.walk_speed * player.sprint_multiplier, "enemy makes a full sprint escape impossible"): return
 	var traversal_player_position := player.global_position

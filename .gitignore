@@ -11,9 +11,8 @@ builds/
 *.tmp
 *.log
 
-# Local export configuration (not required to run the source project)
+# Local export configuration (credential-free export preset is tracked)
 export.cfg
-export_presets.cfg
 
 # Editors and operating systems
 .vscode/
