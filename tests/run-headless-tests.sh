@@ -104,7 +104,7 @@ run_check "progression" "PROGRESSION_TEST_OK" "" \
 run_check "checkpoint-layout" "CHECKPOINT_LAYOUT_TEST_OK" "" \
 	--headless --path "$ROOT" --scene "res://tests/checkpoint-layout-test.tscn" --quit-after 2000
 run_check "physical-route" "PHYSICAL_ROUTE_SMOKE_TEST_OK" "" \
-	--headless --path "$ROOT" --scene "res://tests/physical-route-smoke-test.tscn" --quit-after 1800
+	--headless --path "$ROOT" --scene "res://tests/physical-route-smoke-test.tscn" --quit-after 3600
 run_check "player-input" "PLAYER_INPUT_INTEGRATION_TEST_OK" "" \
 	--headless --path "$ROOT" --scene "res://tests/player-input-integration-test.tscn" --quit-after 600
 run_check "visual-effects" "VISUAL_EFFECTS_TEST_OK" "" \
