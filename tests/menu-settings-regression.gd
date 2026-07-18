@@ -115,7 +115,9 @@ func _verify_boot_focus_return() -> bool:
 	var continue_button := fresh_boot.find_child("Continue", true, false) as Button
 	var settings_button := fresh_boot.find_child("Settings", true, false) as Button
 	var quit_button := fresh_boot.find_child("Quit", true, false) as Button
+	var menu_background := fresh_boot.find_child("MenuBackground", true, false) as TextureRect
 	if not _require(start_button != null and continue_button != null and not continue_button.visible and get_viewport().gui_get_focus_owner() == start_button, "fresh boot menu did not focus Start"): return false
+	if not _require(menu_background != null and menu_background.texture != null and menu_background.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "fresh boot menu lost its authored corridor background texture"): return false
 	if not _require(_configured_window_title_is_player_facing(), "configured window title exposes a debug or production marker"): return false
 	if not _require(_boot_copy_is_immersive(fresh_boot), "boot menu exposes runtime, combat, or checkpoint terminology"): return false
 	settings_button.grab_focus()

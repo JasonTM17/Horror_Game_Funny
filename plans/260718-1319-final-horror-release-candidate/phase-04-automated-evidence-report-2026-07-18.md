@@ -1,5 +1,11 @@
 # Phase 4 automated evidence report — 2026-07-18
 
+> **Historical snapshot — superseded.** This report records the earlier dirty-tree
+> source-polish gate and is retained for provenance only. The authoritative
+> automated baseline is the post-merge final audit in
+> [`reports/final-automated-audit-2026-07-18.md`](./reports/final-automated-audit-2026-07-18.md);
+> do not use the source identity below as proof for the current tip.
+
 ## Source identity
 
 - Captured: `2026-07-18T14:26:20+07:00`

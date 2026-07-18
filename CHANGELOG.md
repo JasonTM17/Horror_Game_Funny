@@ -34,6 +34,13 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Release-candidate horror polish — 2026-07-18
+
+- Added a dark hotel-corridor menu composition plus four authored story textures (memory photograph, child's drawing, family-table memory, and the shared menu background) with runtime import and regression coverage.
+- Hardened the floor/rabbit/Room 407 scare anchors for checkpoint restoration, shared the emissive-eye readability threshold, and expanded the progression contract to cover textured clue meshes and both Room 407 eyes.
+- Strengthened the input residual contract to require separate physical-only and logical-only bindings for WASD/Shift/E/F/Escape/Tab; OS-delivered key and mouse behavior remains a manual boundary.
+- Kept the Voice bus ducking and bounded procedural-audio lifecycle unchanged while documenting that audible balance still needs a target-device listening pass.
+
 #### Completion audit polish — 2026-07-16
 
 - `4287337` reconciled the completion-audit plan and evidence workflow without changing the continuous route.
