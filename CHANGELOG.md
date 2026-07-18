@@ -20,6 +20,12 @@ All notable changes to this project are documented here.
 - `tests/verify-docker-packaging.ps1` / `.sh` structural contracts; CI `docker-suite.yml` build + suite + optional Hub publish when secrets exist.
 - Container suite proven green on GitHub Actions (including `physical-route` and `ALL_TWELVE_HEADLESS_CHECKS_OK`).
 
+#### Windows x86_64 export verification — 2026-07-18
+
+- Credential-free `export_presets.cfg` for an unsigned Windows Desktop x86_64 release executable with an embedded PCK and repository-local ignored output.
+- `tests/verify-windows-export.ps1` validates Godot 4.7.1, the installed release template, preset security contracts, export/startup logs, PE x86_64 architecture, and current output size/SHA-256.
+- Verified export bundles `LICENSE` and `THIRD_PARTY_NOTICES.md` beside the executable. Generated binaries, logs, templates, and isolated profiles remain outside Git.
+
 - Godot 4.7.1 Compatibility-renderer project foundation, boot scene, input map, and project icon.
 - One continuous lobby-to-ending gameplay scene with guarded phone, logbook, fuse, memory, radio, Room 407, chase, and ending progression.
 - `GameplayDirector` facade with dedicated `StoryProgressionController` and `ChaseSequenceController` collaborators.
@@ -40,6 +46,7 @@ All notable changes to this project are documented here.
 - Hardened the floor/rabbit/Room 407 scare anchors for checkpoint restoration, shared the emissive-eye readability threshold, and expanded the progression contract to cover textured clue meshes and both Room 407 eyes.
 - Strengthened the input residual contract to require separate physical-only and logical-only bindings for WASD/Shift/E/F/Escape/Tab; OS-delivered key and mouse behavior remains a manual boundary.
 - Kept the Voice bus ducking and bounded procedural-audio lifecycle unchanged while documenting that audible balance still needs a target-device listening pass.
+- Merged the Dependabot `actions/checkout@v7` update across both CI workflows; the host and container twelve-check suites passed after the branch integration.
 
 #### Completion audit polish — 2026-07-16
 
@@ -86,7 +93,7 @@ All notable changes to this project are documented here.
 - The telemetry contract and twelve-check suite pass, but a fresh physical F5 boot-to-credits capture with its same-run JSON payload is still required before claiming the 15–20 minute pacing target.
 - Full physical input traversal, capture behavior, chase/presentation quality, visual readability, audio balance and audible device output, and physical Settings behavior still require manual evidence.
 - Settings persistence is verified across two isolated Godot processes; the physical Settings-panel save/relaunch workflow on target hardware remains manual evidence.
-- The repository remains source-only and has no export presets or binary build.
+- The repository now tracks a Windows x86_64 export preset and has automated export/headless-startup evidence, but no executable, signed installer, or store package is committed; rendered target-hardware startup still requires human review.
 
 ## References
 

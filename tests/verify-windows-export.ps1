@@ -96,9 +96,28 @@ try {
 
     $item = Get-Item -LiteralPath $outputExe
     $hash = (Get-FileHash -LiteralPath $outputExe -Algorithm SHA256).Hash.ToLowerInvariant()
-    $bytes = [System.IO.File]::ReadAllBytes($outputExe)
-    $peOffset = [BitConverter]::ToInt32($bytes, 0x3c)
-    $machine = [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+    $stream = [System.IO.File]::OpenRead($outputExe)
+    $reader = [System.IO.BinaryReader]::new($stream)
+    try {
+        if ($stream.Length -lt 64) {
+            throw "Exported executable is too small to contain a PE header"
+        }
+        $stream.Position = 0x3c
+        $peOffset = $reader.ReadInt32()
+        if ($peOffset -lt 0 -or ($peOffset + 6) -gt $stream.Length) {
+            throw "Exported executable contains an invalid PE header offset"
+        }
+        $stream.Position = $peOffset
+        $signature = $reader.ReadUInt32()
+        if ($signature -ne 0x00004550) {
+            throw ("Expected PE signature 0x00004550, got 0x{0:x8}" -f $signature)
+        }
+        $machine = $reader.ReadUInt16()
+    }
+    finally {
+        $reader.Dispose()
+        $stream.Dispose()
+    }
     if ($machine -ne 0x8664) {
         throw ("Expected PE x86_64 machine 0x8664, got 0x{0:x}" -f $machine)
     }

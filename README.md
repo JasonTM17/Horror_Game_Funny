@@ -2,7 +2,7 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** source-complete with green automated contracts (host twelve-check suite + Docker packaging suite). **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots are documentation media, not physical-playthrough evidence.
+**Project status:** source-complete with green host/container contracts plus a tracked Windows x86_64 export preset and automated exported-build startup smoke. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots and headless export startup are not physical-playthrough evidence.
 
 | Doc | Purpose |
 |---|---|
@@ -45,7 +45,7 @@ The harness writes eight PNG frames under the ignored `.artifacts/visual-capture
 - A renderer compatible with Godot's Compatibility/OpenGL path.
 - PowerShell (Windows host suite) **or** Docker Engine (Linux container suite).
 
-This is a source-only project. The repository has no `export_presets.cfg`, exported executable, or bundled Godot binary. A multi-stage Docker image packages Godot 4.7.1 for the headless suite only; it is not a shipped game binary.
+The repository tracks a credential-free `export_presets.cfg` for a Windows Desktop x86_64 release build. Generated executables, export templates, and the Godot editor remain outside Git. A multi-stage Docker image packages Godot 4.7.1 for the headless suite only; it is not a player-facing game build.
 
 ## Run
 
@@ -189,13 +189,19 @@ Four reviewed staged in-engine stills and one derived visual-reference GIF are c
 - The 15–20 minute duration is an instrumented authored target, not a recorded physical-playthrough result.
 - Audible audio/mix balance, live chase navigation and fairness, and target-display visual balance remain manually unverified.
 - Checkpoints last only for the current application process; only settings persist to disk.
-- No export preset, release binary, or platform package is committed or release-tested.
+- No executable, signed installer, or store package is committed. The Windows x86_64 export and headless startup path are automated, but rendered launch, input, audio, and target-hardware behavior remain human-review gates.
 
 See [Known limitations](docs/limitations.md) for the complete release boundary and required evidence.
 
 ## Export
 
-No export preset is committed or release-tested. To prepare a local binary, install the matching Godot 4.7.1 export templates and create a platform preset through **Project > Export**. Keep generated packages outside the repository; treat binary export, platform packaging, and runtime notices as unverified until tested on the target platform.
+Install the official Godot 4.7.1 standard export templates beside the portable editor, then run the credential-free Windows x86_64 verifier:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1
+```
+
+The script validates the Godot version, preset, installed release template, and absence of preset credentials; exports an embedded-PCK PE x86_64 executable under ignored `.artifacts/builds/`; copies `LICENSE` and `THIRD_PARTY_NOTICES.md`; scans export/startup logs; and prints the current executable size and SHA-256. Its direct headless startup smoke proves process startup only. It does not certify a rendered menu, physical input, audible output, signing, installer behavior, or PDR-07.
 
 ## Contributing
 
@@ -208,6 +214,7 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 | Path | Contents |
 |---|---|
 | `project.godot` | Main scene, autoloads, input map, display, and Compatibility renderer configuration |
+| `export_presets.cfg` | Credential-free Windows Desktop x86_64 release preset; generated output stays ignored |
 | `scenes/boot/` | Boot scene |
 | `scenes/gameplay/` | Continuous gameplay scene root |
 | `scenes/player/` | Player scene and configured movement values |
@@ -222,12 +229,13 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 | `assets/audio/voice-over/` | Generated English OGG cues, Godot import sidecars, and cue manifest |
 | `assets/images/` | Project-authored still textures for boot menu and selected story props |
 | `shaders/` | Project-authored Compatibility canvas shader |
-| `tests/` | Native GDScript checks, PowerShell/POSIX runners, packaging verify |
+| `tests/` | Native GDScript checks, PowerShell/POSIX runners, Docker contracts, and Windows export verifier |
 | `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
 | `docs/` | PDR, roadmap, design, architecture, standards, testing, provenance, and limitations |
 | `plans/` | Project planning and historical verification artifacts |
 | `Dockerfile` / `docker-compose.yml` | Multi-stage Godot 4.7.1 suite image (`nguyenson1710/horror-game-suite`) |
 | `.github/` | `ci.yml` packaging/secret-pattern jobs, `docker-suite.yml`, Dependabot |
+| `THIRD_PARTY_NOTICES.md` | Godot and bundled-component redistribution notice entry point copied beside verified exports |
 
 Geometry and most effects are generated at runtime. Committed media assets are the manifest-backed English voice cues under `assets/audio/voice-over/`, four project-authored stills under `assets/images/`, and the project-authored icon `icon.svg` at the repository root.
 
