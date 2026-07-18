@@ -1,5 +1,9 @@
 # Scout: remaining RC polish gaps (source-level)
 
+> **Historical pre-fix scout — superseded.** G1–G4 and the Windows export gap were
+> subsequently addressed. PDR-07 remains open; use
+> `final-automated-audit-2026-07-18.md` for the current boundary.
+
 **Date:** 2026-07-18  
 **Repo:** `D:\Horror_Game`  
 **Mode:** read-only  

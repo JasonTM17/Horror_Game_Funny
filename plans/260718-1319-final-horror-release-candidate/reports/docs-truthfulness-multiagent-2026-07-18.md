@@ -1,5 +1,9 @@
 # Docs truthfulness audit — 2026-07-18
 
+> **Historical pre-export snapshot — superseded.** Its physical-F5 boundary remains
+> valid, but its open export conclusion predates the verified build. Use
+> `final-automated-audit-2026-07-18.md` for current status.
+
 ## Verdict
 
 **PASS**

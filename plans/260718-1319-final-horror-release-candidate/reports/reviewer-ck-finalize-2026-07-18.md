@@ -1,5 +1,9 @@
 # Code Review Summary
 
+> **Historical pre-fix review — superseded.** Later contract, image, export, host,
+> and container evidence is consolidated in
+> `final-automated-audit-2026-07-18.md`.
+
 **Reviewer:** code-reviewer (adversarial / production-readiness)  
 **Date:** 2026-07-18  
 **HEAD reviewed:** `9e216eb825acea54ef1fd6aa66589293f7a8600d`  

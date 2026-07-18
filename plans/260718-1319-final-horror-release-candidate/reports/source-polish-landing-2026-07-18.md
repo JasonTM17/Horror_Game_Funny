@@ -1,5 +1,11 @@
 # Source polish landing — 2026-07-18
 
+> **Historical source-polish checkpoint — superseded.** This report records the
+> `89042b5` landing only. Its Phase 6-open statements were superseded by the
+> completed automated export gate; use
+> [final-automated-audit-2026-07-18.md](./final-automated-audit-2026-07-18.md)
+> for the current automated boundary. Phase 5 / PDR-07 remains open.
+
 ## Landed revisions
 
 | Commit | Summary |

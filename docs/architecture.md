@@ -40,7 +40,7 @@ This separation keeps raw capture outputs and logs outside source control while 
 
 `export_presets.cfg` defines one credential-free, unsigned Windows Desktop x86_64 release preset. It embeds the PCK, applies the project icon and version metadata, excludes development/documentation/test/output paths, and writes below ignored `.artifacts/builds/`. The preset changes packaging only; the exported runtime still starts from `project.godot`'s configured `boot.tscn` main scene.
 
-`tests/verify-windows-export.ps1` is an out-of-band packaging gate, not part of the twelve-check gameplay suite. It validates Godot 4.7.1 and the installed official x86_64 release template, scans the preset for non-empty credential-like values, exports through an isolated profile, copies `LICENSE` and `THIRD_PARTY_NOTICES.md`, scans export/startup logs, checks PE machine `0x8664`, and reports the current artifact size/hash. Its exported-executable smoke runs headless, so this path establishes packaging and process startup but not rendered menu behavior, physical input, audible output, display transitions, performance, signing, or installer compliance.
+`tests/verify-windows-export.ps1` is an out-of-band packaging gate, not part of the twelve-check gameplay suite. It binds checks to the selected preset; verifies the exact official Godot archive, archive member, and installed x86_64 release-template hashes; rejects signing, remote deployment, credentials, resource encryption, and unexpected filters; then exports through an isolated profile and unique staging tree under an exclusive lock. Only a fresh, log-clean, process-smoked PE `0x8664` build is published. The gate copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` and reports the artifact size/hash. Its executable smoke runs headless, so this path establishes packaging and process startup but not rendered menu behavior, physical input, audible output, display transitions, performance, signing, or installer compliance.
 
 ## Gameplay Controller Split
 
@@ -283,4 +283,5 @@ The movement checks teleport between focused gates and the input check positions
 - [`export_presets.cfg`](../export_presets.cfg)
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
+- [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
 - [Testing matrix](testing.md)

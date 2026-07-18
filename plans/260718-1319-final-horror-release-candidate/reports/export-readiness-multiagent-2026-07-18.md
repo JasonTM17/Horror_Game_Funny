@@ -1,5 +1,9 @@
 # Windows x86_64 export readiness (honest smoke-test gate)
 
+> **Historical preflight — superseded.** This records the state before the
+> templates, tracked preset, and verifier existed. Current result:
+> `windows-export-verified-2026-07-18.md` and `final-automated-audit-2026-07-18.md`.
+
 **Date:** 2026-07-18  
 **Assessor:** export-readiness multiagent (Phase 6 preflight only)  
 **Repo:** `D:\Horror_Game`  

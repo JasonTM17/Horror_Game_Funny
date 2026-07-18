@@ -150,7 +150,7 @@ The existing `physical-route` check also covers the optional drawer and painted 
 
 The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
-The final scare-lifecycle canonical run on 2026-07-17 passed all 12 checks in 63.5 seconds, produced exactly 12 canonical logs, contained zero scanned current failure lines including lambda and leak patterns, and left zero `godot-user-*` runner profiles. Focused `progression` and `settings-audio` checks also passed. After two Medium lifecycle defects were fixed, the final review reported zero Critical, High, or Medium findings. This is automated contract evidence only; physical and perceptual gates remain open.
+The final Windows host run on 2026-07-18 passed all 12 checks in about 77.5 seconds, produced exactly 12 canonical logs, contained zero scanned current failure lines including assertion/lambda/leak patterns, and left zero `godot-user-*` runner profiles. A fresh non-root Linux container run passed the same 12 checks in about 82.9 seconds with `ALL_TWELVE_HEADLESS_CHECKS_OK`. Focused `progression` and `settings-audio` checks also passed. This is automated contract evidence only; physical and perceptual gates remain open.
 
 ## Capture a Pacing Payload
 
@@ -201,7 +201,7 @@ Install the official Godot 4.7.1 standard export templates beside the portable e
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1
 ```
 
-The script validates the Godot version, preset, installed release template, and absence of preset credentials; exports an embedded-PCK PE x86_64 executable under ignored `.artifacts/builds/`; copies `LICENSE` and `THIRD_PARTY_NOTICES.md`; scans export/startup logs; and prints the current executable size and SHA-256. Its direct headless startup smoke proves process startup only. It does not certify a rendered menu, physical input, audible output, signing, installer behavior, or PDR-07.
+The script binds validation to the selected preset, verifies the official Godot archive and installed x86_64 release-template hashes, rejects signing/remote-deploy credentials, and exports through a unique staging directory protected by an exclusive lock. It publishes a fresh embedded-PCK PE x86_64 executable under ignored `.artifacts/builds/`; copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt`; scans export/startup logs; and prints the current executable size and SHA-256. Its direct headless startup smoke proves process startup only. It does not certify a rendered menu, physical input, audible output, signing, installer behavior, or PDR-07.
 
 ## Contributing
 
@@ -236,6 +236,7 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 | `Dockerfile` / `docker-compose.yml` | Multi-stage Godot 4.7.1 suite image (`nguyenson1710/horror-game-suite`) |
 | `.github/` | `ci.yml` packaging/secret-pattern jobs, `docker-suite.yml`, Dependabot |
 | `THIRD_PARTY_NOTICES.md` | Godot and bundled-component redistribution notice entry point copied beside verified exports |
+| `GODOT_COPYRIGHT.txt` | Full tag-pinned Godot 4.7.1 component copyright/license inventory copied beside verified exports |
 
 Geometry and most effects are generated at runtime. Committed media assets are the manifest-backed English voice cues under `assets/audio/voice-over/`, four project-authored stills under `assets/images/`, and the project-authored icon `icon.svg` at the repository root.
 

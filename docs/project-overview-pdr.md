@@ -1,8 +1,8 @@
-# Horror Game Funny - Project Overview and Product Development Requirements
+# ROOM 407: THE LAST SHIFT — Project Overview and Product Development Requirements
 
 ## Product Summary
 
-Horror Game Funny is a single-scene first-person horror experience set in one continuous hotel corridor. A fresh run moves from the lobby, through the blackout floor and distorted memory loop, into Room 407, across a physical chase route, and into an interactive abandoned-lobby epilogue. The intended first-playthrough length is 15–20 minutes of authored exploration, interaction, narration, and chase tension—not a collection of separate levels or empty loading sections.
+ROOM 407: THE LAST SHIFT is a single-scene first-person horror experience set in one continuous hotel corridor. A fresh run moves from the lobby, through the blackout floor and distorted memory loop, into Room 407, across a physical chase route, and into an interactive abandoned-lobby epilogue. The intended first-playthrough length is 15–20 minutes of authored exploration, interaction, narration, and chase tension—not a collection of separate levels or empty loading sections.
 
 The current implementation uses Godot 4.7.1 with the Compatibility renderer, procedural low-poly geometry, scene-local controllers, manifest-backed English voice, and process-local checkpoints.
 
@@ -42,7 +42,7 @@ The implementation is release-ready only when all of the following are true:
 3. That same run emits one eligible, complete and order-valid `PLAYTHROUGH_PACING` payload with active total between 900 and 1200 seconds and chapter durations in range.
 4. A human review on the target build records rendered startup/menu behavior, chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles.
 5. Reviewed in-engine screenshots and an optimized derived GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly. **Complete for PDR-08; staged media is not physical-playthrough evidence.**
-6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE` plus `THIRD_PARTY_NOTICES.md`, passes PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; normal-window review remains part of criterion 4.**
+6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory, passes archive/template/hash/preset/PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; normal-window review remains part of criterion 4.**
 
 ## Current Release Decision
 
@@ -65,4 +65,5 @@ PDR-10's automated export requirement is complete, but it does not close PDR-07.
 - [`export_presets.cfg`](../export_presets.cfg)
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
+- [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)

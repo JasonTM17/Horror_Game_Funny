@@ -23,8 +23,8 @@ All notable changes to this project are documented here.
 #### Windows x86_64 export verification — 2026-07-18
 
 - Credential-free `export_presets.cfg` for an unsigned Windows Desktop x86_64 release executable with an embedded PCK and repository-local ignored output.
-- `tests/verify-windows-export.ps1` validates Godot 4.7.1, the installed release template, preset security contracts, export/startup logs, PE x86_64 architecture, and current output size/SHA-256.
-- Verified export bundles `LICENSE` and `THIRD_PARTY_NOTICES.md` beside the executable. Generated binaries, logs, templates, and isolated profiles remain outside Git.
+- `tests/verify-windows-export.ps1` binds checks to the selected preset; verifies the official Godot archive and installed release-template hashes; enforces unsigned, credential-free, remote-deploy-disabled settings; uses exclusive locking plus unique staging; and validates export/startup logs, PE x86_64 architecture, and current output size/SHA-256.
+- Verified export bundles `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory beside the executable. Generated binaries, logs, templates, staging trees, and isolated profiles remain outside Git.
 
 - Godot 4.7.1 Compatibility-renderer project foundation, boot scene, input map, and project icon.
 - One continuous lobby-to-ending gameplay scene with guarded phone, logbook, fuse, memory, radio, Room 407, chase, and ending progression.
@@ -42,7 +42,7 @@ All notable changes to this project are documented here.
 
 #### Release-candidate horror polish — 2026-07-18
 
-- Added a dark hotel-corridor menu composition plus four authored story textures (memory photograph, child's drawing, family-table memory, and the shared menu background) with runtime import and regression coverage.
+- Added four authored PNGs—a dark hotel-corridor menu composition, memory photograph, child's drawing, and family-table memory—with runtime import and regression coverage.
 - Hardened the floor/rabbit/Room 407 scare anchors for checkpoint restoration, shared the emissive-eye readability threshold, and expanded the progression contract to cover textured clue meshes and both Room 407 eyes.
 - Strengthened the input residual contract to require separate physical-only and logical-only bindings for WASD/Shift/E/F/Escape/Tab; OS-delivered key and mouse behavior remains a manual boundary.
 - Kept the Voice bus ducking and bounded procedural-audio lifecycle unchanged while documenting that audible balance still needs a target-device listening pass.

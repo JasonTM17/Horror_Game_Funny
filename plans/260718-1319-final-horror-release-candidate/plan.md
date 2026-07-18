@@ -63,7 +63,7 @@ public runtime contracts. Green tests alone are not completion.
 - Phase 1 gates all later work. Phases 2 and 3 both precede Phase 4.
 - Phase 4 must be green before physical traversal or export is accepted.
 - Phase 5 findings route back to their owning source phase and repeat Phase 4.
-- Phase 6 uses the exact source revision proven by Phases 4-5.
+- Phase 6 may complete independently after a green Phase 4. Any later Phase 5 finding that changes source must route back to its owning phase, repeat Phase 4, and regenerate the export evidence.
 
 ## Evidence Map
 

@@ -4,7 +4,7 @@
 
 - The project is source-playable with Godot 4.7.1 standard and targets the Compatibility renderer.
 - A credential-free `export_presets.cfg` is tracked for an unsigned Windows Desktop x86_64 release executable with an embedded PCK. Exported binaries, logs, installed templates, and the Godot editor remain outside Git.
-- `tests/verify-windows-export.ps1` validates the Godot 4.7.1 release template, preset contracts, export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE` and `THIRD_PARTY_NOTICES.md` beside the ignored output. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
+- `tests/verify-windows-export.ps1` validates the selected preset, exact official Godot 4.7.1 archive/template hashes, fresh staged export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored output. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
 - Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). It does not ship a player-facing game build, close PDR-07, or prove a physical F5 run.
 - Public-repo hygiene files (`SECURITY.md`, `CONTRIBUTING.md`, Dependabot, packaging CI) document process only; they are not a release certification.
@@ -67,7 +67,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 
 - The repository MIT license covers project code and project-authored assets.
 - It does not relicense Godot Engine or the engine's third-party components.
-- Every exported binary must retain the notices required by the Godot Engine distribution it includes. The verifier copies `LICENSE` and `THIRD_PARTY_NOTICES.md` beside its local output; those staged files do not replace destination-specific legal review.
+- Every exported binary must retain the notices required by the Godot Engine distribution it includes. The verifier copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the full tag-pinned `GODOT_COPYRIGHT.txt` inventory beside its local output; those staged files do not replace destination-specific legal review.
 
 ## References
 
@@ -79,6 +79,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`export_presets.cfg`](../export_presets.cfg)
 - [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
+- [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)

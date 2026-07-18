@@ -1,4 +1,4 @@
-# Horror Game Funny - Project Roadmap
+# ROOM 407: THE LAST SHIFT — Project Roadmap
 
 ## Delivery State
 
@@ -38,11 +38,11 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 
 ## Completed Windows Export Track
 
-- The Dependabot `actions/checkout@v7` branch is merged into `main`, and both host and container twelve-check suites passed after that integration.
+- The Dependabot `actions/checkout@v7` branch is merged into `main`; both host and container twelve-check suites passed after that integration and again after export-path finalization.
 - The repository tracks a credential-free `Windows Desktop x86_64` preset with embedded PCK, unsigned release output, project icon/metadata, and ignored build paths.
-- `tests/verify-windows-export.ps1` validates the official Godot 4.7.1 standard release template, preset security contracts, export logs, PE x86_64 architecture, and direct headless startup; it stages `LICENSE` and `THIRD_PARTY_NOTICES.md` beside the ignored build.
+- `tests/verify-windows-export.ps1` verifies the official Godot 4.7.1 archive/member/installed-template hashes, selected-preset security contracts, fresh staged export logs, PE x86_64 architecture, and direct headless startup; it publishes under an exclusive lock and stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored build.
 - The official 4.7.1 standard export-template archive used for this work has SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` and is installed outside the repository. Templates and generated executables are not committed.
-- The verified 2026-07-18 artifact at commit `4684f29` was `117914600` bytes with SHA-256 `3bc3d2e4ade3c2147cd3b6efc320802c7db51391570334c7bada65bf3f5ff2c8`; later handoffs must record their own verifier output.
+- The current verified 2026-07-18 artifact is `117914600` bytes with SHA-256 `e783cfa076d1bf4c9bbf7da7301b233fcded9235fa52ba6bbe595018688ff30e`; later handoffs must record their own verifier output.
 - This completes the automated export path only. A rendered normal-window launch, physical menu/input check, audible-output review, signing, and installer/store packaging remain outside this evidence.
 
 ## Guardrails

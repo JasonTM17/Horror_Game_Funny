@@ -1,5 +1,9 @@
 # PM multi-agent integration — 2026-07-18
 
+> **Historical integration checkpoint — superseded.** It ends at `129ae35` before
+> export verification. Phase 6 is now complete; Phase 5/PDR-07 remains open. Use
+> `final-automated-audit-2026-07-18.md` for current status.
+
 ## Agents
 | Agent | Report | Status |
 |---|---|---|

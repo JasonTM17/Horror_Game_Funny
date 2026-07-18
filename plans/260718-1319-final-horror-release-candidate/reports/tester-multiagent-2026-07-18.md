@@ -1,5 +1,9 @@
 # Tester Multiagent Report — 2026-07-18
 
+> **Historical tip verification — superseded.** This remains valid for `39b22c3`,
+> while current host/container/export proof is consolidated in
+> `final-automated-audit-2026-07-18.md`.
+
 Role: QA Lead / tester agent  
 Scope: full automated verification on tip HEAD (must equal origin/main)  
 Phase: verify only — do NOT mark Phase 5/6 complete  

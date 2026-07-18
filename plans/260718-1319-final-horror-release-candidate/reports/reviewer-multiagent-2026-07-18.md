@@ -1,5 +1,9 @@
 ## Code Review Summary
 
+> **Historical pre-fix review — superseded.** H1/H2 and its source-contract gaps
+> were fixed in `129ae35`/`3f9761a`; export was later completed. Use
+> `final-automated-audit-2026-07-18.md` and the final post-fix review.
+
 **Reviewer:** code-reviewer (adversarial / production-readiness)  
 **Date:** 2026-07-18  
 **HEAD reviewed:** `39b22c3` (expected tip on `main`)  

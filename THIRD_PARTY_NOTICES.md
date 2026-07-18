@@ -27,6 +27,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Godot's component-level copyright and license inventory is maintained by the
-Godot project: <https://github.com/godotengine/godot/blob/4.7.1-stable/COPYRIGHT.txt>.
+The complete, tag-pinned Godot 4.7.1 component copyright and license inventory
+is distributed locally as `GODOT_COPYRIGHT.txt` (SHA-256
+`cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d`).
+It matches the Godot project's `4.7.1-stable` inventory:
+<https://github.com/godotengine/godot/blob/4.7.1-stable/COPYRIGHT.txt>.
 The official license guidance is at <https://godotengine.org/license/>.

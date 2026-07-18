@@ -16,8 +16,11 @@ func _ready() -> void:
 	if not _require(
 		_has_textured_mesh(gameplay.get_node("memory_photo"), "MemoryPhotoImage")
 		and _has_textured_mesh(gameplay.get_node("room_drawing"), "RoomDrawingImage")
-		and _has_textured_mesh(gameplay.get_node("room_family_table"), "FamilyTableImage"),
-		"story clue image textures did not instantiate with imported materials"
+		and _has_textured_mesh(gameplay.get_node("room_family_table"), "FamilyTableImage")
+		and _textured_quad_matches_source_aspect(gameplay.get_node("memory_photo"), "MemoryPhotoImage")
+		and _textured_quad_matches_source_aspect(gameplay.get_node("room_drawing"), "RoomDrawingImage")
+		and _textured_quad_matches_source_aspect(gameplay.get_node("room_family_table"), "FamilyTableImage"),
+		"story clue textures were missing, backface-culled, or visibly stretched"
 	): return
 	if not _require(
 		_room_drawing_faces_corridor_center(gameplay.get_node("room_drawing")),
@@ -517,6 +520,19 @@ func _room_drawing_faces_corridor_center(parent: Node) -> bool:
 		return false
 	# Local +Z after Y = -PI/2 points world -X (toward corridor center from the right wall).
 	return mesh_instance.transform.basis.z.x < -0.9
+
+func _textured_quad_matches_source_aspect(parent: Node, child_name: String) -> bool:
+	var mesh_instance := parent.get_node_or_null(child_name) as MeshInstance3D
+	if mesh_instance == null or not mesh_instance.mesh is QuadMesh:
+		return false
+	var quad := mesh_instance.mesh as QuadMesh
+	var material := mesh_instance.material_override as StandardMaterial3D
+	if material == null or material.albedo_texture == null or quad.size.y <= 0.0:
+		return false
+	var texture_size := material.albedo_texture.get_size()
+	if texture_size.y <= 0.0:
+		return false
+	return absf((quad.size.x / quad.size.y) - (texture_size.x / texture_size.y)) <= 0.01
 
 func _has_spatial_cue(cue_id: String) -> bool:
 	return AudioManager._spatial_player_ids.values().has(cue_id)

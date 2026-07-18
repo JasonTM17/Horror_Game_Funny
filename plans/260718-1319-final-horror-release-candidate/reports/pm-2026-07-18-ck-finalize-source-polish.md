@@ -1,5 +1,8 @@
 # PM report — CK finalize source polish
 
+> **Historical source-polish checkpoint — superseded.** Its Phase 6-open statement
+> predates the verified Windows export. Use `final-automated-audit-2026-07-18.md`.
+
 **Date**: 2026-07-18
 **Workflow**: ck:cook (code mode) finalize + ck:project-management sync-back
 **HEAD**: 9e216eb825acea54ef1fd6aa66589293f7a8600d
