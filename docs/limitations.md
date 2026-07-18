@@ -3,11 +3,12 @@
 ## Distribution
 
 - The project is source-playable with Godot 4.7.1 standard and targets the Compatibility renderer.
-- No `export_presets.cfg`, exported executable, package, or bundled Godot binary is committed.
+- A credential-free `export_presets.cfg` is tracked for an unsigned Windows Desktop x86_64 release executable with an embedded PCK. Exported binaries, logs, installed templates, and the Godot editor remain outside Git.
+- `tests/verify-windows-export.ps1` validates the Godot 4.7.1 release template, preset contracts, export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE` and `THIRD_PARTY_NOTICES.md` beside the ignored output. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
 - Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). It does not ship a player-facing game build, close PDR-07, or prove a physical F5 run.
 - Public-repo hygiene files (`SECURITY.md`, `CONTRIBUTING.md`, Dependabot, packaging CI) document process only; they are not a release certification.
-- Binary export and commercial platform packaging remain out of scope; redistribution notice checks for a future exported binary are not automated.
+- An automated Windows export is in scope; signed installers, commercial platform packaging, and platform-specific compliance remain out of scope. The verifier stages the project's current notices, but a distributor must still review all requirements for the exact engine build and destination.
 
 ## Persistence
 
@@ -29,6 +30,7 @@
 - The visual-effects check verifies the overlay shader/material, dither/VHS/fear uniforms, chase/ending fear targets, and the film-grain visibility toggle. It does not inspect rendered pixels, readability, comfort, monitor gamma, or GPU performance.
 - The settings/audio test verifies buses, selected clamps, controls, pause/boot modal focus and launcher return, visible save-failure retry/discard behavior, parameter-complete loop-aware audio cache variants, LRU/live-stream protection, exact byte accounting, spatial player lifetime/teardown, in-memory Continue, all 76 English voice resources, exact cue/subtitle fallback, voice-duration holds including the six-line epilogue, queue ordering/duplicates, pause/resume, and teardown. Separate persistence checks save and restore all 11 values across two processes and check the returned save error. Nested voice and menu helpers do not add runner checks. No headless check verifies audible performance, intelligibility, mix quality, physical panel interaction, or target-device fullscreen behavior.
 - The player-input check verifies bounded flashlight energy, reset when disabled/hidden, and `PROCESS_MODE_PAUSABLE` pause freeze. It does not prove rendered flicker comfort, monitor gamma, or physical pause timing.
+- The Windows export verifier is separate from the twelve Godot checks. Its headless process smoke proves that the generated executable starts and exits without scanned engine/script/parse/crash markers; it does not inspect rendered pixels, hear audio, operate the menu, or certify target-hardware performance.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, audible mix, or frame pacing on target hardware.
 
 ## Manual Evidence Still Required
@@ -54,7 +56,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 
 ## Content and Presentation Scope
 
-- Geometry, materials, labels, shader effects, and sound effects are intentionally procedural and asset-light. The exception is the committed generated English story voice set. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
+- Geometry, materials, labels, shader effects, and sound effects are intentionally procedural and asset-light. Committed media exceptions are the generated English story voice set and four project-authored generated still textures used by the boot menu and selected story props. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
 - The repository commits four reviewed 960×540 staged in-engine stills and one 640×360 derived visual-reference GIF under `docs/screenshots/`. The reproducible capture harness uses production gameplay/ending scenes but freezes gameplay and player simulation, disables voice, teleports the player, directly selects presentation states, and creates credits manually. These files demonstrate selected rendered views only; they are not a gameplay recording or evidence of physical F5 traversal, pacing, progression, chase fairness, audio, Settings/fullscreen behavior, pixel determinism, or cross-hardware consistency.
 - Eight source PNGs, the 1280×720 12 fps source AVI, and capture logs stay machine-local under ignored `.artifacts/`; only reviewed, optimized documentation media belongs under `docs/screenshots/`.
 - Generated English narration/character delivery is implemented for every sequenced story line; human-performed acting, external hero props, crouch, and a secondary ending remain out of scope. Voice quality and mix still require a physical listening pass.
@@ -65,7 +67,7 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 
 - The repository MIT license covers project code and project-authored assets.
 - It does not relicense Godot Engine or the engine's third-party components.
-- A future exported binary must retain the notices required by the Godot Engine distribution it includes.
+- Every exported binary must retain the notices required by the Godot Engine distribution it includes. The verifier copies `LICENSE` and `THIRD_PARTY_NOTICES.md` beside its local output; those staged files do not replace destination-specific legal review.
 
 ## References
 
@@ -74,6 +76,9 @@ Use the manual matrix in `testing.md` and attach dated evidence before describin
 - [Asset credits and provenance](asset-credits.md)
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
+- [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
+- [`export_presets.cfg`](../export_presets.cfg)
+- [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [`settings-manager.gd`](../scripts/autoload/settings-manager.gd)
 - [`game-state.gd`](../scripts/autoload/game-state.gd)
 - [`playthrough-pacing-telemetry.gd`](../scripts/world/playthrough-pacing-telemetry.gd)

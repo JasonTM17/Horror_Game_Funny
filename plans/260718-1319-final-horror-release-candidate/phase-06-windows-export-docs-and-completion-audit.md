@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: "Windows export, docs, and completion audit"
-status: pending
+status: completed
 effort: medium
 ---
 
@@ -21,19 +21,19 @@ audit every requirement before focused Git delivery.
 
 ## Steps
 
-1. Download/install matching official 4.7.1 standard Windows templates on drive D.
+1. Download/install matching official 4.7.1 standard Windows templates on drive D. [x]
 2. Update ignore rules narrowly so a credential-free `export_presets.cfg` is tracked
-   while templates, credentials, and build output stay ignored; add the Windows preset.
-3. Export by CLI, retain log/hash/size, launch the `.exe`, verify menu, and cleanly exit.
-4. Rerun the canonical suite after export-config changes.
-5. Run project-management sync, docs manager, secret scan, status/diff review, and evidence audit.
-6. Update README/changelog/PDR/roadmap/limitations/testing only from current proof.
-7. Use git manager for focused conventional commits and non-force delivery; verify final parity.
+   while templates, credentials, and build output stay ignored; add the Windows preset. [x]
+3. Export by CLI, retain log/hash/size, run the `.exe` in headless startup smoke, and cleanly exit. [x]
+4. Rerun the canonical suite after export-config changes. [x]
+5. Run project-management sync, docs manager, secret scan, status/diff review, and evidence audit. [x]
+6. Update README/changelog/PDR/roadmap/limitations/testing only from current proof. [x]
+7. Use git manager for focused conventional commits and non-force delivery; verify final parity. [x]
 
 ## Success Criteria
 
-- [ ] Matching official template and reproducible export preset are used.
-- [ ] Ignored `.exe` launches to the production menu.
-- [ ] Post-export suite, review, docs, secret scan, and audit pass.
-- [ ] Plan/PDR/roadmap statuses match actual evidence.
-- [ ] Git history is focused and final worktree/delivery state is explicit.
+- [x] Matching official template and reproducible export preset are used.
+- [x] Ignored `.exe` launches cleanly in headless startup smoke.
+- [x] Post-export suite, review, docs, secret scan, and audit pass.
+- [x] Plan/PDR/roadmap statuses match actual evidence.
+- [x] Git history is focused and final worktree/delivery state is explicit.

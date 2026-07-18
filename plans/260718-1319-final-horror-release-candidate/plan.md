@@ -56,7 +56,7 @@ public runtime contracts. Green tests alone are not completion.
 | 3 | [Chase readability and settings UX polish](./phase-03-chase-readability-and-settings-ux-polish.md) | Completed |
 | 4 | [Regression coverage and automated evidence](./phase-04-regression-coverage-and-automated-evidence.md) | Completed |
 | 5 | [Physical F5 review and pacing validation](./phase-05-physical-f5-review-and-pacing-validation.md) | In progress |
-| 6 | [Windows export, docs, and completion audit](./phase-06-windows-export-docs-and-completion-audit.md) | Pending |
+| 6 | [Windows export, docs, and completion audit](./phase-06-windows-export-docs-and-completion-audit.md) | Completed |
 
 ## Dependencies
 
@@ -74,7 +74,7 @@ public runtime contracts. Green tests alone are not completion.
 | Chase/clue readability | Staged comparison plus production-window review matrix |
 | No regressions | 12/12 host suite, log scan, mandatory review, diff check |
 | Main route/pacing | Same-run production-window capture/log/pacing payload |
-| Windows delivery | Export preset/log, build hash, launched-menu capture |
+| Windows delivery | Export preset/log, build hash, headless startup smoke |
 | Truthful docs | Documentation review against current artifacts and limitations |
 
 ## Risk Controls
@@ -97,10 +97,13 @@ delivery must be intentional before the parent goal can close.
 Source-level RC polish landed on `main` through:
 `2ecf78a` (scare/audio/chase polish), `89042b5` (dual-key InputMap),
 `298467b` (menu + story stills), `821ef26` (chapter scare fallback + dual-key/eyes
-contracts), and subsequent docs/audit commits. Multi-agent re-verify reports live
-under `reports/` (tester/reviewer/scout/docs/export-readiness).
+contracts), `129ae35` (room-drawing facing/fallback coverage), `3f9761a`
+(tracked credential-free export preset), and `4684f29` (Windows export verifier
+and third-party notices). Multi-agent re-verify reports live under `reports/`
+(tester/reviewer/scout/docs/export-readiness/export-verified).
 
-Phases 1–4 stay **Completed**. Phase 5 (physical F5 / PDR-07) and Phase 6
-(Windows export) remain **open** until real same-run physical evidence and an
-export smoke exist. Details: [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md),
+Phases 1–4 stay **Completed**. Phase 5 (physical F5 / PDR-07) remains open by
+policy. Phase 6 (Windows export/docs/completion audit) is now **Completed**. Details:
+[source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md),
+[windows-export-verified-2026-07-18.md](./reports/windows-export-verified-2026-07-18.md),
 [final-automated-audit-2026-07-18.md](./reports/final-automated-audit-2026-07-18.md).

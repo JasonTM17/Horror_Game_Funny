@@ -36,6 +36,12 @@ visual-capture-tour.tscn
 
 This separation keeps raw capture outputs and logs outside source control while preserving curated media provenance. The harness establishes reproducible scene assembly and selected rendered views only. Direct state selection means its output cannot establish F5 traversal, progression, pacing, player-driven chase fairness, audible output, Settings/fullscreen behavior, pixel determinism, or cross-hardware equivalence. See [Testing](testing.md#reproducible-visual-capture-tour) and [Asset credits](asset-credits.md).
 
+## Windows Export Boundary
+
+`export_presets.cfg` defines one credential-free, unsigned Windows Desktop x86_64 release preset. It embeds the PCK, applies the project icon and version metadata, excludes development/documentation/test/output paths, and writes below ignored `.artifacts/builds/`. The preset changes packaging only; the exported runtime still starts from `project.godot`'s configured `boot.tscn` main scene.
+
+`tests/verify-windows-export.ps1` is an out-of-band packaging gate, not part of the twelve-check gameplay suite. It validates Godot 4.7.1 and the installed official x86_64 release template, scans the preset for non-empty credential-like values, exports through an isolated profile, copies `LICENSE` and `THIRD_PARTY_NOTICES.md`, scans export/startup logs, checks PE machine `0x8664`, and reports the current artifact size/hash. Its exported-executable smoke runs headless, so this path establishes packaging and process startup but not rendered menu behavior, physical input, audible output, display transitions, performance, signing, or installer compliance.
+
 ## Gameplay Controller Split
 
 | Component | Current responsibility |
@@ -274,4 +280,7 @@ The movement checks teleport between focused gates and the input check positions
 - [`menu-settings-regression.gd`](../tests/menu-settings-regression.gd)
 - [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
+- [`export_presets.cfg`](../export_presets.cfg)
+- [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
+- [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [Testing matrix](testing.md)

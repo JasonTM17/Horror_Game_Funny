@@ -19,6 +19,7 @@ The current implementation uses Godot 4.7.1 with the Compatibility renderer, pro
 | PDR-07 | 15–20 minute pacing verified from one fresh physical run | Same-run eligible telemetry plus human traversal review | Open |
 | PDR-08 | Final documentation includes reviewed in-engine screenshots and an optimized visual-reference GIF | Four 960×540 PNGs and one 640×360 derived GIF under `docs/screenshots/`, with links and provenance | Complete |
 | PDR-09 | Fixed story-aligned scares use anticipation → reveal → aftermath with one-shot, pause-safe, teardown-safe spatial audio/light/actor ownership | `horror-event-director.gd`, `horror-scare-sequence.gd`, apparition factory/turn-away actor, focused progression/settings-audio, final 12-check run | Implemented; perceptual quality unverified |
+| PDR-10 | Reproducible, credential-free Windows Desktop x86_64 release export with redistribution notices | `export_presets.cfg`, `tests/verify-windows-export.ps1`, PE x86_64 and headless-startup verification | Implemented; rendered target-hardware review open |
 
 ## Player Experience
 
@@ -30,7 +31,7 @@ The player should understand each immediate goal through an objective, a readabl
 - World: one gameplay scene; no level-loading split for the main route.
 - Audio: project-authored procedural SFX plus Piper-generated English OGG voice; voice streams use an internal pause-aware Voice bus, mirror the SFX user level, and sidechain-duck SFX.
 - State: `GameState` is process-local; restored inventory, flags and completed-event collections are copied so live state cannot mutate a saved checkpoint.
-- Delivery: Windows headless test runner, Linux/Docker twelve-check suite image, packaging-contract CI, conventional commits, non-force pushes to `main`.
+- Delivery: Windows headless test runner, Linux/Docker twelve-check suite image, packaging-contract CI, and a credential-free unsigned Windows x86_64 release preset whose ignored output is verified for PE architecture and headless startup. Export templates and binaries are not committed.
 
 ## Acceptance Criteria
 
@@ -39,14 +40,17 @@ The implementation is release-ready only when all of the following are true:
 1. The canonical twelve-check suite exits zero with all required markers and no scanned engine, script, parse or leak failures.
 2. A fresh physical F5 run reaches visible credits with no manual method calls or Continue checkpoint.
 3. That same run emits one eligible, complete and order-valid `PLAYTHROUGH_PACING` payload with active total between 900 and 1200 seconds and chapter durations in range.
-4. A human review records chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles.
+4. A human review on the target build records rendered startup/menu behavior, chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles.
 5. Reviewed in-engine screenshots and an optimized derived GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly. **Complete for PDR-08; staged media is not physical-playthrough evidence.**
+6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE` plus `THIRD_PARTY_NOTICES.md`, passes PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; normal-window review remains part of criterion 4.**
 
 ## Current Release Decision
 
-Source implementation and automated contracts are green. The fixed scare slice and subsequent Docker packaging are verified by the host twelve-check suite and the GitHub Actions container suite (`nguyenson1710/horror-game-suite`). This verifies source lifecycle and packaging contracts, not audible mix, rendered scare timing/quality, or physical play.
+Recorded source implementation and automated contracts are green. The fixed scare slice and subsequent Docker packaging are verified by the host twelve-check suite and the GitHub Actions container suite (`nguyenson1710/horror-game-suite`). The Windows x86_64 export path now has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. These verify source lifecycle and packaging/startup contracts, not audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
 
 PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 remains open:** no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
+
+PDR-10's automated export requirement is complete, but it does not close PDR-07. Per the current testing boundary, no automation controls the user's desktop to manufacture physical or perceptual evidence.
 
 ## References
 
@@ -58,4 +62,7 @@ PDR-08's documentation-media requirement is complete through a reviewed staged G
 - [`horror-scare-sequence.gd`](../scripts/world/horror-scare-sequence.gd)
 - [`horror-apparition-factory.gd`](../scripts/world/horror-apparition-factory.gd)
 - [Visual-capture tour contract](./testing.md#reproducible-visual-capture-tour)
+- [`export_presets.cfg`](../export_presets.cfg)
+- [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
+- [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)

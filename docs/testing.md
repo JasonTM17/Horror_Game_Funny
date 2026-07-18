@@ -9,7 +9,7 @@ The repository has two equivalent twelve-check Godot 4.7.1 headless runners:
 | `tests/run-headless-tests.ps1` | Windows + installed Godot 4.7.1 | PowerShell |
 | `tests/run-headless-tests.sh` | Linux / Docker | bash + `godot` on `PATH` or `$GODOT` |
 
-Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/leak/assert failures. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. They do not replace a manual F5 boot-to-credits playthrough.
+Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/leak/assert failures. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. Windows export verification is a separate packaging/startup gate and does not add a thirteenth check. None of these replace a manual F5 boot-to-credits playthrough.
 
 ## Run the Suite
 
@@ -50,6 +50,27 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 On Linux: `bash tests/verify-docker-packaging.sh`.
 
 The host PowerShell runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. The shell runner isolates under `.tmp/godot-user-*` with XDG paths. Both combine engine log with captured console output and tear the profile down after success or failure so they do not overwrite the normal `user://room407.cfg`.
+
+## Verify the Windows x86_64 Export
+
+The repository tracks `export_presets.cfg` with one credential-free, unsigned `Windows Desktop x86_64` release preset. Its PCK is embedded in the executable; development-only paths (`tests/`, `docs/`, `plans/`, temporary folders, and prior build-output folders) are excluded. The preset's default output and the verifier's output both stay below ignored `.artifacts/` paths.
+
+Prerequisites:
+
+- Godot 4.7.1 standard (not .NET) at the verifier's `-Godot` path;
+- the matching `windows_release_x86_64.exe` template installed under the portable editor's `editor_data/export_templates/4.7.1.stable/` directory.
+
+The official 4.7.1 standard export-template archive used on the recorded Windows host has SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72`. The archive and installed templates are required local build inputs but are not committed.
+
+Run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1
+```
+
+The verifier checks the exact Godot version, required preset fields, empty credential-like values, and installed release template. It exports under `.artifacts/builds/room407-windows-x86_64/`, scans export logs, copies `LICENSE` and `THIRD_PARTY_NOTICES.md`, runs the exported executable directly in headless mode, scans startup logs, verifies PE machine `0x8664`, and prints the current byte length and SHA-256. It uses an isolated temporary profile and removes that profile in `finally`.
+
+The 2026-07-18 Windows gate at commit `4684f29` produced a `117914600`-byte release executable with SHA-256 `3bc3d2e4ade3c2147cd3b6efc320802c7db51391570334c7bada65bf3f5ff2c8` and completed a direct headless startup smoke without scanned error markers. Generated output remains ignored and reproducible rather than committed; record the current verifier markers, size, and hash with any later release handoff. This proves exportability, architecture, notice staging, and headless process startup only. It does not prove a rendered menu, operating-system input, audible output, fullscreen transitions, target-GPU performance, code signing, or installer/store behavior.
 
 ## Recorded Environment
 
@@ -154,6 +175,8 @@ The total target is independent of the chapter verdicts. A missing boundary pair
 ## Recorded Automated Evidence
 
 The final scare-lifecycle run on 2026-07-17 passed all twelve checks in 63.5 seconds. It produced exactly 12 canonical logs, zero scanned current failure lines including lambda and leak patterns, and zero remaining `godot-user-*` runner profiles. Focused `progression` and `settings-audio` runs also passed. Review first identified two Medium lifecycle defects; after their fixes, the final review reported zero Critical, High, or Medium findings.
+
+On 2026-07-18, after merging the Dependabot `actions/checkout@v7` branch, the Windows host runner passed all 12 checks and the container suite passed all 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. Those suite results preceded the export-preset/verifier edit. The Windows export and direct headless exported-executable startup were then verified separately. Rerun all applicable gates after later source changes before treating a handoff artifact as current.
 
 This evidence proves automated contracts only. The compressed progression fixture remains unsuitable for 15–20 minute pacing evidence, and no headless result certifies rendered scare timing/quality, audible mix, spatial perception, physical input, or a full physical route. Earlier automated runs remain historical evidence only.
 
@@ -303,6 +326,10 @@ Each run overwrites these machine-local files:
 .artifacts/test-settings-audio.log
 .artifacts/test-settings-persistence-write.log
 .artifacts/test-settings-persistence-read.log
+.artifacts/builds/room407-windows-x86_64/export.log
+.artifacts/builds/room407-windows-x86_64/export-console.log
+.artifacts/builds/room407-windows-x86_64/smoke-engine.log
+.artifacts/builds/room407-windows-x86_64/smoke-console.log
 ```
 
 Use the console summary for quick status and the matching log for diagnosis. A pacing payload begins with `PLAYTHROUGH_PACING: ` and contains eligibility, completeness, actual order validity, milestone/chapter times, active/wall/paused totals, target metadata, and verdicts. The combined progression log contains two identical copies because it concatenates engine and console streams; the runtime emission itself is single. Logs are generated artifacts, not committed proof. Preserve a dated external test report if release evidence must survive cleanup.
@@ -331,6 +358,7 @@ No current automated check fully verifies the following. Record each result, env
 | Audio balance | Listen to all 76 English story cues, including the six ending revelations, plus phone, fixed story-scare layers, procedural feedback, ambience, footsteps, radio static, the positional entity cue at chase start/recovery, chase drone, fail, and ending | device plus bus-level and spatial observations |
 | Settings UI workflow | Change values through the panel, **SAVE & CLOSE**, quit, relaunch, and inspect the controls; separately force/observe a failed save and choose retry or discard | before/after capture; automated config persistence and failure UI already pass |
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
+| Exported build | Launch the generated Windows executable normally on target hardware, operate the boot menu, and start a shift | rendered-window, physical-input, fullscreen, performance, and audible-output observations; headless export smoke already passes |
 
 Do not mark 15-20 minute pacing, visual/audio balance, audible output, full physical traversal, or the physical Settings UI workflow as verified until this evidence exists.
 
@@ -338,6 +366,9 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
+- [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
+- [`export_presets.cfg`](../export_presets.cfg)
+- [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
