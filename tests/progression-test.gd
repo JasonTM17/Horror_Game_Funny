@@ -81,7 +81,8 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("floor_notice", player), "floor notice must stay behind the fourth-floor gate"): return
 	var floor_notice := gameplay.get_node("floor_notice") as StoryInteractable
 	if not _require(floor_notice.global_position.z < WorldLayout.FLOOR_TRIGGER_Z and floor_notice.global_position.distance_to(Vector3(-2.8, 1.15, WorldLayout.FLOOR_TRIGGER_Z)) <= 4.1, "fourth-floor notice is not ahead of and near its activation threshold"): return
-	var floor_scare_light := director._horror._find_nearest_light(Vector3(0, 2.8, -55.0)) as OmniLight3D
+	var floor_scare_position := director._horror._floor_arrival_position() as Vector3
+	var floor_scare_light := director._horror._find_nearest_light(floor_scare_position) as OmniLight3D
 	var floor_light_energy := floor_scare_light.light_energy
 	var floor_light_color := floor_scare_light.light_color
 	player.global_position.z = WorldLayout.FLOOR_TRIGGER_Z - 0.1
@@ -92,7 +93,7 @@ func _ready() -> void:
 	var floor_apparition := director._horror.get_node_or_null("FloorArrivalApparition") as Node3D
 	var floor_sequence := director._horror.get_node_or_null("FloorArrivalScare") as HorrorScareSequence
 	if not _require(GameState.completed_events.has("floor_arrival") and elevator_display != null and elevator_display.text == "4", "floor threshold did not render the elevator event"): return
-	if not _require(floor_apparition != null and not _contains_collision_object(floor_apparition), "floor apparition is missing or can collide with the player"): return
+	if not _require(floor_apparition != null and floor_apparition.global_position.is_equal_approx(floor_scare_position) and floor_apparition.global_position.distance_to(player.global_position) <= 18.0 and not _contains_collision_object(floor_apparition), "floor apparition is missing, inaudibly staged, or can collide with the player"): return
 	if not _require(floor_sequence != null and floor_sequence._owned_nodes.has(floor_apparition) and is_equal_approx(floor_sequence._scaled_duration(2.0), 0.1) and not floor_apparition.visible and floor_scare_light.light_energy < floor_light_energy and _has_spatial_cue("scare_floor_lift_strain"), "floor scare skipped ownership, scaling, or anticipation staging"): return
 	director._horror.trigger("floor_arrival")
 	if not _require(_count_named_children(director._horror, "FloorArrivalApparition") == 1 and _count_named_children(director._horror, "FloorArrivalScare") == 1, "floor event duplicated its sequence or apparition"): return
@@ -112,7 +113,27 @@ func _ready() -> void:
 	if not _require(director.handle_story_action("fuse_pickup", player), "fuse pickup should work"): return
 	if not _require(GameState.has_item("spare_fuse"), "fuse pickup should add the spare fuse"): return
 	if not _require(not director.handle_story_action("fuse_pickup", player), "fuse pickup must be one-shot"): return
+	var fuse_first_light := director._horror._find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 5.0)) as OmniLight3D
+	var fuse_second_light := director._horror._find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 18.0)) as OmniLight3D
+	var fuse_first_energy := fuse_first_light.light_energy
+	var fuse_first_color := fuse_first_light.light_color
+	var fuse_second_energy := fuse_second_light.light_energy
+	var fuse_second_color := fuse_second_light.light_color
+	if not _require(fuse_first_light != fuse_second_light, "fuse scare staging selected the same light twice"): return
 	if not _require(director.handle_story_action("fuse_box", player), "fuse should install"): return
+	var fuse_sequence := director._horror.get_node_or_null("FusePowerScare") as HorrorScareSequence
+	if not _require(fuse_sequence != null and fuse_first_light.light_energy > fuse_first_energy and not fuse_first_light.light_color.is_equal_approx(fuse_first_color) and is_equal_approx(fuse_second_light.light_energy, fuse_second_energy) and _has_spatial_cue("scare_fuse_arc"), "fuse scare skipped its first light/audio warning"): return
+	director._horror.trigger("fuse_power")
+	if not _require(_count_named_children(director._horror, "FusePowerScare") == 1, "fuse scare trigger spam duplicated its sequence"): return
+	get_tree().paused = true
+	OS.delay_msec(40)
+	await get_tree().process_frame
+	if not _require(is_instance_valid(fuse_sequence) and is_equal_approx(fuse_second_light.light_energy, fuse_second_energy) and not _has_spatial_cue("scare_fuse_door_slam"), "fuse scare advanced while paused"): return
+	get_tree().paused = false
+	if not _require(await _wait_for_light_cue(fuse_second_light, fuse_second_energy, "scare_fuse_door_slam"), "fuse scare skipped its answering light/slam reveal"): return
+	if not _require(is_instance_valid(fuse_sequence) and not fuse_second_light.light_color.is_equal_approx(fuse_second_color), "fuse scare answering light lost its authored color"): return
+	if not _require(await _wait_for_node_removed(director._horror, "FusePowerScare"), "fuse scare did not finish within its bounded duration"): return
+	if not _require(is_equal_approx(fuse_first_light.light_energy, fuse_first_energy) and fuse_first_light.light_color.is_equal_approx(fuse_first_color) and is_equal_approx(fuse_second_light.light_energy, fuse_second_energy) and fuse_second_light.light_color.is_equal_approx(fuse_second_color) and not _has_spatial_cue("scare_fuse_arc") and not _has_spatial_cue("scare_fuse_door_slam"), "fuse scare left light or spatial audio state behind"): return
 	if not _require(GameState.has_flag("fuse_collected") and GameState.has_flag("fuse_installed") and not GameState.has_item("spare_fuse"), "fuse installation should consume the one-shot spare"): return
 	if not _require(director.get_story_prompt("fuse_pickup", player).is_empty(), "installed fuse regained a backtracking prompt"): return
 	if not _require(not director.handle_story_action("fuse_pickup", player) and not GameState.has_item("spare_fuse"), "installed fuse could be collected again after consumption"): return
@@ -131,8 +152,8 @@ func _ready() -> void:
 	director._horror.trigger("memory_photo")
 	if not _require(_count_named_children(director._horror, "PhotoMemoryScare") == 1, "photo scare trigger spam duplicated its sequence"): return
 	if not _require(await _wait_for_flag("memory_photo_recalled"), "photo memory should finish"): return
-	await get_tree().create_timer(0.08).timeout
-	if not _require(not director._horror.has_node("PhotoMemoryScare") and is_equal_approx(photo_light.light_energy, photo_light_energy) and not _has_spatial_cue("scare_photo_whisper_left") and not _has_spatial_cue("scare_photo_whisper_right"), "photo scare left light or spatial audio state behind"): return
+	if not _require(await _wait_for_node_removed(director._horror, "PhotoMemoryScare"), "photo scare did not finish within its bounded duration"): return
+	if not _require(is_equal_approx(photo_light.light_energy, photo_light_energy) and not _has_spatial_cue("scare_photo_whisper_left") and not _has_spatial_cue("scare_photo_whisper_right"), "photo scare left light or spatial audio state behind"): return
 	if not _require(not director.handle_story_action("hallway_loop", player), "hallway loop must wait for the environmental echo"): return
 	if not _require(director.handle_story_action("memory_echo", player), "first memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_1"), "first memory echo should finish"): return
@@ -189,8 +210,8 @@ func _ready() -> void:
 	await get_tree().create_timer(0.025).timeout
 	if not _require(is_instance_valid(rabbit_apparition) and rabbit_apparition.visible and _has_spatial_cue("scare_rabbit_presence"), "rabbit apparition did not reveal with its spatial presence cue"): return
 	if not _require(await _wait_for_flag("memory_rabbit_recalled"), "rabbit memory should finish"): return
-	await get_tree().create_timer(0.08).timeout
-	if not _require(not director._horror.has_node("RabbitMemoryScare") and not director._horror.has_node("MemoryRabbitApparition") and not _has_spatial_cue("scare_rabbit_music_box") and not _has_spatial_cue("scare_rabbit_presence"), "rabbit scare left its owned actor, audio, or sequence state behind"): return
+	if not _require(await _wait_for_node_removed(director._horror, "RabbitMemoryScare"), "rabbit scare did not finish within its bounded duration"): return
+	if not _require(not director._horror.has_node("MemoryRabbitApparition") and not _has_spatial_cue("scare_rabbit_music_box") and not _has_spatial_cue("scare_rabbit_presence"), "rabbit scare left its owned actor, audio, or sequence state behind"): return
 	if not _require(not director.handle_story_action("memory_rabbit", player), "rabbit memory must be one-shot"): return
 	if not _require(director.handle_story_action("memory_echo", player), "final memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_3"), "final memory echo should finish"): return
@@ -275,8 +296,8 @@ func _ready() -> void:
 	if not _require(_count_named_children(director._horror, "RoomEntityManifestation") == 1 and _count_named_children(director._horror, "RoomEntityRevealScare") == 1, "pre-chase manifestation or sequence duplicated"): return
 	await get_tree().create_timer(0.03).timeout
 	if not _require(room_manifestation.visible and _has_spatial_cue("scare_room_entity_low") and _has_spatial_cue("scare_room_entity_sting"), "Room 407 manifestation did not synchronize eyes and layered reveal cues"): return
-	await get_tree().create_timer(0.08).timeout
-	if not _require(not director._horror.has_node("RoomEntityManifestation") and not director._horror.has_node("RoomEntityRevealScare") and not _has_spatial_cue("scare_room_wall_breath") and not _has_spatial_cue("scare_room_entity_low") and not _has_spatial_cue("scare_room_entity_sting"), "pre-chase manifestation did not clean up actor/sequence/audio"): return
+	if not _require(await _wait_for_node_removed(director._horror, "RoomEntityRevealScare"), "pre-chase manifestation did not finish within its bounded duration"): return
+	if not _require(not director._horror.has_node("RoomEntityManifestation") and not _has_spatial_cue("scare_room_wall_breath") and not _has_spatial_cue("scare_room_entity_low") and not _has_spatial_cue("scare_room_entity_sting"), "pre-chase manifestation did not clean up actor/sequence/audio"): return
 	if not _require(await _wait_for_flag("chase_ready"), "chase build-up should complete"): return
 	if not _require(str(GameState.checkpoint.get("spawn_id", "")) == "chase_start", "later chase checkpoint did not supersede the room checkpoint"): return
 	player.global_position.z = WorldLayout.CHASE_TRIGGER_Z - 0.1
@@ -287,6 +308,13 @@ func _ready() -> void:
 	var entity_collider := director._chase.entity.get_node_or_null("EntityCollider") as CollisionShape3D
 	if not _require(entity_body != null and is_equal_approx(entity_body.position.y, 1.25), "production enemy mesh is not centered above the floor"): return
 	if not _require(entity_collider != null and is_equal_approx(entity_collider.position.y, 1.2), "production enemy collider is not centered above the floor"): return
+	for visual_name in ["EntityHead", "EntityArmLeft", "EntityArmRight", "EntityEyeLeft", "EntityEyeRight", "EntityRib00", "EntityRimLight"]:
+		if not _require(director._chase.entity.has_node(visual_name), "production enemy lost readable visual part %s" % visual_name): return
+	var entity_eye := director._chase.entity.get_node("EntityEyeLeft") as MeshInstance3D
+	var eye_material := entity_eye.material_override as StandardMaterial3D
+	var rim_light := director._chase.entity.get_node("EntityRimLight") as OmniLight3D
+	if not _require(eye_material != null and eye_material.emission_enabled and eye_material.emission_energy_multiplier >= 4.0, "production enemy eyes are no longer readable in motion"): return
+	if not _require(rim_light.light_energy >= 0.5 and rim_light.omni_range <= 3.0, "production enemy rim signature is missing or washes out the corridor"): return
 	if not _require(absf(director._chase.entity.global_position.y - player.global_position.y) < 0.05, "production enemy root no longer follows the floor plane"): return
 	director._chase.entity.appear_duration = 0.01
 	director._chase.entity.stalk_duration = 0.01
@@ -486,6 +514,22 @@ func _wait_for_node(parent: Node, node_name: String, max_frames := 120) -> bool:
 		if parent.has_node(node_name):
 			return true
 		await get_tree().process_frame
+	return false
+
+func _wait_for_node_removed(parent: Node, node_name: String, timeout_seconds := 0.35) -> bool:
+	var deadline_msec := Time.get_ticks_msec() + int(timeout_seconds * 1000.0)
+	while parent.has_node(node_name):
+		if Time.get_ticks_msec() >= deadline_msec:
+			return false
+		await get_tree().create_timer(0.005, false).timeout
+	return true
+
+func _wait_for_light_cue(light: OmniLight3D, baseline_energy: float, cue_id: String, timeout_seconds := 0.25) -> bool:
+	var deadline_msec := Time.get_ticks_msec() + int(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline_msec:
+		if is_instance_valid(light) and light.light_energy > baseline_energy and _has_spatial_cue(cue_id):
+			return true
+		await get_tree().create_timer(0.005, false).timeout
 	return false
 
 func _wait_for_entity_state(entity: CharacterBody3D, expected_state: int, max_frames := 120) -> bool:

@@ -34,7 +34,7 @@ func run(host: Node) -> bool:
 	var player := VOICE_OVER_PLAYER_SCRIPT.new() as VoiceOverPlayer
 	host.add_child(player)
 	await host.get_tree().process_frame
-	if not _require(player.bus == "SFX", "voice does not follow the SFX volume bus"): return false
+	if not _require(player.bus == AudioManager.VOICE_BUS_NAME, "voice is not routed through the protected voice bus"): return false
 	if not _require(player.process_mode == Node.PROCESS_MODE_PAUSABLE, "voice playback is not pause-aware"): return false
 	if not _require(player.max_polyphony == 1, "voice player can overlap multiple cues"): return false
 	if not _require(player.manifest_error().is_empty(), "manifest load failed: " + player.manifest_error()): return false

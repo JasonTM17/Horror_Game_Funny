@@ -39,15 +39,19 @@ static func _build_book(parent: Node3D, id: String, color: Color) -> void:
 static func _build_paper_clue(parent: Node3D, id: String, color: Color) -> void:
 	var vertical := id == "floor_notice" or id == "room_drawing"
 	var size := Vector3(0.86, 0.95, 0.045) if vertical else Vector3(0.75, 0.04, 0.58)
+	if id == "final_clue":
+		size = Vector3(1.05, 0.04, 0.78)
+		_add_box(parent, "FinalClueBacking", Vector3(1.18, 0.025, 0.92), Vector3(0, -0.028, 0), Color(0.38, 0.045, 0.035))
 	_add_box(parent, "PaperClue", size, Vector3.ZERO, color.lightened(0.2))
 	var text: String = {
 		"floor_notice": "FLOOR 4\nCLOSED 2007",
 		"memory_photo": "00:07",
 		"room_drawing": "ME + RABBIT",
-		"final_clue": "RUN TO RED"
+		"final_clue": "RUN TO RED\nDON'T LOOK BACK"
 	}.get(id, "CLUE")
 	var label_position := Vector3(0, 0, 0.035) if vertical else Vector3(0, 0.055, 0.04)
-	_add_label(parent, "PaperWriting", text, label_position, Color(0.3, 0.07, 0.06), 12)
+	var font_size := 13 if id == "final_clue" else 12
+	_add_label(parent, "PaperWriting", text, label_position, Color(0.38, 0.055, 0.04), font_size)
 
 static func _build_fuse(parent: Node3D, color: Color) -> void:
 	_add_cylinder(parent, "FuseGlass", 0.15, 0.5, Vector3.ZERO, color.lightened(0.18))

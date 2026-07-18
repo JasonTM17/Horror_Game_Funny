@@ -41,6 +41,7 @@ func set_music_volume(value: float) -> void:
 func set_sfx_volume(value: float) -> void:
 	sfx_volume = clampf(value, -40.0, 6.0)
 	_set_bus_volume("SFX", sfx_volume)
+	_set_bus_volume(AudioManager.VOICE_BUS_NAME, sfx_volume)
 	setting_changed.emit("sfx_volume", sfx_volume)
 
 func set_ambience_volume(value: float) -> void:

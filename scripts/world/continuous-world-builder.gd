@@ -12,14 +12,14 @@ static func build(parent: Node3D) -> void:
 	var world := WorldEnvironment.new()
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.006, 0.009, 0.016)
+	environment.background_color = Color(0.008, 0.011, 0.018)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.24, 0.28, 0.36)
-	environment.ambient_light_energy = 0.78
-	environment.tonemap_exposure = 1.35
+	environment.ambient_light_color = Color(0.26, 0.3, 0.38)
+	environment.ambient_light_energy = 0.82
+	environment.tonemap_exposure = 1.42
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.08, 0.1, 0.13)
-	environment.fog_density = 0.0065
+	environment.fog_light_color = Color(0.09, 0.11, 0.14)
+	environment.fog_density = 0.0056
 	world.environment = environment
 	parent.add_child(world)
 	LevelGeometry.add_box(parent, "Floor", Vector3(0, -0.15, WorldLayout.FLOOR_CENTER_Z), Vector3(8, 0.3, WorldLayout.FLOOR_LENGTH), Color(0.085, 0.09, 0.11))
@@ -51,23 +51,52 @@ static func build(parent: Node3D) -> void:
 		var corridor_light := LevelGeometry.add_light(parent, Vector3(0, 2.8, z), Color(0.48, 0.57, 0.68), light_energy, light_range)
 		corridor_light.name = "CorridorLight%02d" % corridor_light_index
 		corridor_light_index += 1
-	var lobby_task_light := LevelGeometry.add_light(parent, Vector3(0, 2.25, WorldLayout.LOBBY_PROP_Z - 0.5), Color(0.92, 0.58, 0.34), 2.0, 5.5)
-	lobby_task_light.name = "LobbyTaskLight"
-	LevelGeometry.add_light(parent, Vector3(0, 2.6, WorldLayout.FINAL_CLUE_Z), Color(0.52, 0.12, 0.1), 1.6, 8.0)
-	for chase_z in [-540.0, -610.0, -690.0, -770.0, -800.0]:
-		var guide_light := LevelGeometry.add_light(parent, Vector3(0, 2.35, chase_z), Color(0.62, 0.035, 0.025), 1.05, 9.0)
-		guide_light.name = "ChaseGuideLight"
+	_add_task_lighting(parent)
+	_add_chase_lighting(parent)
+	_add_navigation_surface(parent)
+
+static func _add_task_lighting(parent: Node3D) -> void:
+	var light_specs := [
+		{"name": "LobbyTaskLight", "position": Vector3(0, 2.25, WorldLayout.LOBBY_PROP_Z - 0.5), "color": Color(0.92, 0.58, 0.34), "energy": 2.0, "range": 5.5},
+		{"name": "Room407RecordTaskLight", "position": Vector3(-1.6, 2.35, WorldLayout.ROOM_RECORD_Z), "color": Color(0.48, 0.24, 0.22), "energy": 1.25, "range": 7.5},
+		{"name": "Room407BedTaskLight", "position": Vector3(-2.4, 2.15, -405.0), "color": Color(0.55, 0.22, 0.2), "energy": 1.15, "range": 6.5},
+		{"name": "Room407WardrobeTaskLight", "position": Vector3(2.2, 2.3, -446.0), "color": Color(0.48, 0.18, 0.15), "energy": 1.15, "range": 6.5},
+		{"name": "Room407FamilyTaskLight", "position": Vector3(-2.6, 2.2, -461.0), "color": Color(0.62, 0.25, 0.18), "energy": 1.25, "range": 6.5},
+		{"name": "FinalClueTaskLight", "position": Vector3(0, 2.35, WorldLayout.FINAL_CLUE_Z), "color": Color(0.78, 0.12, 0.08), "energy": 2.0, "range": 9.0},
+	]
+	for spec: Dictionary in light_specs:
+		var task_light := LevelGeometry.add_light(
+			parent,
+			spec["position"] as Vector3,
+			spec["color"] as Color,
+			float(spec["energy"]),
+			float(spec["range"])
+		)
+		task_light.name = str(spec["name"])
+
+static func _add_chase_lighting(parent: Node3D) -> void:
+	var guide_positions := [-520.0, -545.0, -595.0, -620.0, -675.0, -700.0, -755.0, -780.0, -808.0]
+	for index: int in guide_positions.size():
+		var guide_light := LevelGeometry.add_light(
+			parent,
+			Vector3(0, 2.25, float(guide_positions[index])),
+			Color(0.78, 0.035, 0.022),
+			1.65,
+			10.5
+		)
+		guide_light.name = "ChaseGuideLight%02d" % index
 	for index: int in CHASE_BARRIERS.size():
 		var barrier: Dictionary = CHASE_BARRIERS[index]
 		var bypass_light := LevelGeometry.add_light(
 			parent,
 			Vector3(float(barrier["bypass_x"]), 2.35, float(barrier["z"]) + 1.8),
-			Color(0.9, 0.045, 0.025),
-			1.35,
-			8.0
+			Color(0.95, 0.04, 0.02),
+			2.2,
+			10.5
 		)
 		bypass_light.name = "ChaseBypassLight%02d" % index
-	_add_navigation_surface(parent)
+	var exit_light := LevelGeometry.add_light(parent, Vector3(0, 2.5, WorldLayout.EXIT_Z + 1.0), Color(1.0, 0.055, 0.025), 2.8, 12.0)
+	exit_light.name = "ExitGuideLight"
 
 static func _add_elevator_dressing(parent: Node3D) -> void:
 	var metal := Color(0.11, 0.12, 0.14)
@@ -108,11 +137,22 @@ static func _add_room_407_dressing(parent: Node3D) -> void:
 	warning.no_depth_test = false
 
 static func _add_chase_dressing(parent: Node3D) -> void:
+	var floor_guide_positions := [-520.0, -545.0, -595.0, -620.0, -675.0, -700.0, -755.0, -780.0]
+	for index: int in floor_guide_positions.size():
+		_add_emissive_guide(
+			parent,
+			"ChaseFloorGuide%02d" % index,
+			Vector3(0, 0.018, float(floor_guide_positions[index])),
+			Vector3(0.18, 0.035, 7.5),
+			Color(0.72, 0.018, 0.012),
+			1.8
+		)
 	var scar_index := 0
 	for z in [-535.0, -575.0, -615.0, -655.0, -695.0, -735.0, -775.0]:
 		var side := -1.0 if scar_index % 2 == 0 else 1.0
 		LevelGeometry.add_visual_box(parent, "ChaseWallScar%02d" % scar_index, Vector3(side * 3.73, 1.35, z), Vector3(0.13, 2.3, 2.6), Color(0.055, 0.035, 0.04))
 		LevelGeometry.add_visual_box(parent, "ChaseBrokenFrame%02d" % scar_index, Vector3(side * 3.35, 2.15, z - 1.2), Vector3(0.18, 2.8, 0.22), Color(0.11, 0.055, 0.05))
+		_add_emissive_guide(parent, "ChaseWallBeacon%02d" % scar_index, Vector3(side * 3.68, 1.55, z), Vector3(0.09, 1.25, 0.32), Color(0.52, 0.015, 0.012), 1.35)
 		scar_index += 1
 	for index: int in CHASE_BARRIERS.size():
 		var barrier: Dictionary = CHASE_BARRIERS[index]
@@ -122,7 +162,7 @@ static func _add_chase_dressing(parent: Node3D) -> void:
 			"ChaseBarrier%02d" % index,
 			barrier_position,
 			Vector3(float(barrier["blocked_width"]), 2.6, 1.2),
-			Color(0.07, 0.025, 0.03)
+			Color(0.1, 0.025, 0.03)
 		)
 		barrier_body.collision_layer = 1
 		LevelGeometry.add_visual_box(
@@ -130,7 +170,7 @@ static func _add_chase_dressing(parent: Node3D) -> void:
 			"ChaseBarrierFrame%02d" % index,
 			barrier_position + Vector3(0, 1.35, 0),
 			Vector3(float(barrier["blocked_width"]) + 0.12, 0.16, 1.34),
-			Color(0.15, 0.035, 0.04)
+			Color(0.25, 0.035, 0.04)
 		)
 		var cue := LevelGeometry.add_label(
 			parent,
@@ -139,14 +179,31 @@ static func _add_chase_dressing(parent: Node3D) -> void:
 			Color(0.95, 0.12, 0.08)
 		)
 		cue.name = "ChaseBypassCue%02d" % index
-		cue.font_size = 20
-		LevelGeometry.add_visual_box(
+		cue.font_size = 28
+		_add_emissive_guide(
 			parent,
 			"ChaseBypassMarker%02d" % index,
 			Vector3(float(barrier["bypass_x"]), 0.015, float(barrier["z"]) + 1.8),
-			Vector3(1.35, 0.03, 0.2),
-			Color(0.58, 0.025, 0.02)
+			Vector3(1.55, 0.035, 0.34),
+			Color(0.9, 0.022, 0.012),
+			2.2
 		)
+		_add_emissive_guide(
+			parent,
+			"ChaseBypassLane%02d" % index,
+			Vector3(float(barrier["bypass_x"]), 0.017, float(barrier["z"]) - 0.35),
+			Vector3(0.24, 0.034, 4.0),
+			Color(0.76, 0.018, 0.012),
+			1.9
+		)
+
+static func _add_emissive_guide(parent: Node3D, name: String, position: Vector3, size: Vector3, color: Color, energy: float) -> MeshInstance3D:
+	var guide := LevelGeometry.add_visual_box(parent, name, position, size, color)
+	var material := guide.material_override as StandardMaterial3D
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = energy
+	return guide
 
 static func _add_partition(parent: Node3D, name: String, z: float, color: Color) -> void:
 	LevelGeometry.add_box(parent, name + "Left", Vector3(-2.65, 2.0, z), Vector3(2.7, 4.0, 0.25), color)

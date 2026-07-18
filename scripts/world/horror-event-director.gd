@@ -31,7 +31,7 @@ func trigger(event_id: String) -> void:
 		"memory_rabbit":
 			_run_rabbit_memory()
 		"fuse_power":
-			_spawn_message("THE LIGHTS REMEMBER", Vector3(-2.8, 2.0, WorldLayout.FUSE_BOX_Z - 4.0), Color(0.48, 0.64, 0.72))
+			_run_fuse_power()
 		"room_entity_reveal":
 			_run_room_entity_reveal()
 
@@ -44,17 +44,18 @@ func _run_floor_arrival() -> void:
 	var floor_door := _director.get_node_or_null("floor_door") as DoorInteractable
 	if floor_door != null:
 		floor_door.close_for_event()
-	var light := _find_nearest_light(Vector3(0, 2.8, -55.0))
+	var apparition_position := _floor_arrival_position()
+	var light := _find_nearest_light(apparition_position)
 	sequence.set_light(light, 0.12, Color(0.72, 0.045, 0.025))
-	sequence.play_spatial_at(Vector3(2.8, 1.0, -48.0), "scare_floor_lift_strain", 39.0, 0.62, -21.0)
-	var apparition := _spawn_apparition(Vector3(2.75, 1.3, -53.0), "FloorArrivalApparition", Vector3(0.82, 1.05, 0.68))
+	sequence.play_spatial_at(apparition_position + Vector3(0.05, -0.3, 4.0), "scare_floor_lift_strain", 39.0, 0.62, -12.0)
+	var apparition := _spawn_apparition(apparition_position, "FloorArrivalApparition", Vector3(0.82, 1.05, 0.68))
 	sequence.own_node(apparition)
 	apparition.visible = false
 	if not await sequence.wait(0.32):
 		return
 	apparition.visible = true
-	sequence.play_spatial_on(apparition, "scare_floor_heel_step", 73.0, 0.24, -20.0)
-	sequence.play_spatial_on(apparition, "scare_floor_presence", 46.0, 0.54, -22.0)
+	sequence.play_spatial_on(apparition, "scare_floor_heel_step", 73.0, 0.24, -8.0)
+	sequence.play_spatial_on(apparition, "scare_floor_presence", 46.0, 0.54, -11.0)
 	if not await sequence.wait(0.55):
 		return
 	if is_instance_valid(display):
@@ -67,43 +68,57 @@ func _run_photo_memory() -> void:
 	var position := Vector3(0, 2.2, WorldLayout.MEMORY_PHOTO_Z - 5.0)
 	var light := _find_nearest_light(position)
 	sequence.set_light(light, 0.28, Color(0.38, 0.1, 0.08))
-	sequence.play_spatial_at(position + Vector3(-3.2, -0.8, 2.0), "scare_photo_whisper_left", 132.0, 0.52, -24.0)
+	sequence.play_spatial_at(position + Vector3(-3.2, -0.8, 2.0), "scare_photo_whisper_left", 132.0, 0.52, -15.0)
 	if not await sequence.wait(0.22):
 		return
 	_spawn_message("YOU WERE HERE", position, Color(0.72, 0.2, 0.18))
-	sequence.play_spatial_at(position + Vector3(3.2, -0.8, -1.0), "scare_photo_whisper_right", 198.0, 0.48, -23.0)
+	sequence.play_spatial_at(position + Vector3(3.2, -0.8, -1.0), "scare_photo_whisper_right", 198.0, 0.48, -14.0)
 	if await sequence.wait(0.58):
 		sequence.finish()
 
 func _run_rabbit_memory() -> void:
 	var sequence := _create_sequence("RabbitMemoryScare")
-	var position := Vector3(0, 1.25, WorldLayout.LOOP_GATE_Z - 6.0)
+	var position := _scare_position_ahead(10.0, 1.25)
 	var apparition := _spawn_apparition(position, "MemoryRabbitApparition")
 	sequence.own_node(apparition)
 	apparition.visible = false
 	sequence.set_light(_find_nearest_light(position), 0.16, Color(0.68, 0.025, 0.018))
-	sequence.play_spatial_at(position + Vector3(0, -0.6, 3.0), "scare_rabbit_music_box", 144.0, 0.46, -25.0)
+	sequence.play_spatial_at(position + Vector3(0, -0.6, 3.0), "scare_rabbit_music_box", 144.0, 0.46, -15.0)
 	if not await sequence.wait(0.28):
 		return
 	apparition.visible = true
-	sequence.play_spatial_on(apparition, "scare_rabbit_presence", 54.0, 0.82, -19.0)
+	sequence.play_spatial_on(apparition, "scare_rabbit_presence", 54.0, 0.82, -9.0)
 	if await sequence.wait(0.72):
 		sequence.finish()
 
 func _run_room_entity_reveal() -> void:
 	var sequence := _create_sequence("RoomEntityRevealScare")
-	var position := Vector3(0, 1.35, WorldLayout.FINAL_CLUE_Z - 14.0)
+	var position := _scare_position_ahead(9.0, 1.35)
 	var apparition := _spawn_apparition(position, "RoomEntityManifestation", Vector3(1.15, 1.2, 0.82), true)
 	sequence.own_node(apparition)
 	apparition.visible = false
 	sequence.set_light(_find_nearest_light(position), 0.08, Color(0.52, 0.018, 0.012))
-	sequence.play_spatial_at(position + Vector3(0, 0.1, 4.0), "scare_room_wall_breath", 31.0, 0.86, -23.0)
+	sequence.play_spatial_at(position + Vector3(0, 0.1, 4.0), "scare_room_wall_breath", 31.0, 0.86, -12.0)
 	if not await sequence.wait(0.36):
 		return
 	apparition.visible = true
-	sequence.play_spatial_on(apparition, "scare_room_entity_low", 47.0, 0.9, -16.0)
-	sequence.play_spatial_on(apparition, "scare_room_entity_sting", 119.0, 0.26, -19.0)
+	sequence.play_spatial_on(apparition, "scare_room_entity_low", 47.0, 0.9, -8.0)
+	sequence.play_spatial_on(apparition, "scare_room_entity_sting", 119.0, 0.26, -6.0)
 	if await sequence.wait(1.0):
+		sequence.finish()
+
+func _run_fuse_power() -> void:
+	_spawn_message("THE LIGHTS REMEMBER", Vector3(-2.8, 2.0, WorldLayout.FUSE_BOX_Z - 4.0), Color(0.48, 0.64, 0.72))
+	var sequence := _create_sequence("FusePowerScare")
+	var first_light := _find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 5.0))
+	var second_light := _find_nearest_light(Vector3(0, 2.5, WorldLayout.FUSE_BOX_Z - 18.0))
+	sequence.set_light(first_light, 1.7, Color(0.45, 0.62, 0.72))
+	sequence.play_spatial_at(Vector3(0, 1.2, WorldLayout.FUSE_BOX_Z - 9.0), "scare_fuse_arc", 91.0, 0.34, -12.0)
+	if not await sequence.wait(0.24):
+		return
+	sequence.set_light(second_light, 1.5, Color(0.58, 0.16, 0.1))
+	sequence.play_spatial_at(Vector3(2.8, 1.2, WorldLayout.FUSE_BOX_Z - 12.0), "scare_fuse_door_slam", 52.0, 0.44, -8.0)
+	if await sequence.wait(0.82):
 		sequence.finish()
 
 func _create_sequence(sequence_name: String) -> HorrorScareSequence:
@@ -154,6 +169,14 @@ func _spawn_apparition(
 	add_eyes := false
 ) -> Node3D:
 	return APPARITION_FACTORY.spawn(self, position, actor_name, actor_scale, add_eyes)
+
+func _floor_arrival_position() -> Vector3:
+	return Vector3(2.75, 1.3, WorldLayout.FLOOR_TRIGGER_Z - 14.0)
+
+func _scare_position_ahead(distance: float, height: float, lateral := 0.0) -> Vector3:
+	if is_instance_valid(_player):
+		return Vector3(_player.global_position.x + lateral, height, _player.global_position.z - distance)
+	return Vector3(lateral, height, WorldLayout.FLOOR_TRIGGER_Z - distance)
 
 func _schedule_free(node: Node, seconds: float) -> void:
 	var timer := get_tree().create_timer(_scaled_duration(seconds), false)

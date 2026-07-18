@@ -28,7 +28,7 @@ The player should understand each immediate goal through an objective, a readabl
 
 - Runtime: Godot 4.7.1 Compatibility renderer.
 - World: one gameplay scene; no level-loading split for the main route.
-- Audio: project-authored procedural SFX plus Piper-generated English OGG voice; voice streams are SFX-routed and pause-aware.
+- Audio: project-authored procedural SFX plus Piper-generated English OGG voice; voice streams use an internal pause-aware Voice bus, mirror the SFX user level, and sidechain-duck SFX.
 - State: `GameState` is process-local; restored inventory, flags and completed-event collections are copied so live state cannot mutate a saved checkpoint.
 - Delivery: Windows headless test runner, Linux/Docker twelve-check suite image, packaging-contract CI, conventional commits, non-force pushes to `main`.
 

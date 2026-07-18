@@ -7,6 +7,8 @@ uniform float scanline_strength : hint_range(0.0, 0.08) = 0.018;
 uniform float dither_strength : hint_range(0.0, 1.0) = 0.28;
 uniform float vhs_strength : hint_range(0.0, 1.0) = 0.42;
 uniform float fear_intensity : hint_range(0.0, 1.0) = 0.0;
+uniform float base_vignette_strength : hint_range(0.0, 0.3) = 0.085;
+uniform float fear_vignette_strength : hint_range(0.0, 0.6) = 0.34;
 
 float random_noise(vec2 coordinate) {
 	return fract(sin(dot(coordinate, vec2(12.9898, 78.233))) * 43758.5453);
@@ -34,9 +36,9 @@ void fragment() {
 	screen_color *= vec3(0.96, 0.985, 1.025);
 
 	vec2 centered_uv = (SCREEN_UV - 0.5) * vec2(SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x, 1.0);
-	float edge = smoothstep(0.28, 0.82, length(centered_uv));
+	float edge = smoothstep(0.34, 0.9, length(centered_uv));
 	float fear_pulse = 0.86 + 0.14 * sin(TIME * 5.5);
-	screen_color *= 1.0 - edge * (0.12 + fear_intensity * 0.52 * fear_pulse);
+	screen_color *= 1.0 - edge * (base_vignette_strength + fear_intensity * fear_vignette_strength * fear_pulse);
 	screen_color = mix(screen_color, screen_color * vec3(1.16, 0.72, 0.7), edge * fear_intensity * 0.18);
 	COLOR = vec4(clamp(screen_color, vec3(0.0), vec3(1.0)), 1.0);
 }

@@ -11,7 +11,7 @@ var _stream_cache: Dictionary = {}
 var _manifest_error := ""
 
 func _ready() -> void:
-	bus = "SFX"
+	bus = AudioManager.VOICE_BUS_NAME
 	max_polyphony = 1
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	_load_manifest()

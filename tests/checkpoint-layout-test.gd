@@ -56,7 +56,8 @@ func _ready() -> void:
 		"lobby_register": ["BookPages", "BookTitle"],
 		"memory_rabbit": ["RabbitBody", "RabbitEarLeft", "RabbitEarRight"],
 		"radio": ["RadioBody", "RadioDial", "RadioChannel"],
-		"room_family_table": ["FamilyPhoto", "Plate3"]
+		"room_family_table": ["FamilyPhoto", "Plate3"],
+		"final_clue": ["FinalClueBacking", "PaperWriting"],
 	}
 	for prop_id: String in prop_signatures:
 		var prop := gameplay.get_node(prop_id)
@@ -67,14 +68,25 @@ func _ready() -> void:
 		if child is WorldEnvironment:
 			world_environment = child as WorldEnvironment
 			break
-	if not _require(world_environment != null and world_environment.environment.ambient_light_energy >= 0.7, "ambient light regressed below the readability floor"): return
-	if not _require(world_environment.environment.tonemap_exposure >= 1.2 and world_environment.environment.fog_density <= 0.007, "corridor exposure or fog regressed below the navigation readability floor"): return
+	if not _require(world_environment != null and world_environment.environment.ambient_light_energy >= 0.8, "ambient light regressed below the readability floor"): return
+	if not _require(world_environment.environment.tonemap_exposure >= 1.4 and world_environment.environment.fog_density <= 0.006, "corridor exposure or fog regressed below the navigation readability floor"): return
 	var lobby_light := gameplay.get_node_or_null("CorridorLight00") as OmniLight3D
 	if not _require(lobby_light != null and lobby_light.light_energy >= 3.0 and lobby_light.omni_range >= 12.0, "lobby task lighting regressed below the readability floor"): return
 	var lobby_task_light := gameplay.get_node_or_null("LobbyTaskLight") as OmniLight3D
 	if not _require(lobby_task_light != null and lobby_task_light.light_energy >= 1.8, "warm lobby focus light missing"): return
 	var corridor_light := gameplay.get_node_or_null("CorridorLight01") as OmniLight3D
 	if not _require(corridor_light != null and corridor_light.light_energy >= 1.1 and corridor_light.omni_range >= 10.0, "corridor pool lights regressed below the readability floor"): return
+	for task_light_name in ["Room407RecordTaskLight", "Room407BedTaskLight", "Room407WardrobeTaskLight", "Room407FamilyTaskLight", "FinalClueTaskLight"]:
+		var task_light := gameplay.get_node_or_null(task_light_name) as OmniLight3D
+		if not _require(task_light != null and task_light.light_energy >= 1.1 and task_light.omni_range >= 6.0, "%s no longer provides local clue contrast" % task_light_name): return
+	var first_chase_guide := gameplay.get_node_or_null("ChaseGuideLight00") as OmniLight3D
+	var final_chase_guide := gameplay.get_node_or_null("ChaseGuideLight08") as OmniLight3D
+	var exit_guide := gameplay.get_node_or_null("ExitGuideLight") as OmniLight3D
+	if not _require(first_chase_guide != null and final_chase_guide != null and first_chase_guide.light_energy >= 1.6 and first_chase_guide.omni_range >= 10.0, "chase guide pools regressed below the blackout readability floor"): return
+	if not _require(exit_guide != null and exit_guide.light_energy >= 2.5 and exit_guide.omni_range >= 11.0, "exit no longer has a distinct chase beacon"): return
+	var floor_guide := gameplay.get_node_or_null("ChaseFloorGuide00") as MeshInstance3D
+	var floor_guide_material := floor_guide.material_override as StandardMaterial3D if floor_guide != null else null
+	if not _require(floor_guide_material != null and floor_guide_material.emission_enabled and floor_guide_material.emission_energy_multiplier >= 1.5, "chase floor guidance no longer survives the corridor blackout"): return
 	var flashlight_base_energy := float(player.flashlight.get("_base_energy"))
 	if not _require(flashlight_base_energy >= 3.0 and player.flashlight.spot_range >= 20.0, "flashlight regressed below the navigation readability floor"): return
 	var navigation_region := gameplay.get_node_or_null("ContinuousCorridorNavigation") as NavigationRegion3D
@@ -108,6 +120,7 @@ func _ready() -> void:
 		if not _require(bypass_hit.is_empty(), "chase barrier %d blocks its safe bypass lane" % index): return
 		var cue := gameplay.get_node_or_null("ChaseBypassCue%02d" % index) as Label3D
 		var marker := gameplay.get_node_or_null("ChaseBypassMarker%02d" % index) as MeshInstance3D
+		var lane := gameplay.get_node_or_null("ChaseBypassLane%02d" % index) as MeshInstance3D
 		var bypass_light := gameplay.get_node_or_null("ChaseBypassLight%02d" % index) as OmniLight3D
 		var expected_lane := "RIGHT" if bypass_x > 0.0 else "LEFT"
 		var cue_position := Vector3(bypass_x, 2.15, barrier_z + 2.35)
@@ -115,8 +128,9 @@ func _ready() -> void:
 		if not _require(cue != null and cue.text == "GO " + expected_lane and cue.position.distance_to(cue_position) < 0.05, "chase barrier %d has an incorrect safe-lane label or position" % index): return
 		if not _require(cue.modulate.r > cue.modulate.g * 2.0 and cue.modulate.r > cue.modulate.b * 2.0, "chase barrier %d text cue is not visibly red" % index): return
 		if not _require(marker != null and marker.position.distance_to(guide_position) < 0.05, "chase barrier %d floor marker does not align with its safe lane" % index): return
+		if not _require(lane != null and is_equal_approx(lane.position.x, bypass_x) and lane.position.z < barrier_z, "chase barrier %d emissive lane does not continue through its safe side" % index): return
 		if not _require(bypass_light != null and bypass_light.position.distance_to(Vector3(bypass_x, 2.35, barrier_z + 1.8)) < 0.05, "chase barrier %d guide light does not align with its safe lane" % index): return
-		if not _require(bypass_light.light_color.r > bypass_light.light_color.g * 4.0 and bypass_light.light_color.r > bypass_light.light_color.b * 4.0, "chase barrier %d guide light is not visibly red" % index): return
+		if not _require(bypass_light.light_energy >= 2.0 and bypass_light.omni_range >= 10.0 and bypass_light.light_color.r > bypass_light.light_color.g * 4.0 and bypass_light.light_color.r > bypass_light.light_color.b * 4.0, "chase barrier %d guide light is not strong and visibly red" % index): return
 		var path_uses_bypass := false
 		for path_point: Vector3 in chase_path:
 			if absf(path_point.z - barrier_z) <= 3.5 and path_point.x * bypass_x > 0.5:
@@ -275,6 +289,9 @@ func _ready() -> void:
 	var ending_roster := gameplay.get_node_or_null("ending_roster") as StoryInteractable
 	if not _require(ending_notice != null and ending_roster != null, "restored run did not build both epilogue interactables"): return
 	if not _require(ending_notice.get_parent() == gameplay and ending_roster.get_parent() == gameplay, "epilogue interactables left the active gameplay scene"): return
+	for task_light_name in ["EndingRevealLight", "EndingNoticeTaskLight", "EndingRosterTaskLight"]:
+		var ending_task_light := gameplay.get_node_or_null(task_light_name) as OmniLight3D
+		if not _require(ending_task_light != null and ending_task_light.light_energy >= 1.0, "%s is missing from the interactive epilogue" % task_light_name): return
 	if not _require(await _verify_epilogue_ray_target(player, ending_notice), "production ray cannot acquire the ending notice"): return
 	if not _require(not gameplay.handle_story_action("ending_roster", player), "restored run bypassed the notice gate"): return
 	if not _require(ending_notice.interact(player), "production notice interactable rejected the restored player"): return

@@ -63,6 +63,8 @@ func _verify_player_facing_copy() -> bool:
 		(settings.get_node("Panel/FilmGrain") as CheckButton).text,
 	])
 	if not _require(settings_copy == "Camera movement Music Atmosphere Screen texture", "settings still use implementation-oriented presentation labels"): return false
+	var comfort_copy := (settings.get_node("Panel/ComfortHint") as Label).text
+	if not _require(comfort_copy == "Need a gentler shift? Disable flicker,\ncamera movement, shake, or screen texture.", "settings lost the concise comfort guidance"): return false
 	var failure_copy := (fail_overlay.get_node("Panel/Message") as Label).text
 	if not _require(failure_copy == "THE HALLWAY SWALLOWED YOU\nIt is waiting where you fell." and not failure_copy.to_lower().contains("checkpoint"), "failure overlay lost its in-world recovery message or exposes checkpoint terminology"): return false
 	var credits_copy := (ending_overlay.get_node("Panel/Credits") as Label).text
@@ -147,10 +149,11 @@ func _boot_copy_is_immersive(boot_menu: Node) -> bool:
 		var label := node as Label
 		if label.text == "23:47. One last room remains unchecked.\nKeep the light on. Finish the shift.":
 			found_story_setup = true
-		var copy := label.text.to_lower()
-		if copy.contains("minute") or copy.contains("no combat") or copy.contains("checkpoint"):
-			return false
-	return found_story_setup
+			var copy := label.text.to_lower()
+			if copy.contains("minute") or copy.contains("no combat") or copy.contains("checkpoint"):
+				return false
+	var comfort_hint := boot_menu.find_child("ComfortHint", true, false) as Label
+	return found_story_setup and comfort_hint != null and comfort_hint.text == "ESC pauses. Comfort options are available in Settings."
 
 func _configured_window_title_is_player_facing() -> bool:
 	var expected_title := "ROOM 407: THE LAST SHIFT"

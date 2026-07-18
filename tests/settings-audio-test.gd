@@ -6,8 +6,19 @@ const VOICE_OVER_REGRESSION := preload("res://tests/voice-over-regression.gd")
 
 func _ready() -> void:
 	await get_tree().process_frame
-	for bus_name in ["Master", "Music", "SFX", "Ambience", "Chase"]:
+	for bus_name in ["Master", "Music", "SFX", "Ambience", "Chase", AudioManager.VOICE_BUS_NAME]:
 		if not _require(AudioServer.get_bus_index(bus_name) >= 0, "%s audio bus missing" % bus_name): return
+	var initial_bus_count := AudioServer.bus_count
+	var sfx_bus_index := AudioServer.get_bus_index("SFX")
+	var master_bus_index := AudioServer.get_bus_index("Master")
+	var initial_sfx_effect_count := AudioServer.get_bus_effect_count(sfx_bus_index)
+	var initial_master_effect_count := AudioServer.get_bus_effect_count(master_bus_index)
+	AudioManager._configure_audio_buses()
+	AudioManager._configure_audio_buses()
+	if not _require(AudioServer.bus_count == initial_bus_count and AudioServer.get_bus_effect_count(sfx_bus_index) == initial_sfx_effect_count and AudioServer.get_bus_effect_count(master_bus_index) == initial_master_effect_count, "audio mix setup duplicated a bus or effect"): return
+	var voice_bus_index := AudioServer.get_bus_index(AudioManager.VOICE_BUS_NAME)
+	var ducking := AudioManager._voice_ducking_effect()
+	if not _require(AudioServer.get_bus_send(voice_bus_index) == "Master" and ducking != null and ducking.sidechain == AudioManager.VOICE_BUS_NAME and is_equal_approx(ducking.threshold, -26.0) and is_equal_approx(ducking.ratio, 6.0) and AudioManager._has_master_limiter(), "voice routing, SFX ducking, or master limiting is not configured"): return
 	if not _verify_initial_audio_bus_volumes(): return
 	SettingsManager.set_mouse_sensitivity(99.0)
 	SettingsManager.set_field_of_view(12.0)
@@ -15,6 +26,10 @@ func _ready() -> void:
 	if not _require(is_equal_approx(SettingsManager.mouse_sensitivity, 0.25), "mouse sensitivity clamp failed"): return
 	if not _require(is_equal_approx(SettingsManager.field_of_view, 60.0), "field of view clamp failed"): return
 	if not _require(is_equal_approx(SettingsManager.master_volume, -40.0), "master volume clamp failed"): return
+	var previous_sfx_volume := SettingsManager.sfx_volume
+	SettingsManager.set_sfx_volume(-12.0)
+	if not _require(is_equal_approx(AudioServer.get_bus_volume_db(sfx_bus_index), -12.0) and is_equal_approx(AudioServer.get_bus_volume_db(voice_bus_index), -12.0), "SFX setting did not keep voice and effects under one user control"): return
+	SettingsManager.set_sfx_volume(previous_sfx_volume)
 	var panel := SETTINGS_SCENE.instantiate()
 	add_child(panel)
 	await get_tree().process_frame
@@ -154,6 +169,7 @@ func _verify_initial_audio_bus_volumes() -> bool:
 		"Master": SettingsManager.master_volume,
 		"Music": SettingsManager.music_volume,
 		"SFX": SettingsManager.sfx_volume,
+		AudioManager.VOICE_BUS_NAME: SettingsManager.sfx_volume,
 		"Ambience": SettingsManager.ambience_volume,
 		"Chase": SettingsManager.music_volume,
 	}

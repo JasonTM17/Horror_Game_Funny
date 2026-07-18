@@ -103,8 +103,12 @@ func _build_reveal_interactables(reveal_origin: Vector3) -> void:
 	)
 	_add_visual_box(roster, "RosterPages", Vector3(0.86, 0.58, 0.08), Vector3.ZERO, Color(0.5, 0.45, 0.35))
 	LevelGeometry.add_box(_director, "RosterStand", Vector3(2.2, 0.48, reveal_z - 0.8), Vector3(1.5, 0.96, 1.0), Color(0.055, 0.035, 0.03))
-	LevelGeometry.add_light(_director, notice_position + Vector3(0, 1.0, 0.6), Color(0.72, 0.18, 0.12), 0.8, 4.2)
-	LevelGeometry.add_light(_director, roster_position + Vector3(0, 1.0, 0.6), Color(0.35, 0.08, 0.07), 0.65, 4.0)
+	var reveal_light := LevelGeometry.add_light(_director, Vector3(0, 2.8, reveal_z + 0.8), Color(0.24, 0.3, 0.38), 1.05, 8.5)
+	reveal_light.name = "EndingRevealLight"
+	var notice_light := LevelGeometry.add_light(_director, notice_position + Vector3(0, 1.0, 0.6), Color(0.82, 0.2, 0.12), 1.35, 5.0)
+	notice_light.name = "EndingNoticeTaskLight"
+	var roster_light := LevelGeometry.add_light(_director, roster_position + Vector3(0, 1.0, 0.6), Color(0.48, 0.1, 0.075), 1.05, 4.8)
+	roster_light.name = "EndingRosterTaskLight"
 
 func _add_interactable(
 	action_id: String,

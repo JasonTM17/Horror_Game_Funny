@@ -2,6 +2,8 @@ class_name VisualEffectsLayer
 extends CanvasLayer
 
 const OVERLAY_SHADER := preload("res://shaders/retro-screen-overlay.gdshader")
+const BASE_VIGNETTE_STRENGTH := 0.085
+const FEAR_VIGNETTE_STRENGTH := 0.34
 
 var _overlay: ColorRect
 var _material: ShaderMaterial
@@ -16,6 +18,8 @@ func _ready() -> void:
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_material = ShaderMaterial.new()
 	_material.shader = OVERLAY_SHADER
+	_material.set_shader_parameter("base_vignette_strength", BASE_VIGNETTE_STRENGTH)
+	_material.set_shader_parameter("fear_vignette_strength", FEAR_VIGNETTE_STRENGTH)
 	_overlay.material = _material
 	add_child(_overlay)
 	_apply_film_grain(SettingsManager.film_grain_enabled)

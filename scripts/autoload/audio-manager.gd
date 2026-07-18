@@ -2,6 +2,8 @@ extends Node
 
 const MAX_CACHED_SAMPLES := 16 * 1024 * 1024
 const SAMPLE_RATE := 22050
+const VOICE_BUS_NAME := "Voice"
+const RUNTIME_BUS_NAMES := ["Music", "SFX", "Ambience", "Chase", VOICE_BUS_NAME]
 var _players: Dictionary = {}
 var _cache: Dictionary = {}
 var _cache_sizes: Dictionary = {}
@@ -14,10 +16,59 @@ var _spatial_players: Array[AudioStreamPlayer3D] = []
 var _spatial_player_ids: Dictionary = {}
 
 func _ready() -> void:
-	for bus_name in ["Music", "SFX", "Ambience", "Chase"]:
+	_configure_audio_buses()
+
+func _configure_audio_buses() -> void:
+	for bus_name in RUNTIME_BUS_NAMES:
 		if AudioServer.get_bus_index(bus_name) < 0:
 			AudioServer.add_bus()
 			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
+	var voice_index := AudioServer.get_bus_index(VOICE_BUS_NAME)
+	if voice_index >= 0:
+		AudioServer.set_bus_send(voice_index, "Master")
+	_ensure_voice_ducking()
+	_ensure_master_limiter()
+
+func _ensure_voice_ducking() -> void:
+	var sfx_index := AudioServer.get_bus_index("SFX")
+	if sfx_index < 0:
+		return
+	var compressor := _voice_ducking_effect()
+	if compressor == null:
+		compressor = AudioEffectCompressor.new()
+		AudioServer.add_bus_effect(sfx_index, compressor)
+	compressor.sidechain = VOICE_BUS_NAME
+	compressor.threshold = -26.0
+	compressor.ratio = 6.0
+	compressor.attack_us = 80.0
+	compressor.release_ms = 220.0
+	compressor.gain = 0.0
+	compressor.mix = 1.0
+
+func _voice_ducking_effect() -> AudioEffectCompressor:
+	var sfx_index := AudioServer.get_bus_index("SFX")
+	if sfx_index < 0:
+		return null
+	for effect_index in AudioServer.get_bus_effect_count(sfx_index):
+		var effect := AudioServer.get_bus_effect(sfx_index, effect_index)
+		if effect is AudioEffectCompressor and (effect as AudioEffectCompressor).sidechain == VOICE_BUS_NAME:
+			return effect as AudioEffectCompressor
+	return null
+
+func _ensure_master_limiter() -> void:
+	var master_index := AudioServer.get_bus_index("Master")
+	if master_index < 0 or _has_master_limiter():
+		return
+	AudioServer.add_bus_effect(master_index, AudioEffectHardLimiter.new())
+
+func _has_master_limiter() -> bool:
+	var master_index := AudioServer.get_bus_index("Master")
+	if master_index < 0:
+		return false
+	for effect_index in AudioServer.get_bus_effect_count(master_index):
+		if AudioServer.get_bus_effect(master_index, effect_index) is AudioEffectHardLimiter:
+			return true
+	return false
 
 func play_tone(id: String, frequency: float, duration: float, volume_db: float = -16.0, bus := "SFX") -> void:
 	if id.is_empty() or frequency <= 0.0 or duration <= 0.0:

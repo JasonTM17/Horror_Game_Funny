@@ -7,8 +7,13 @@ const DEFAULT_OUTPUT_ROOT := "res://.artifacts/visual-capture-current"
 var _gameplay: Node3D
 var _player: CharacterBody3D
 var _output_root := DEFAULT_OUTPUT_ROOT
+var _capture_failed := false
 
 func _ready() -> void:
+	if DisplayServer.get_name() == "headless":
+		push_error("VISUAL_CAPTURE_REQUIRES_RENDERED_DISPLAY")
+		get_tree().quit(2)
+		return
 	_output_root = _read_output_root()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_output_root))
 	GameState.reset_run()
@@ -21,12 +26,21 @@ func _ready() -> void:
 	_player = _gameplay.player
 	_player.set_physics_process(false)
 	await _capture_lobby()
+	if _abort_failed_capture(): return
 	await _capture_memory_corridor()
+	if _abort_failed_capture(): return
 	await _capture_room_407()
+	if _abort_failed_capture(): return
+	await _capture_final_clue()
+	if _abort_failed_capture(): return
 	await _capture_chase_route()
+	if _abort_failed_capture(): return
 	await _capture_chase_entity()
+	if _abort_failed_capture(): return
 	await _capture_epilogue()
+	if _abort_failed_capture(): return
 	await _capture_credits()
+	if _abort_failed_capture(): return
 	AudioManager.stop_all()
 	print("VISUAL_CAPTURE_TOUR_OK: " + ProjectSettings.globalize_path(_output_root))
 	get_tree().quit()
@@ -46,6 +60,11 @@ func _capture_room_407() -> void:
 	GameState.set_objective("Room 407 is open. Find what was left behind.")
 	_place_player(Vector3(0, 0.02, -397.0), 0.0, -7.0)
 	await _hold_and_capture("room-407-bedroom.png", 0.9)
+
+func _capture_final_clue() -> void:
+	GameState.set_objective("The room has one last note for you.")
+	_place_player(Vector3(0, 0.02, WorldLayout.FINAL_CLUE_Z + 7.0), 0.0, -14.0)
+	await _hold_and_capture("room-407-final-clue.png", 0.9)
 
 func _capture_chase_route() -> void:
 	GameState.set_objective("RUN. The exit is at the far end of the corridor.")
@@ -79,14 +98,30 @@ func _capture_credits() -> void:
 func _hold_and_capture(file_name: String, seconds: float) -> void:
 	await get_tree().create_timer(seconds).timeout
 	await get_tree().process_frame
-	var image := get_viewport().get_texture().get_image()
+	var texture := get_viewport().get_texture()
+	if texture == null:
+		_capture_failed = true
+		push_error("VISUAL_CAPTURE_VIEWPORT_UNAVAILABLE: " + file_name)
+		return
+	var image := texture.get_image()
+	if image == null:
+		_capture_failed = true
+		push_error("VISUAL_CAPTURE_IMAGE_UNAVAILABLE: " + file_name)
+		return
 	var output_path := _output_root.path_join(file_name)
 	var error := image.save_png(output_path)
 	if error != OK:
+		_capture_failed = true
 		push_error("VISUAL_CAPTURE_SAVE_FAILED: %s (%s)" % [output_path, error])
-		get_tree().quit(2)
 		return
 	print("VISUAL_CAPTURE_FRAME: " + ProjectSettings.globalize_path(output_path))
+
+func _abort_failed_capture() -> bool:
+	if not _capture_failed:
+		return false
+	AudioManager.stop_all()
+	get_tree().quit(2)
+	return true
 
 func _place_player(position: Vector3, yaw: float, pitch: float) -> void:
 	_player.global_position = position

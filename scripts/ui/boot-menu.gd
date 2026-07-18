@@ -25,6 +25,13 @@ func _ready() -> void:
 	subtitle.add_theme_font_size_override("font_size", 18)
 	subtitle.add_theme_color_override("font_color", Color(0.48, 0.55, 0.62))
 	panel.add_child(subtitle)
+	var comfort_hint := Label.new()
+	comfort_hint.name = "ComfortHint"
+	comfort_hint.text = "ESC pauses. Comfort options are available in Settings."
+	comfort_hint.position = Vector2(92, 272)
+	comfort_hint.add_theme_font_size_override("font_size", 13)
+	comfort_hint.add_theme_color_override("font_color", Color(0.42, 0.46, 0.52))
+	panel.add_child(comfort_hint)
 	_start_button = Button.new()
 	_start_button.name = "Start"
 	_start_button.text = "START SHIFT"

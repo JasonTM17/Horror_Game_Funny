@@ -4,6 +4,7 @@ extends Node
 signal credits_shown
 
 const ENTITY_SCRIPT := preload("res://scripts/world/chase-entity.gd")
+const ENTITY_VISUALS := preload("res://scripts/world/chase-entity-visual-builder.gd")
 const ENDING_SCENE := preload("res://scenes/ui/ending-overlay.tscn")
 const ENTITY_PRESENCE_CUE_ID := "chase_entity_presence"
 
@@ -116,15 +117,7 @@ func _play_entity_presence_cue() -> void:
 		AudioManager.play_spatial_tone(entity, ENTITY_PRESENCE_CUE_ID, 92.0, 1.4, -11.0)
 
 func _build_entity_body() -> void:
-	var mesh := MeshInstance3D.new()
-	mesh.name = "EntityBody"
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.45
-	capsule.height = 2.5
-	mesh.mesh = capsule
-	mesh.position.y = 1.25
-	mesh.material_override = LevelGeometry.material(Color(0.015, 0.008, 0.012))
-	entity.add_child(mesh)
+	ENTITY_VISUALS.build(entity)
 	var shape := CollisionShape3D.new()
 	shape.name = "EntityCollider"
 	var capsule_shape := CapsuleShape3D.new()

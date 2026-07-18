@@ -49,5 +49,11 @@ static func _add_eye(parent: Node3D, eye_name: String, eye_position: Vector3) ->
 	eye_mesh.height = 0.05
 	eye.mesh = eye_mesh
 	eye.position = eye_position
-	eye.material_override = LevelGeometry.material(Color(0.58, 0.025, 0.018), 0.3)
+	var eye_material := StandardMaterial3D.new()
+	eye_material.albedo_color = Color(0.68, 0.018, 0.012)
+	eye_material.emission_enabled = true
+	eye_material.emission = Color(0.82, 0.012, 0.006)
+	eye_material.emission_energy_multiplier = 1.8
+	eye_material.roughness = 0.32
+	eye.material_override = eye_material
 	parent.add_child(eye)

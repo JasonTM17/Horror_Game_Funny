@@ -160,6 +160,15 @@ offset_right = 740.0
 offset_bottom = 294.0
 text = "Screen texture"
 
+[node name="ComfortHint" type="Label" parent="Panel"]
+offset_left = 480.0
+offset_top = 306.0
+offset_right = 742.0
+offset_bottom = 346.0
+theme_override_colors/font_color = Color(0.58, 0.62, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "Need a gentler shift? Disable flicker,\ncamera movement, shake, or screen texture."
+
 [node name="SaveStatus" type="Label" parent="Panel"]
 visible = false
 offset_left = 38.0
