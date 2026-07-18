@@ -21,7 +21,7 @@ func _ready() -> void:
 
 	if not _require(is_equal_approx(head.position.y, EXPECTED_HEAD_HEIGHT), "head bob changed the authored eye height from %.2f to %.3f" % [EXPECTED_HEAD_HEIGHT, head.position.y]): return
 	if not _require(is_equal_approx(rad_to_deg(head.rotation.x), EXPECTED_INITIAL_PITCH), "initial camera pitch was not applied to Head"): return
-	if not _require(_has_physical_e_binding(), "interact action is not bound to the physical E key"): return
+	if not _verify_dual_key_bindings(): return
 	if not _require(interaction.ray.collision_mask == 4, "interaction ray does not use the named Interactable physics layer"): return
 	if not await _verify_production_interaction(player, interaction): return
 	if not _verify_objective_review(): return
@@ -237,11 +237,42 @@ func _verify_comfort_head_bob_restores_authored_origin(player: CharacterBody3D, 
 	player._update_head_bob(1.0, false)
 	return _require(head.position.is_equal_approx(Vector3(0.0, EXPECTED_HEAD_HEIGHT, 0.0)), "comfort mode did not restore the authored head origin")
 
-func _has_physical_e_binding() -> bool:
-	for event in InputMap.action_get_events("interact"):
-		if event is InputEventKey and (event.physical_keycode == KEY_E or event.keycode == KEY_E):
-			return true
-	return false
+func _verify_dual_key_bindings() -> bool:
+	var expected := {
+		"move_forward": KEY_W,
+		"move_backward": KEY_S,
+		"move_left": KEY_A,
+		"move_right": KEY_D,
+		"sprint": KEY_SHIFT,
+		"interact": KEY_E,
+		"flashlight": KEY_F,
+		"pause_game": KEY_ESCAPE,
+		"show_objective": KEY_TAB,
+	}
+	for action: String in expected:
+		var expected_key: Key = expected[action] as Key
+		var has_physical := false
+		var has_logical := false
+		var events := InputMap.action_get_events(action)
+		for event: InputEvent in events:
+			if event is not InputEventKey:
+				continue
+			var key_event := event as InputEventKey
+			has_physical = has_physical or key_event.physical_keycode == expected_key
+			has_logical = has_logical or key_event.keycode == expected_key
+		if not _require(
+			has_physical and has_logical,
+			"%s lacks dual binding for %s/%s (physical=%s logical=%s events=%s)" % [
+				action,
+				OS.get_keycode_string(expected_key),
+				int(expected_key),
+				has_physical,
+				has_logical,
+				str(events),
+			]
+		):
+			return false
+	return true
 
 func _find_collision_shape(parent: Node) -> CollisionShape3D:
 	for child in parent.get_children():
