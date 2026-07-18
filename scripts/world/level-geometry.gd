@@ -7,6 +7,13 @@ static func material(color: Color, roughness := 0.86) -> StandardMaterial3D:
 	result.roughness = roughness
 	return result
 
+static func textured_material(texture: Texture2D, tint := Color.WHITE, roughness := 0.9) -> StandardMaterial3D:
+	var result := StandardMaterial3D.new()
+	result.albedo_texture = texture
+	result.albedo_color = tint
+	result.roughness = roughness
+	return result
+
 static func add_box(parent: Node3D, name: String, position: Vector3, size: Vector3, color: Color, collision_layer := 1) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = name

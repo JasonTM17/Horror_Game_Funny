@@ -1,6 +1,10 @@
 class_name StoryPropVisualBuilder
 extends RefCounted
 
+const MEMORY_PHOTO_TEXTURE := preload("res://assets/images/memory-photo-rabbit.png")
+const ROOM_DRAWING_TEXTURE := preload("res://assets/images/room-drawing-rabbit.png")
+const FAMILY_TABLE_TEXTURE := preload("res://assets/images/family-table-memory.png")
+
 static func build(parent: Node3D, id: String, color: Color) -> void:
 	match id:
 		"phone": _build_phone(parent, color)
@@ -43,6 +47,10 @@ static func _build_paper_clue(parent: Node3D, id: String, color: Color) -> void:
 		size = Vector3(1.05, 0.04, 0.78)
 		_add_box(parent, "FinalClueBacking", Vector3(1.18, 0.025, 0.92), Vector3(0, -0.028, 0), Color(0.38, 0.045, 0.035))
 	_add_box(parent, "PaperClue", size, Vector3.ZERO, color.lightened(0.2))
+	if id == "memory_photo":
+		_add_textured_quad(parent, "MemoryPhotoImage", MEMORY_PHOTO_TEXTURE, Vector2(0.69, 0.46), Vector3(0, 0.027, 0), Vector3(-PI / 2.0, 0, 0))
+	elif id == "room_drawing":
+		_add_textured_quad(parent, "RoomDrawingImage", ROOM_DRAWING_TEXTURE, Vector2(0.79, 0.87), Vector3(0, 0, 0.027), Vector3.ZERO)
 	var text: String = {
 		"floor_notice": "FLOOR 4\nCLOSED 2007",
 		"memory_photo": "00:07",
@@ -91,6 +99,7 @@ static func _build_search_marker(parent: Node3D, id: String, color: Color) -> vo
 
 static func _build_family_table_clue(parent: Node3D, color: Color) -> void:
 	_add_box(parent, "FamilyPhoto", Vector3(0.62, 0.06, 0.48), Vector3.ZERO, color.lightened(0.2))
+	_add_textured_quad(parent, "FamilyTableImage", FAMILY_TABLE_TEXTURE, Vector2(0.56, 0.42), Vector3(0, 0.034, 0), Vector3(-PI / 2.0, 0, 0))
 	for index in 4:
 		_add_cylinder(parent, "Plate%d" % index, 0.1, 0.025, Vector3(-0.3 + index * 0.2, 0.06, -0.05), Color(0.5, 0.46, 0.38))
 
@@ -145,6 +154,25 @@ static func _add_capsule(parent: Node3D, name: String, radius: float, height: fl
 	instance.mesh = mesh
 	instance.position = position
 	instance.material_override = LevelGeometry.material(color)
+	parent.add_child(instance)
+
+static func _add_textured_quad(
+	parent: Node3D,
+	name: String,
+	texture: Texture2D,
+	size: Vector2,
+	position: Vector3,
+	rotation: Vector3
+) -> void:
+	var instance := MeshInstance3D.new()
+	instance.name = name
+	var mesh := QuadMesh.new()
+	mesh.size = size
+	instance.mesh = mesh
+	instance.position = position
+	instance.rotation = rotation
+	instance.material_override = LevelGeometry.textured_material(texture, Color(0.92, 0.9, 0.84), 0.96)
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(instance)
 
 static func _add_label(parent: Node3D, name: String, text: String, position: Vector3, color: Color, font_size: int) -> void:

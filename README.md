@@ -179,7 +179,7 @@ The generated Markdown includes an unchecked human-review matrix. The capture pa
 
 ## Assets
 
-There is no third-party art or recorded-sound pack. Corridor geometry, props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 76 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
+There is no third-party art or recorded-sound pack. Corridor geometry, most props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 76 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. Four project-authored still textures under `assets/images/` dress the boot menu and selected story props. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
 
 Four reviewed staged in-engine stills and one derived visual-reference GIF are committed under `docs/screenshots/`. They are documentation media, not evidence of a physical gameplay run. Add only verified in-engine captures after a visual pass; do not present concept art or staged media as physical-playthrough evidence. See [Asset credits and provenance](docs/asset-credits.md).
 
@@ -220,6 +220,7 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 | `scripts/ui/` | Runtime UI, transitions, and visual effects |
 | `scripts/world/` | World construction, progression, horror events, navigation, chase, and ending logic |
 | `assets/audio/voice-over/` | Generated English OGG cues, Godot import sidecars, and cue manifest |
+| `assets/images/` | Project-authored still textures for boot menu and selected story props |
 | `shaders/` | Project-authored Compatibility canvas shader |
 | `tests/` | Native GDScript checks, PowerShell/POSIX runners, packaging verify |
 | `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
@@ -228,7 +229,7 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 | `Dockerfile` / `docker-compose.yml` | Multi-stage Godot 4.7.1 suite image (`nguyenson1710/horror-game-suite`) |
 | `.github/` | `ci.yml` packaging/secret-pattern jobs, `docker-suite.yml`, Dependabot |
 
-Geometry and procedural effects are generated at runtime. The only committed audio assets are the manifest-backed English voice cues under `assets/audio/voice-over/`; the project-authored icon is `icon.svg` at the repository root.
+Geometry and most effects are generated at runtime. Committed media assets are the manifest-backed English voice cues under `assets/audio/voice-over/`, four project-authored stills under `assets/images/`, and the project-authored icon `icon.svg` at the repository root.
 
 ## References
 

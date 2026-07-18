@@ -1,5 +1,7 @@
 extends Node
 
+const MENU_BACKGROUND_TEXTURE := preload("res://assets/images/menu-hotel-corridor.png")
+
 var _start_button: Button
 var _continue_button: Button
 var _settings_button: Button
@@ -9,8 +11,17 @@ var _menu_buttons: Array[Button] = []
 func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	var background := TextureRect.new()
+	background.name = "MenuBackground"
+	background.texture = MENU_BACKGROUND_TEXTURE
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(background)
 	var panel := ColorRect.new()
-	panel.color = Color(0.008, 0.012, 0.02, 1.0)
+	panel.name = "MenuShade"
+	panel.color = Color(0.006, 0.009, 0.016, 0.58)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(panel)
 	var title := Label.new()
