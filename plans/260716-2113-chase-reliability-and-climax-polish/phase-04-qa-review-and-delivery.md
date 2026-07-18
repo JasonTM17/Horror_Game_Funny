@@ -18,11 +18,13 @@
 - [x] Scan logs for engine/script/assert/leak failures and confirm temp-profile cleanup.
 - [x] Run spec, quality, and adversarial review; fix accepted findings and rerun affected checks.
 - [x] Sync documentation, plan statuses, report, asset provenance, and truthful remaining gates.
-- [ ] Define final documentation media slots; before the parent game goal closes, capture real gameplay screenshots and an optimized GIF, embed them with repository-relative links, and verify they render.
+- [x] Capture four reviewed staged in-engine screenshots and an optimized visual-reference GIF, embed them with repository-relative links, and verify they render. These production-scene captures close this plan's media subtask only; they do not replace the parent goal's physical playthrough evidence.
 - [x] Check C:/D:, staged secrets, branch divergence, remote URL, and commit split.
 - [x] Push without force and verify `HEAD == origin/main == refs/heads/main`.
 
 Current source-level pacing audit: [`reports/phase-04-pacing-audit-20260716.md`](reports/phase-04-pacing-audit-20260716.md). It documents the authored route lower bound and keeps the physical F5 capture gate open.
+
+Final release preflight: [`reports/pm-260718-0720-release-preflight.md`](reports/pm-260718-0720-release-preflight.md). It records current CI, voice-media, rendered documentation, non-headless UI, repository, and disk evidence while keeping the physical/perceptual gate open.
 
 ## Acceptance
 
