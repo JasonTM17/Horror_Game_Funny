@@ -43,24 +43,25 @@ static func _build_book(parent: Node3D, id: String, color: Color) -> void:
 static func _build_paper_clue(parent: Node3D, id: String, color: Color) -> void:
 	var vertical := id == "floor_notice" or id == "room_drawing"
 	var size := Vector3(0.86, 0.95, 0.045) if vertical else Vector3(0.75, 0.04, 0.58)
+	var surface_rotation := Vector3(0, -PI / 2.0, 0) if id == "room_drawing" else Vector3.ZERO
 	if id == "final_clue":
 		size = Vector3(1.05, 0.04, 0.78)
 		_add_box(parent, "FinalClueBacking", Vector3(1.18, 0.025, 0.92), Vector3(0, -0.028, 0), Color(0.38, 0.045, 0.035))
-	_add_box(parent, "PaperClue", size, Vector3.ZERO, color.lightened(0.2))
+	_add_box(parent, "PaperClue", size, Vector3.ZERO, color.lightened(0.2), surface_rotation)
 	if id == "memory_photo":
 		_add_textured_quad(parent, "MemoryPhotoImage", MEMORY_PHOTO_TEXTURE, Vector2(0.69, 0.46), Vector3(0, 0.027, 0), Vector3(-PI / 2.0, 0, 0))
 	elif id == "room_drawing":
-		# Right-wall prop: face corridor center (-X) so the drawing reads from the -Z approach.
-		_add_textured_quad(parent, "RoomDrawingImage", ROOM_DRAWING_TEXTURE, Vector2(0.65, 0.87), Vector3(-0.027, 0, 0), Vector3(0, -PI / 2.0, 0))
+		# Right-wall prop: keep backing, image, and writing coplanar toward corridor center (-X).
+		_add_textured_quad(parent, "RoomDrawingImage", ROOM_DRAWING_TEXTURE, Vector2(0.65, 0.87), Vector3(-0.027, 0, 0), surface_rotation)
 	var text: String = {
 		"floor_notice": "FLOOR 4\nCLOSED 2007",
 		"memory_photo": "00:07",
 		"room_drawing": "ME + RABBIT",
 		"final_clue": "RUN TO RED\nDON'T LOOK BACK"
 	}.get(id, "CLUE")
-	var label_position := Vector3(0, 0, 0.035) if vertical else Vector3(0, 0.055, 0.04)
+	var label_position := Vector3(-0.035, 0, 0) if id == "room_drawing" else (Vector3(0, 0, 0.035) if vertical else Vector3(0, 0.055, 0.04))
 	var font_size := 13 if id == "final_clue" else 12
-	_add_label(parent, "PaperWriting", text, label_position, Color(0.38, 0.055, 0.04), font_size)
+	_add_label(parent, "PaperWriting", text, label_position, Color(0.38, 0.055, 0.04), font_size, surface_rotation)
 
 static func _build_fuse(parent: Node3D, color: Color) -> void:
 	_add_cylinder(parent, "FuseGlass", 0.15, 0.5, Vector3.ZERO, color.lightened(0.18))
@@ -108,13 +109,14 @@ static func _build_exit_panel(parent: Node3D, color: Color) -> void:
 	_add_box(parent, "ExitPanel", Vector3(1.2, 0.55, 0.12), Vector3.ZERO, color)
 	_add_label(parent, "ExitWriting", "EXIT", Vector3(0, 0, 0.08), Color(0.92, 0.18, 0.12), 20)
 
-static func _add_box(parent: Node3D, name: String, size: Vector3, position: Vector3, color: Color) -> void:
+static func _add_box(parent: Node3D, name: String, size: Vector3, position: Vector3, color: Color, rotation := Vector3.ZERO) -> void:
 	var instance := MeshInstance3D.new()
 	instance.name = name
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	instance.mesh = mesh
 	instance.position = position
+	instance.rotation = rotation
 	instance.material_override = LevelGeometry.material(color)
 	parent.add_child(instance)
 
@@ -176,11 +178,12 @@ static func _add_textured_quad(
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(instance)
 
-static func _add_label(parent: Node3D, name: String, text: String, position: Vector3, color: Color, font_size: int) -> void:
+static func _add_label(parent: Node3D, name: String, text: String, position: Vector3, color: Color, font_size: int, rotation := Vector3.ZERO) -> void:
 	var label := Label3D.new()
 	label.name = name
 	label.text = text
 	label.position = position
+	label.rotation = rotation
 	label.modulate = color
 	label.font_size = font_size
 	label.outline_size = 4

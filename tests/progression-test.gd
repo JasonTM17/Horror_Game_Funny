@@ -26,6 +26,10 @@ func _ready() -> void:
 		_room_drawing_faces_corridor_center(gameplay.get_node("room_drawing")),
 		"Room 407 drawing still does not face the corridor approach (-X)"
 	): return
+	if not _require(
+		_room_drawing_surfaces_align(gameplay.get_node("room_drawing")),
+		"Room 407 drawing backing, image, and writing are not coplanar toward the corridor"
+	): return
 	var horror: Node = director._horror
 	var saved_player: Node3D = horror._player as Node3D
 	horror.set_player(null)
@@ -520,6 +524,27 @@ func _room_drawing_faces_corridor_center(parent: Node) -> bool:
 		return false
 	# Local +Z after Y = -PI/2 points world -X (toward corridor center from the right wall).
 	return mesh_instance.transform.basis.z.x < -0.9
+
+func _room_drawing_surfaces_align(parent: Node) -> bool:
+	var backing := parent.get_node_or_null("PaperClue") as MeshInstance3D
+	var image := parent.get_node_or_null("RoomDrawingImage") as MeshInstance3D
+	var writing := parent.get_node_or_null("PaperWriting") as Label3D
+	if backing == null or image == null or writing == null:
+		return false
+	var backing_normal := backing.transform.basis.z.normalized()
+	var image_normal := image.transform.basis.z.normalized()
+	var writing_normal := writing.transform.basis.z.normalized()
+	if backing_normal.dot(image_normal) < 0.999 or backing_normal.dot(writing_normal) < 0.999:
+		return false
+	# The image and label sit just beyond the backing's -X face without lateral drift.
+	var image_depth := image.position.dot(backing_normal)
+	var writing_depth := writing.position.dot(backing_normal)
+	return (
+		image_depth > 0.0225
+		and writing_depth > image_depth
+		and (image.position - backing_normal * image_depth).length() < 0.001
+		and (writing.position - backing_normal * writing_depth).length() < 0.001
+	)
 
 func _textured_quad_matches_source_aspect(parent: Node, child_name: String) -> bool:
 	var mesh_instance := parent.get_node_or_null(child_name) as MeshInstance3D
