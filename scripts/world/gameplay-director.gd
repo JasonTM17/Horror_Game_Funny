@@ -72,7 +72,7 @@ func _process(_delta: float) -> void:
 	if z < WorldLayout.FLOOR_TRIGGER_Z and not GameState.has_flag("floor_reached"):
 		GameState.set_flag("floor_reached")
 		GameState.advance_stage(GameState.Stage.FLOOR4_DARK)
-		GameState.set_objective("The fourth floor is dark. Find the spare fuse.")
+		GameState.set_objective("The fourth floor is dark. Read the maintenance notice ahead.")
 		_horror.trigger("floor_arrival")
 		_narrative.play([
 			"The elevator display skips from 3 to 4, then goes dark.",

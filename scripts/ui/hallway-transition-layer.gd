@@ -33,7 +33,7 @@ func _run_transition(actor: Node, subtitle: String, midpoint_action: Callable, d
 	await fade_in.finished
 	midpoint_action.call()
 	AudioManager.play_tone("hallway_blackout", 48.0, 0.8, -15.0, "Ambience")
-	await get_tree().create_timer(3.3 * scale).timeout
+	await get_tree().create_timer(3.3 * scale, false).timeout
 	var fade_out := create_tween()
 	fade_out.tween_property(_curtain, "modulate:a", 0.0, 0.35 * scale)
 	await fade_out.finished

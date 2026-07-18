@@ -23,7 +23,7 @@ static func build(director: Node3D) -> void:
 		"floor_door_unlocked",
 		true
 	)
-	_add_story(director, "floor_notice", Vector3(-2.8, 1.15, WorldLayout.FLOOR_DOOR_Z - 8.0), "Read the maintenance notice", Color(0.32, 0.3, 0.24))
+	_add_story(director, "floor_notice", Vector3(-2.8, 1.15, WorldLayout.FLOOR_TRIGGER_Z - 4.0), "Read the maintenance notice", Color(0.32, 0.3, 0.24))
 	_add_false_door_interaction(director)
 	_add_story(director, "fuse_pickup", Vector3(2.3, 0.45, WorldLayout.FUSE_PICKUP_Z), "Take the spare fuse", Color(0.74, 0.55, 0.2))
 	_add_story(director, "fuse_box", Vector3(-2.8, 1.15, WorldLayout.FUSE_BOX_Z), "Open the fuse box", Color(0.2, 0.22, 0.24))

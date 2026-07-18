@@ -79,12 +79,15 @@ func _ready() -> void:
 	if not _require(floor_door.is_open and not GameState.has_item("floor_key"), "floor door lost its session unlock invariant"): return
 	if not _require(not director.handle_story_action("radio", player), "radio must wait for memories"): return
 	if not _require(not director.handle_story_action("floor_notice", player), "floor notice must stay behind the fourth-floor gate"): return
+	var floor_notice := gameplay.get_node("floor_notice") as StoryInteractable
+	if not _require(floor_notice.global_position.z < WorldLayout.FLOOR_TRIGGER_Z and floor_notice.global_position.distance_to(Vector3(-2.8, 1.15, WorldLayout.FLOOR_TRIGGER_Z)) <= 4.1, "fourth-floor notice is not ahead of and near its activation threshold"): return
 	var floor_scare_light := director._horror._find_nearest_light(Vector3(0, 2.8, -55.0)) as OmniLight3D
 	var floor_light_energy := floor_scare_light.light_energy
 	var floor_light_color := floor_scare_light.light_color
 	player.global_position.z = WorldLayout.FLOOR_TRIGGER_Z - 0.1
 	director._process(0.0)
 	if not _require(GameState.has_flag("floor_reached") and GameState.stage == GameState.Stage.FLOOR4_DARK, "production floor threshold did not advance pacing stage"): return
+	if not _require("maintenance notice" in GameState.objective.to_lower() and not director.get_story_prompt("floor_notice", player).is_empty(), "floor objective did not direct the player to the newly active notice"): return
 	var elevator_display := gameplay.get_node_or_null("ElevatorDisplay") as Label3D
 	var floor_apparition := director._horror.get_node_or_null("FloorArrivalApparition") as Node3D
 	var floor_sequence := director._horror.get_node_or_null("FloorArrivalScare") as HorrorScareSequence
@@ -133,8 +136,17 @@ func _ready() -> void:
 	if not _require(not director.handle_story_action("hallway_loop", player), "hallway loop must wait for the environmental echo"): return
 	if not _require(director.handle_story_action("memory_echo", player), "first memory echo should be readable"): return
 	if not _require(await _wait_for_flag("memory_echo_1"), "first memory echo should finish"): return
+	director._narrative.duration_scale = 0.05
 	if not _require(director.handle_story_action("hallway_loop", player), "first hallway loop should turn"): return
+	if not _require(await _wait_for_blackout(director._story._transition), "first hallway transition never reached its blackout hold"): return
+	get_tree().paused = true
+	OS.delay_msec(220)
+	await get_tree().process_frame
+	var blackout_stayed_paused: bool = bool(director._story._transition.running) and float(director._story._transition._curtain.modulate.a) > 0.99
+	get_tree().paused = false
+	if not _require(blackout_stayed_paused, "hallway blackout hold expired while the game was paused"): return
 	if not _require(await _wait_for_transition(director), "first hallway transition should finish"): return
+	director._narrative.duration_scale = 0.001
 	if not _require(director.handle_story_action("memory_cassette", player), "cassette should collect"): return
 	var turn_away := _find_turn_away_apparition(director._horror)
 	if not _require(turn_away != null and is_equal_approx(turn_away._duration_scale, director._horror.effect_duration_scale) and is_equal_approx(turn_away._scaled_duration(2.0), 0.1) and not _contains_collision_object(turn_away), "cassette scare did not inherit duration scaling or remained physical"): return
@@ -230,10 +242,13 @@ func _ready() -> void:
 	director._process(0.0)
 	if not _require(GameState.has_flag("room_entered") and GameState.stage == GameState.Stage.ROOM_407, "production Room 407 threshold did not advance pacing stage"): return
 	if not _require(JSON.stringify(GameState.checkpoint) == room_checkpoint_snapshot, "room threshold overwrote the safe pre-door checkpoint"): return
+	if not _require(director.get_story_prompt("room_drawing", player).is_empty(), "room drawing advertised an interaction before its recording gate"): return
 	if not _require(director.handle_story_action("room_record", player), "room recording should play"): return
 	if not _require(await _wait_for_flag("room_record_heard"), "room recording should complete"): return
 	if not _require(not director.handle_story_action("room_record", player), "room recording must be one-shot"): return
+	if not _require(director.get_story_prompt("room_drawing", player) == "[E] Inspect the wall drawing", "room drawing did not become actionable after the recording"): return
 	if not _require(director.handle_story_action("room_drawing", player), "room drawing should unlock"): return
+	if not _require("bed" in GameState.objective and "wardrobe" in GameState.objective and "family table" in GameState.objective and director.get_story_prompt("final_clue", player).is_empty(), "Room 407 objective skipped a mandatory search or exposed the final note early"): return
 	if not _require(not director.handle_story_action("final_clue", player), "final clue must wait for the three Room 407 searches"): return
 	if not _require(director.handle_story_action("room_bed_observation", player), "room bed observation should unlock"): return
 	if not _require(await _wait_for_flag("room_bed_observation_complete"), "room bed observation should complete"): return
@@ -244,6 +259,7 @@ func _ready() -> void:
 	if not _require(director.handle_story_action("room_family_table", player), "family table observation should unlock"): return
 	if not _require(await _wait_for_flag("room_family_table_observation_complete"), "family table observation should complete"): return
 	if not _require(not director.handle_story_action("room_family_table", player), "family table observation must be one-shot"): return
+	if not _require("last note" in GameState.objective.to_lower() and director.get_story_prompt("final_clue", player) == "[E] Read the child's note", "completed Room 407 searches did not unlock and explain the final note"): return
 	player.global_position.z = WorldLayout.FINAL_CLUE_Z + 1.0
 	if not _require(director.handle_story_action("final_clue", player), "final clue should open note"): return
 	if not _require(director._story._note_ui != null and director._story._note_ui.visible, "final clue note UI did not open"): return
@@ -303,6 +319,7 @@ func _ready() -> void:
 	director._chase.credits_shown.connect(func() -> void: credits_count[0] += 1)
 	if not _require(director.handle_story_action("exit", player), "ending should accept the completed chase path"): return
 	if not _require(GameState.stage == GameState.Stage.ENDING, "ending stage missing"): return
+	if not _require(director.get_story_prompt("exit", player).is_empty() and not director.handle_story_action("exit", player), "obsolete chase exit remained interactive during the epilogue"): return
 	if not _require(not fail_audio.playing and fail_audio.stream == null and not AudioManager._cache_ids.has("fail"), "terminal ending retained stale failure audio or cache ownership"): return
 	if not _require(gameplay.has_node("AbandonedLobbyFloor"), "abandoned lobby reveal missing"): return
 	var ending_notice := gameplay.get_node_or_null("ending_notice") as StoryInteractable
@@ -446,6 +463,13 @@ func _wait_for_checkpoint(spawn_id: String, max_frames := 180) -> bool:
 func _wait_for_transition(director: Node, max_frames := 180) -> bool:
 	for _frame in max_frames:
 		if not director._story.loop_transitioning:
+			return true
+		await get_tree().process_frame
+	return false
+
+func _wait_for_blackout(transition: HallwayTransitionLayer, max_frames := 60) -> bool:
+	for _frame in max_frames:
+		if transition.running and transition._curtain.modulate.a > 0.99:
 			return true
 		await get_tree().process_frame
 	return false

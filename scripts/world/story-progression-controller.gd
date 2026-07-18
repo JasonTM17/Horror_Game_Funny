@@ -61,11 +61,11 @@ func get_prompt(action_id: String, _actor: Node) -> String:
 		return "[E] Tune the radio"
 	if action_id == "room_record" and GameState.has_flag("room_entered") and not GameState.has_flag("room_record_started") and not GameState.has_flag("room_record_heard"):
 		return "[E] Play the family recording"
-	if action_id == "room_drawing" and GameState.has_flag("room_entered") and not GameState.has_flag("room_drawing_seen"):
+	if action_id == "room_drawing" and GameState.has_flag("room_entered") and GameState.has_flag("room_record_heard") and not GameState.has_flag("room_drawing_seen"):
 		return "[E] Inspect the wall drawing"
 	if action_id == "final_clue" and GameState.has_flag("room_record_heard") and GameState.has_flag("room_drawing_seen") and bool(_observations.call("final_clue_ready")) and not GameState.has_flag("final_clue_seen"):
 		return "[E] Read the child's note"
-	if action_id == "exit" and _ending_ready():
+	if action_id == "exit" and GameState.stage == GameState.Stage.CHASE and _ending_ready():
 		return "[E] Run for the lobby"
 	return ""
 
@@ -94,7 +94,7 @@ func handle_action(action_id: String, actor: Node) -> bool:
 		"final_clue":
 			return _open_final_clue(actor)
 		"exit":
-			if not _ending_ready():
+			if GameState.stage != GameState.Stage.CHASE or not _ending_ready():
 				return false
 			_director.finish_ending()
 			return true
@@ -238,7 +238,7 @@ func _inspect_room_drawing() -> bool:
 		return false
 	GameState.set_flag("room_drawing_seen")
 	GameState.set_subtitle("The drawing shows you holding the red rabbit outside Room 407.")
-	GameState.set_objective("The final note is waiting at the back of the impossible room.")
+	_refresh_room_search_objective()
 	return true
 
 func _open_final_clue(actor: Node) -> bool:
@@ -258,8 +258,7 @@ func _on_narrative_finished(flag: String) -> void:
 		"radio_solved":
 			GameState.set_objective("Room 407 is open. Do not look behind the door.")
 			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "room_entrance")
-		"room_record_heard": GameState.set_objective("Inspect the drawing, then search the bed and wardrobe.")
-		"room_bed_observation_complete", "room_wardrobe_observation_complete", "room_family_table_observation_complete": GameState.set_objective("The last note is waiting at the back of the impossible room.")
+		"room_record_heard", "room_bed_observation_complete", "room_wardrobe_observation_complete", "room_family_table_observation_complete": _refresh_room_search_objective()
 		"chase_ready":
 			GameState.set_objective("RUN. Follow the red lights to the lobby exit.")
 			GameState.create_checkpoint("res://scenes/gameplay/gameplay.tscn", "chase_start")
@@ -281,6 +280,22 @@ func _refresh_lobby_objective() -> void:
 		GameState.set_objective("Read the night register, then sign the night log.")
 	else:
 		GameState.set_objective("Sign the night log and take the fourth-floor key.")
+
+func _refresh_room_search_objective() -> void:
+	if not GameState.has_flag("room_drawing_seen"):
+		GameState.set_objective("Inspect the wall drawing, then search the bed, wardrobe, and family table.")
+		return
+	var remaining: Array[String] = []
+	if not GameState.has_flag("room_bed_observation_complete"):
+		remaining.append("beneath the bed")
+	if not GameState.has_flag("room_wardrobe_observation_complete"):
+		remaining.append("inside the wardrobe")
+	if not GameState.has_flag("room_family_table_observation_complete"):
+		remaining.append("the family table")
+	if remaining.is_empty():
+		GameState.set_objective("The last note is waiting at the back of the impossible room.")
+	else:
+		GameState.set_objective("Keep searching Room 407: " + ", ".join(remaining) + ".")
 
 func _run_loop_transition(actor: Node, iteration: int, teleport_to_start: bool) -> void:
 	loop_transitioning = true
