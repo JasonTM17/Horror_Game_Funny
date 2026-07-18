@@ -1,18 +1,18 @@
-# Phase 5 operator handoff — tip (pending commit; re-verify after land)
+# Phase 5 operator handoff — tip `9a72940e9203080b6249aeb6f917e94a0cc0fb2c`
 
-## Automated gates baseline
-- Packaging: re-run after land
-- Host twelve-check suite: re-run after land (must stay 12/12)
-- Windows export: re-run after land when templates present
+## Automated gates (this tip)
+- Packaging: DOCKER_PACKAGING_VERIFY_OK (pre-commit verify; re-check after push)
+- Host twelve-check suite: EXIT=0, CHECKS_OK_COUNT=12 (pre-commit on dirty tree with this slice)
+- Windows export: use `tests/verify-windows-export.ps1` when templates present (headless process smoke only)
 
 ## Phase 5 / PDR-07 status
 **Open.** Headless suite and export smoke do not satisfy physical F5 or 15–20 minute pacing.
 
-## Evidence capture fix (this slice)
-Editor F5 spawns a **separate game process**. Binding `--log-file` only to the editor host previously dropped `PLAYTHROUGH_PACING` lines. Runtime now also overwrites `user://playthrough_pacing_last.txt` with the same one-line payload; the physical runner harvests it into the evidence folder. Default launch mode is **`ProjectRun`** so `--log-file` attaches to the game process.
+## Evidence capture (landed)
+Editor F5 spawns a **separate game process**. Host `--log-file` alone dropped `PLAYTHROUGH_PACING`. Runtime overwrites `user://playthrough_pacing_last.txt` with the same one-line payload; the physical runner harvests it into the evidence folder. Default launch mode is **`ProjectRun`** so `--log-file` attaches to the game process.
 
-## Operator command (human F5 / ProjectRun)
-From repo root, clean tree on the tip under test, with Godot 4.7.1 available:
+## Operator command (human only)
+From repo root, clean tree on this tip, Godot 4.7.1 available:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthrough.ps1 `
@@ -21,16 +21,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthr
   -CaptureReference "D:\Captures\room407-full-run.mp4"
 ```
 
-Optional editor host:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthrough.ps1 `
-  -LaunchMode EditorF5 `
-  -ConfirmPhysicalInput `
-  -CaptureReference "D:\Captures\room407-full-run.mp4"
-```
-
-Then: fresh production start (**START SHIFT**, not Continue), physical keyboard/mouse, fail/recover once in chase if scripted, reach visible credits, keep same-run capture + log + single eligible `PLAYTHROUGH_PACING` payload (engine/console and/or harvested side-channel).
+Then: fresh production start (**START SHIFT**, not Continue), physical keyboard/mouse, fail/recover once in chase if scripted, reach visible credits, keep same-run capture + log/side-channel + single eligible `PLAYTHROUGH_PACING` payload.
 
 ## Do not claim
 - Not release-certified
