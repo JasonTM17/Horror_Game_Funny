@@ -78,7 +78,7 @@ func _run_photo_memory() -> void:
 
 func _run_rabbit_memory() -> void:
 	var sequence := _create_sequence("RabbitMemoryScare")
-	var position := _scare_position_ahead(10.0, 1.25)
+	var position := _scare_position_ahead(10.0, 1.25, 0.0, WorldLayout.MEMORY_RABBIT_Z - 10.0)
 	var apparition := _spawn_apparition(position, "MemoryRabbitApparition")
 	sequence.own_node(apparition)
 	apparition.visible = false
@@ -93,7 +93,7 @@ func _run_rabbit_memory() -> void:
 
 func _run_room_entity_reveal() -> void:
 	var sequence := _create_sequence("RoomEntityRevealScare")
-	var position := _scare_position_ahead(9.0, 1.35)
+	var position := _scare_position_ahead(9.0, 1.35, 0.0, WorldLayout.FINAL_CLUE_Z - 9.0)
 	var apparition := _spawn_apparition(position, "RoomEntityManifestation", Vector3(1.15, 1.2, 0.82), true)
 	sequence.own_node(apparition)
 	apparition.visible = false
@@ -173,10 +173,13 @@ func _spawn_apparition(
 func _floor_arrival_position() -> Vector3:
 	return Vector3(2.75, 1.3, WorldLayout.FLOOR_TRIGGER_Z - 14.0)
 
-func _scare_position_ahead(distance: float, height: float, lateral := 0.0) -> Vector3:
+func _scare_position_ahead(distance: float, height: float, lateral: float, fallback_z: float) -> Vector3:
 	if is_instance_valid(_player):
 		return Vector3(_player.global_position.x + lateral, height, _player.global_position.z - distance)
-	return Vector3(lateral, height, WorldLayout.FLOOR_TRIGGER_Z - distance)
+	# A restored checkpoint can trigger a beat before the player reference is
+	# rebound. Keep the apparition at its authored chapter anchor instead of
+	# silently dropping it back near the lobby/floor threshold.
+	return Vector3(lateral, height, fallback_z)
 
 func _schedule_free(node: Node, seconds: float) -> void:
 	var timer := get_tree().create_timer(_scaled_duration(seconds), false)

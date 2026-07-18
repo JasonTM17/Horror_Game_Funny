@@ -251,23 +251,23 @@ func _verify_dual_key_bindings() -> bool:
 	}
 	for action: String in expected:
 		var expected_key: Key = expected[action] as Key
-		var has_physical := false
-		var has_logical := false
+		var has_physical_only := false
+		var has_logical_only := false
 		var events := InputMap.action_get_events(action)
 		for event: InputEvent in events:
 			if event is not InputEventKey:
 				continue
 			var key_event := event as InputEventKey
-			has_physical = has_physical or key_event.physical_keycode == expected_key
-			has_logical = has_logical or key_event.keycode == expected_key
+			has_physical_only = has_physical_only or (key_event.physical_keycode == expected_key and key_event.keycode == 0)
+			has_logical_only = has_logical_only or (key_event.keycode == expected_key and key_event.physical_keycode == 0)
 		if not _require(
-			has_physical and has_logical,
-			"%s lacks dual binding for %s/%s (physical=%s logical=%s events=%s)" % [
+			has_physical_only and has_logical_only,
+			"%s lacks separate physical-only/logical-only bindings for %s/%s (physical_only=%s logical_only=%s events=%s)" % [
 				action,
 				OS.get_keycode_string(expected_key),
 				int(expected_key),
-				has_physical,
-				has_logical,
+				has_physical_only,
+				has_logical_only,
 				str(events),
 			]
 		):

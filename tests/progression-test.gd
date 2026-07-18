@@ -13,6 +13,12 @@ func _ready() -> void:
 	director._narrative.voice_over_enabled = false
 	director._horror.effect_duration_scale = 0.05
 	GameState.reset_run()
+	if not _require(
+		_has_textured_mesh(gameplay.get_node("memory_photo"), "MemoryPhotoImage")
+		and _has_textured_mesh(gameplay.get_node("room_drawing"), "RoomDrawingImage")
+		and _has_textured_mesh(gameplay.get_node("room_family_table"), "FamilyTableImage"),
+		"story clue image textures did not instantiate with imported materials"
+	): return
 	var pacing_before_pause: Dictionary = director.get_playthrough_pacing_report()
 	get_tree().paused = true
 	await get_tree().process_frame
@@ -289,7 +295,30 @@ func _ready() -> void:
 	if not _require(not player._locks.has("note"), "closing the final clue retained its input lock"): return
 	var room_manifestation := director._horror.get_node_or_null("RoomEntityManifestation") as Node3D
 	var room_sequence := director._horror.get_node_or_null("RoomEntityRevealScare") as HorrorScareSequence
-	if not _require(room_manifestation != null and room_manifestation.has_node("EyeLeft") and not _contains_collision_object(room_manifestation), "pre-chase Room 407 manifestation is missing or physical"): return
+	var room_eye_left: MeshInstance3D = room_manifestation.get_node_or_null("EyeLeft") as MeshInstance3D if room_manifestation != null else null
+	var room_eye_right: MeshInstance3D = room_manifestation.get_node_or_null("EyeRight") as MeshInstance3D if room_manifestation != null else null
+	var room_eye_material: StandardMaterial3D = room_eye_left.material_override as StandardMaterial3D if room_eye_left != null else null
+	var room_eye_right_material: StandardMaterial3D = room_eye_right.material_override as StandardMaterial3D if room_eye_right != null else null
+	if not _require(
+		room_manifestation != null
+		and room_eye_left != null
+		and room_eye_right != null
+		and room_eye_material != null
+		and room_eye_right_material != null
+		and room_eye_material.emission_enabled
+		and room_eye_right_material.emission_enabled
+		and room_eye_material.emission_energy_multiplier >= HorrorApparitionFactory.EYE_EMISSION_ENERGY - 0.01
+		and room_eye_right_material.emission_energy_multiplier >= HorrorApparitionFactory.EYE_EMISSION_ENERGY - 0.01
+		and not _contains_collision_object(room_manifestation),
+		"pre-chase Room 407 manifestation is missing readable eyes or is physical (room=%s left=%s right=%s left_energy=%s right_energy=%s collision=%s)" % [
+			room_manifestation != null,
+			room_eye_left != null,
+			room_eye_right != null,
+			room_eye_material.emission_energy_multiplier if room_eye_material != null else -1.0,
+			room_eye_right_material.emission_energy_multiplier if room_eye_right_material != null else -1.0,
+			_contains_collision_object(room_manifestation) if room_manifestation != null else true,
+		]
+	): return
 	if not _require(room_manifestation.global_position.distance_to(player.global_position) <= 18.0, "pre-chase manifestation spawned outside its spatial cue range"): return
 	if not _require(not room_manifestation.visible and room_sequence != null and room_sequence._owned_nodes.has(room_manifestation) and _has_spatial_cue("scare_room_wall_breath"), "Room 407 manifestation skipped ownership or its pre-reveal warning"): return
 	director._horror.trigger("room_entity_reveal")
@@ -457,6 +486,13 @@ func _contains_collision_object(parent: Node) -> bool:
 		if child is CollisionObject3D or _contains_collision_object(child):
 			return true
 	return false
+
+func _has_textured_mesh(parent: Node, child_name: String) -> bool:
+	var mesh_instance := parent.get_node_or_null(child_name) as MeshInstance3D
+	if mesh_instance == null or not mesh_instance.mesh is QuadMesh:
+		return false
+	var material := mesh_instance.material_override as StandardMaterial3D
+	return material != null and material.albedo_texture != null
 
 func _has_spatial_cue(cue_id: String) -> bool:
 	return AudioManager._spatial_player_ids.values().has(cue_id)

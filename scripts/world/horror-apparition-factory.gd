@@ -1,6 +1,8 @@
 class_name HorrorApparitionFactory
 extends RefCounted
 
+const EYE_EMISSION_ENERGY := 1.8
+
 static func spawn(
 	parent: Node3D,
 	position: Vector3,
@@ -53,7 +55,7 @@ static func _add_eye(parent: Node3D, eye_name: String, eye_position: Vector3) ->
 	eye_material.albedo_color = Color(0.68, 0.018, 0.012)
 	eye_material.emission_enabled = true
 	eye_material.emission = Color(0.82, 0.012, 0.006)
-	eye_material.emission_energy_multiplier = 1.8
+	eye_material.emission_energy_multiplier = EYE_EMISSION_ENERGY
 	eye_material.roughness = 0.32
 	eye.material_override = eye_material
 	parent.add_child(eye)
