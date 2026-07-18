@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+#### Physical playthrough evidence capture — 2026-07-18
+
+- Credits now overwrite one last-run `user://playthrough_pacing_last.txt` line with the same `PLAYTHROUGH_PACING:` payload so Editor F5 (separate game process) no longer drops evidence when the host `--log-file` only covers the editor.
+- `tests/run-physical-playthrough.ps1` defaults to `ProjectRun` (game-bound log), harvests the side-channel into the evidence folder, and warns when `EditorF5` is used.
+- Progression suite asserts the side-channel matches the finalized pacing report.
+
 ### Added
 
 #### Public-repo professionalism — 2026-07-18

@@ -2,7 +2,9 @@
 param(
     [string]$Godot = "D:\Tools\Godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe",
     [ValidateSet("EditorF5", "ProjectRun")]
-    [string]$LaunchMode = "EditorF5",
+    # ProjectRun binds --log-file to the game process. EditorF5 only logs the
+    # editor host; F5 spawns a separate game process whose prints are not captured.
+    [string]$LaunchMode = "ProjectRun",
     [string]$CaptureReference = "",
     [switch]$ConfirmPhysicalInput,
     [string]$AnalyzeLog = "",
@@ -13,6 +15,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $pacingPrefix = "PLAYTHROUGH_PACING: "
+$pacingSideChannelRelative = "playthrough_pacing_last.txt"
 $expectedBoundaryOrder = @(
     "lobby",
     "floor4_dark",
@@ -36,6 +39,55 @@ function Get-FreeGiB([string]$DriveName) {
         return $null
     }
     return [math]::Round($drive.Free / 1GB, 2)
+}
+
+function Get-GodotAppUserDataRoots {
+    $roots = New-Object System.Collections.Generic.List[string]
+    $appDataGodot = Join-Path $env:APPDATA "Godot\app_userdata"
+    if (-not (Test-Path -LiteralPath $appDataGodot)) {
+        return @()
+    }
+    # Godot normalizes project config/name for the userdata folder (":" -> "-").
+    $candidates = @(
+        "ROOM 407: THE LAST SHIFT",
+        "ROOM 407- THE LAST SHIFT"
+    )
+    foreach ($name in $candidates) {
+        $path = Join-Path $appDataGodot $name
+        if (Test-Path -LiteralPath $path) {
+            [void]$roots.Add((Resolve-Path -LiteralPath $path).Path)
+        }
+    }
+    Get-ChildItem -LiteralPath $appDataGodot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like "*ROOM 407*" } |
+        ForEach-Object {
+            $resolved = (Resolve-Path -LiteralPath $_.FullName).Path
+            if (-not $roots.Contains($resolved)) {
+                [void]$roots.Add($resolved)
+            }
+        }
+    return @($roots)
+}
+
+function Copy-PacingEvidenceSideChannels([string]$DestinationDirectory) {
+    $copied = New-Object System.Collections.Generic.List[string]
+    $index = 0
+    foreach ($root in Get-GodotAppUserDataRoots) {
+        $source = Join-Path $root $pacingSideChannelRelative
+        if (-not (Test-Path -LiteralPath $source)) {
+            continue
+        }
+        $destName = if ($index -eq 0) {
+            $pacingSideChannelRelative
+        } else {
+            "playthrough_pacing_last-$index.txt"
+        }
+        $destination = Join-Path $DestinationDirectory $destName
+        Copy-Item -LiteralPath $source -Destination $destination -Force
+        [void]$copied.Add($destination)
+        $index += 1
+    }
+    return @($copied)
 }
 
 function Get-UniquePacingPayload([string[]]$LogPaths) {
@@ -200,6 +252,7 @@ if ($launchPerformed) {
     if ($LaunchMode -eq "EditorF5") {
         $arguments = @("--editor") + $arguments
         Write-Host "Godot Editor will open. Press F5, choose START SHIFT (not Continue), play to visible credits, then close the game and editor."
+        Write-Warning "EditorF5 does not attach --log-file to the F5 game process. Payload harvest relies on user://playthrough_pacing_last.txt after credits. Prefer -LaunchMode ProjectRun for direct game logging."
     } else {
         Write-Host "The configured main scene will open directly. Choose START SHIFT (not Continue), play to visible credits, then quit."
     }
@@ -214,6 +267,15 @@ if ($launchPerformed) {
     } finally {
         $ErrorActionPreference = $previousPreference
         Pop-Location
+    }
+
+    # Harvest last-run side-channel even when editor/game processes split.
+    $sideChannels = @(Copy-PacingEvidenceSideChannels $evidenceDirectory)
+    if ($sideChannels.Count -gt 0) {
+        $sourceLogs += $sideChannels
+        Write-Host "HARVESTED_PACING_SIDE_CHANNEL_COUNT=$($sideChannels.Count)"
+    } else {
+        Write-Host "HARVESTED_PACING_SIDE_CHANNEL_COUNT=0"
     }
 } else {
     $analyzeLogPath = $AnalyzeLog

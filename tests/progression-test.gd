@@ -496,7 +496,27 @@ func _verify_complete_pacing_report(director: Node) -> bool:
 	if not _require(bool(fresh_report["eligible_full_run"]), "pacing facade leaked top-level report mutations"): return false
 	if not _require((fresh_report["target_seconds"] as Dictionary)["total"] == [900.0, 1200.0], "pacing facade leaked nested report mutations"): return false
 	if not _require(float(report.get("paused_seconds", 0.0)) > 0.0, "pacing report lost the deliberate pause interval"): return false
-	return _require(float(report.get("active_gameplay_seconds", -1.0)) >= 0.0 and float(report.get("wall_clock_seconds", -1.0)) >= float(report.get("active_gameplay_seconds", -1.0)), "pacing totals were invalid")
+	if not _require(
+		float(report.get("active_gameplay_seconds", -1.0)) >= 0.0
+		and float(report.get("wall_clock_seconds", -1.0)) >= float(report.get("active_gameplay_seconds", -1.0)),
+		"pacing totals were invalid"
+	):
+		return false
+	if not FileAccess.file_exists(PlaythroughPacingTelemetry.EVIDENCE_SIDE_CHANNEL_PATH):
+		return _require(false, "credits did not write the playthrough pacing evidence side-channel")
+	var side_channel := FileAccess.open(
+		PlaythroughPacingTelemetry.EVIDENCE_SIDE_CHANNEL_PATH,
+		FileAccess.READ
+	)
+	if side_channel == null:
+		return _require(false, "playthrough pacing evidence side-channel could not be read")
+	var side_channel_line := side_channel.get_as_text().strip_edges()
+	side_channel.close()
+	var expected_line := PlaythroughPacingTelemetry.LOG_PREFIX + JSON.stringify(report)
+	return _require(
+		side_channel_line == expected_line,
+		"playthrough pacing evidence side-channel did not match the finalized report"
+	)
 
 func _count_named_children(parent: Node, child_name: String) -> int:
 	var count := 0

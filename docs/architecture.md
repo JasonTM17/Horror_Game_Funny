@@ -140,7 +140,7 @@ The telemetry node keeps inherited pause behavior. Its normal `_process()` accum
 
 `GameplayDirector.get_playthrough_pacing_report()` returns a recursive duplicate, so callers cannot change the live report or nested targets. Visible-credits finalization disconnects the stage signal and makes the current instance immutable through duplicate ending calls and replay/menu reset signals; changing scenes frees that instance, and a new gameplay scene creates a new one.
 
-Finalization prints exactly one runtime line prefixed `PLAYTHROUGH_PACING: ` followed by JSON. There is no report file, autoload persistence, or UI. A runner artifact can show two identical lines because `run-headless-tests.ps1` concatenates the engine log and captured console output, not because the runtime emitted twice.
+Finalization prints exactly one runtime line prefixed `PLAYTHROUGH_PACING: ` followed by JSON. There is no UI and no autoload persistence of pacing state. The same line is also overwritten to `user://playthrough_pacing_last.txt` as a last-run evidence side-channel so the physical playthrough harness can harvest a payload when Editor F5 runs the game in a separate process that is not attached to the host `--log-file`. Gameplay never reads that file. A runner artifact can show two identical lines because `run-headless-tests.ps1` concatenates the engine log and captured console output, not because the runtime emitted twice.
 
 ## Hidden Hallway Transitions
 

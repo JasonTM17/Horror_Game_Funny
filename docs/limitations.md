@@ -37,7 +37,7 @@
 
 Runtime pacing telemetry is implemented, but no dated physical F5 run currently proves the pacing target. Required evidence is a fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload; compressed automation and checkpoint-start reports are not substitutes.
 
-`tests/run-physical-playthrough.ps1` can preserve same-session logs, bind them to one unchanged clean branch/commit, reject mixed, faulty, or out-of-target payloads, and record a tester-supplied capture reference. It cannot inspect that recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary are an evidence package for human review, not automatic proof of the physical gate.
+`tests/run-physical-playthrough.ps1` can preserve same-session logs, harvest the last-run `user://playthrough_pacing_last.txt` side-channel, bind them to one unchanged clean branch/commit, reject mixed, faulty, or out-of-target payloads, and record a tester-supplied capture reference. Default `ProjectRun` attaches `--log-file` to the game process; `EditorF5` only logs the editor host and relies on that side-channel after credits. The runner cannot inspect the recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary are an evidence package for human review, not automatic proof of the physical gate.
 
 The following are targets or implemented features, not manually verified release claims:
 

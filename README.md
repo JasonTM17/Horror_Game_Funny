@@ -160,20 +160,20 @@ Start a fresh shift with **F5**, not Continue, and complete it with physical key
 PLAYTHROUGH_PACING: {JSON payload}
 ```
 
-Keep that exact payload with the same-run boot-to-credits capture. The game does not save the report to a file or show it in the UI. A headless runner artifact can contain two identical lines because it concatenates the engine log and captured console output; the runtime still emitted once. Even an eligible, complete, in-target payload is instrumentation, not proof of physical traversal, capture behavior, chase feel, presentation, audio, or Settings behavior.
+Keep that exact payload with the same-run boot-to-credits capture. The runtime also overwrites one last-run evidence line to `user://playthrough_pacing_last.txt` so the physical harness can harvest a payload when process logs miss it. There is no UI for the report. A headless runner artifact can contain two identical lines because it concatenates the engine log and captured console output; the runtime still emitted once. Even an eligible, complete, in-target payload is instrumentation, not proof of physical traversal, capture behavior, chase feel, presentation, audio, or Settings behavior.
 
 ### Record the physical run
 
-The repository includes a separate evidence runner. It opens the editor by default; press **F5** yourself, choose **START SHIFT** rather than Continue, play to visible credits, then close the game and editor:
+The repository includes a separate evidence runner. Default `ProjectRun` launches the main scene with `--log-file` on the game process. Choose **START SHIFT** (not Continue), play to visible credits with keyboard/mouse, keep a same-run capture, then quit:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-physical-playthrough.ps1 `
-  -LaunchMode EditorF5 `
+  -LaunchMode ProjectRun `
   -ConfirmPhysicalInput `
   -CaptureReference "D:\Captures\room407-full-run.mp4"
 ```
 
-Raw engine/console logs plus `summary.json` and `summary.md` are written below `.artifacts/manual-playthrough/<timestamp>/`. The command marks the evidence package ready only when the repository stays clean on one unchanged branch/commit, the launched process exits normally, logs contain no engine/script/parse/leak failure, one unique same-run payload is eligible, complete, exact-order-valid, 900–1200 seconds active, within every chapter target, paired with the physical-input confirmation, and paired with a non-empty capture reference. Use `-LaunchMode ProjectRun` to launch the configured main scene directly. `-AnalyzeLog <path>` can inspect an existing log but can never make an evidence package ready.
+Use `-LaunchMode EditorF5` only when you need the editor; that mode does not attach `--log-file` to the F5 game process, so harvest depends on the `user://playthrough_pacing_last.txt` side-channel after credits. Raw engine/console logs, any harvested side-channel copy, plus `summary.json` and `summary.md` are written below `.artifacts/manual-playthrough/<timestamp>/`. The command marks the evidence package ready only when the repository stays clean on one unchanged branch/commit, the launched process exits normally, logs contain no engine/script/parse/leak failure, one unique same-run payload is eligible, complete, exact-order-valid, 900–1200 seconds active, within every chapter target, paired with the physical-input confirmation, and paired with a non-empty capture reference. `-AnalyzeLog <path>` can inspect an existing log but can never make an evidence package ready.
 
 The generated Markdown includes an unchecked human-review matrix. The capture path is a reference, not automated video verification. A reviewer must still watch the recording, complete that matrix, and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before closing the release gate.
 

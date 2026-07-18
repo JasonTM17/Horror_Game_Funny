@@ -2,6 +2,9 @@ class_name PlaythroughPacingTelemetry
 extends Node
 
 const LOG_PREFIX := "PLAYTHROUGH_PACING: "
+## Last-run evidence side-channel for physical playthrough harvest.
+## Overwrites one line only; not gameplay state and not a second telemetry API.
+const EVIDENCE_SIDE_CHANNEL_PATH := "user://playthrough_pacing_last.txt"
 const BOUNDARY_ORDER: Array[String] = [
 	"lobby",
 	"floor4_dark",
@@ -80,7 +83,19 @@ func record_credits() -> void:
 	_record_boundary("credits")
 	_report_emitted = true
 	_disconnect_stage_signal()
-	print(LOG_PREFIX + JSON.stringify(get_report()))
+	var line := LOG_PREFIX + JSON.stringify(get_report())
+	print(line)
+	_write_evidence_side_channel(line)
+
+func _write_evidence_side_channel(line: String) -> void:
+	var file := FileAccess.open(EVIDENCE_SIDE_CHANNEL_PATH, FileAccess.WRITE)
+	if file == null:
+		push_warning(
+			"playthrough pacing evidence side-channel write failed: %s" % FileAccess.get_open_error()
+		)
+		return
+	file.store_string(line + "\n")
+	file.close()
 
 func get_report() -> Dictionary:
 	var missing_milestones: Array[String] = []
