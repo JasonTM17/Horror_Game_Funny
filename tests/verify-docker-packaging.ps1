@@ -80,9 +80,48 @@ $checks = @(
     "checkpoint-layout", "physical-route", "player-input", "visual-effects",
     "settings-audio", "settings-persistence-write", "settings-persistence-read"
 )
-foreach ($check in $checks) {
-    Require-Grep "tests/run-headless-tests.sh" "\`"$check\`"" "shell check $check"
-    Require-Grep "tests/run-headless-tests.ps1" "\`"$check\`"" "ps1 check $check"
+$shellRunnerText = Get-Content -LiteralPath (Join-Path $root "tests/run-headless-tests.sh") -Raw
+$allShellMatches = [regex]::Matches($shellRunnerText, '(?m)^[\t ]*run_check(?:[\t ]|$)')
+$shellMatches = [regex]::Matches($shellRunnerText, '(?m)^[\t ]*run_check[\t ]+"(?<name>[^"]+)"')
+$shellChecks = @($shellMatches | ForEach-Object { $_.Groups['name'].Value })
+if ($allShellMatches.Count -ne $shellMatches.Count -or [string]::Join('|', $shellChecks) -cne [string]::Join('|', $checks)) {
+    Write-Warning "FAIL shell runner active check sequence/count must be exactly the canonical twelve"
+    $fail = 1
+} else {
+    Write-Host "OK shell runner exact check sequence/count"
+}
+
+$runnerTokens = $null
+$runnerParseErrors = $null
+$runnerAst = [System.Management.Automation.Language.Parser]::ParseFile(
+    (Join-Path $root "tests/run-headless-tests.ps1"),
+    [ref]$runnerTokens,
+    [ref]$runnerParseErrors
+)
+if ($runnerParseErrors.Count -gt 0) {
+    Write-Warning "FAIL PowerShell runner does not parse"
+    $fail = 1
+} else {
+    $runnerCommands = @($runnerAst.FindAll({
+        param($node)
+        $node -is [System.Management.Automation.Language.CommandAst] -and
+            $node.GetCommandName() -eq "Invoke-GodotCheck"
+    }, $true))
+    $psChecks = @()
+    $runnerShapeValid = $true
+    foreach ($command in $runnerCommands) {
+        if ($command.CommandElements.Count -lt 3 -or $command.CommandElements[2] -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) {
+            $runnerShapeValid = $false
+            break
+        }
+        $psChecks += $command.CommandElements[2].Value
+    }
+    if (-not $runnerShapeValid -or [string]::Join('|', $psChecks) -cne [string]::Join('|', $checks)) {
+        Write-Warning "FAIL PowerShell runner active check sequence/count must be exactly the canonical twelve"
+        $fail = 1
+    } else {
+        Write-Host "OK PowerShell runner exact check sequence/count"
+    }
 }
 
 if ($fail -ne 0) {

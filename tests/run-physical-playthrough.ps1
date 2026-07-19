@@ -8,7 +8,11 @@ param(
     [string]$CaptureReference = "",
     [switch]$ConfirmPhysicalInput,
     [string]$AnalyzeLog = "",
-    [string]$EvidenceRoot = ""
+    [string]$EvidenceRoot = "",
+    [ValidateRange(60, 14400)]
+    [int]$LaunchTimeoutSeconds = 7200,
+    [ValidateRange(1048576, 67108864)]
+    [int64]$MaxCombinedOutputBytes = 16777216
 )
 
 Set-StrictMode -Version Latest
@@ -33,8 +37,16 @@ $expectedChapterTargets = [ordered]@{
     room407 = @(180.0, 240.0)
     chase_ending = @(120.0, 180.0)
 }
+$expectedChapterBoundaries = [ordered]@{
+    opening = @("lobby", "floor4_dark")
+    floor4 = @("floor4_dark", "memory_loop")
+    memory_loop = @("memory_loop", "room_407")
+    room407 = @("room_407", "chase")
+    chase_ending = @("chase", "credits")
+}
 $maxPacingSideChannelBytes = [int64](1MB)
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+$physicalJobRunnerSource = Join-Path $PSScriptRoot "windows-export-job-runner.cs"
 $artifactRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot ".artifacts")).TrimEnd("\")
 if (-not $EvidenceRoot) {
     $EvidenceRoot = Join-Path $repositoryRoot ".artifacts\manual-playthrough"
@@ -45,6 +57,14 @@ $EvidenceRoot = [System.IO.Path]::GetFullPath($EvidenceRoot).TrimEnd("\")
 $artifactPrefix = $artifactRoot + [System.IO.Path]::DirectorySeparatorChar
 if ($EvidenceRoot -ne $artifactRoot -and -not $EvidenceRoot.StartsWith($artifactPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "EvidenceRoot must stay below the repository .artifacts directory: $EvidenceRoot"
+}
+
+function Assert-ContainedArtifactPath([string]$Path, [string]$Label) {
+    $fullPath = [System.IO.Path]::GetFullPath($Path).TrimEnd("\")
+    if ($fullPath -ne $artifactRoot -and -not $fullPath.StartsWith($artifactPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "$Label must stay below the repository .artifacts directory: $fullPath"
+    }
+    return $fullPath
 }
 
 function Get-FreeGiB([string]$DriveName) {
@@ -94,6 +114,42 @@ function Assert-NoReparsePointAncestors([string]$Path, [string]$Label, [switch]$
     return $fullPath
 }
 
+function Assert-SafeEvidenceDestinationPath(
+    [string]$TrustedRoot,
+    [string]$TargetPath,
+    [string]$Label
+) {
+    $trustedFull = [System.IO.Path]::GetFullPath($TrustedRoot).TrimEnd("\")
+    $targetFull = [System.IO.Path]::GetFullPath($TargetPath).TrimEnd("\")
+    $trustedPrefix = $trustedFull + [System.IO.Path]::DirectorySeparatorChar
+    if ($targetFull -ne $trustedFull -and -not $targetFull.StartsWith($trustedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "$Label escaped its trusted evidence root: $targetFull"
+    }
+    if (-not (Test-Path -LiteralPath $trustedFull -PathType Container)) {
+        throw "$Label trusted evidence root is not a directory: $trustedFull"
+    }
+    [void](Assert-NoReparsePointAncestors $trustedFull "$Label trusted root")
+    [void](Assert-NoReparsePointAncestors $targetFull $Label -AllowMissing)
+    return $targetFull
+}
+
+function Remove-SafeEvidenceFile(
+    [string]$TrustedRoot,
+    [string]$TargetPath,
+    [string]$Label
+) {
+    $targetFull = Assert-SafeEvidenceDestinationPath $TrustedRoot $TargetPath $Label
+    if (-not (Test-Path -LiteralPath $targetFull)) {
+        return
+    }
+    $targetItem = Get-Item -LiteralPath $targetFull -Force -ErrorAction Stop
+    if ($targetItem.PSIsContainer -or
+        ($targetItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "$Label is not a regular evidence file: $targetFull"
+    }
+    Remove-Item -LiteralPath $targetFull -Force -ErrorAction Stop
+}
+
 function Initialize-RegularEvidenceDirectory([string]$TrustedRoot, [string]$TargetPath, [string]$Label) {
     $trustedFull = [System.IO.Path]::GetFullPath($TrustedRoot).TrimEnd("\")
     $targetFull = [System.IO.Path]::GetFullPath($TargetPath).TrimEnd("\")
@@ -134,7 +190,9 @@ function Initialize-RegularEvidenceDirectory([string]$TrustedRoot, [string]$Targ
 }
 
 function Get-GodotAppUserDataRoots {
-    $roots = New-Object System.Collections.Generic.List[string]
+    $roots = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
     if ([string]::IsNullOrWhiteSpace($env:APPDATA)) {
         throw "APPDATA is required to locate Godot evidence side-channels."
     }
@@ -143,16 +201,19 @@ function Get-GodotAppUserDataRoots {
         return @()
     }
     [void](Assert-RegularEvidenceDirectory $appDataRoot "APPDATA")
+    [void](Assert-NoReparsePointAncestors $appDataRoot "APPDATA ancestors")
     $godotDirectory = Join-Path $appDataRoot "Godot"
     if (-not (Test-Path -LiteralPath $godotDirectory -PathType Container)) {
         return @()
     }
     [void](Assert-RegularEvidenceDirectory $godotDirectory "APPDATA/Godot")
+    [void](Assert-NoReparsePointAncestors $godotDirectory "APPDATA/Godot ancestors")
     $appDataGodot = Join-Path $godotDirectory "app_userdata"
     if (-not (Test-Path -LiteralPath $appDataGodot)) {
         return @()
     }
     [void](Assert-RegularEvidenceDirectory $appDataGodot "APPDATA/Godot/app_userdata")
+    [void](Assert-NoReparsePointAncestors $appDataGodot "APPDATA/Godot/app_userdata ancestors")
     # Godot normalizes project config/name for the userdata folder (":" -> "-").
     $candidates = @(
         "ROOM 407: THE LAST SHIFT",
@@ -162,6 +223,7 @@ function Get-GodotAppUserDataRoots {
         $path = Join-Path $appDataGodot $name
         if (Test-Path -LiteralPath $path) {
             [void](Assert-RegularEvidenceDirectory $path "Godot project candidate")
+            [void](Assert-NoReparsePointAncestors $path "Godot project candidate ancestors")
             [void]$roots.Add([System.IO.Path]::GetFullPath($path))
         }
     }
@@ -169,6 +231,7 @@ function Get-GodotAppUserDataRoots {
         Where-Object { $_.Name -like "*ROOM 407*" } |
         ForEach-Object {
             [void](Assert-RegularEvidenceDirectory $_.FullName "Godot project candidate")
+            [void](Assert-NoReparsePointAncestors $_.FullName "Godot project candidate ancestors")
             $candidatePath = [System.IO.Path]::GetFullPath($_.FullName)
             if (-not $roots.Contains($candidatePath)) {
                 [void]$roots.Add($candidatePath)
@@ -237,12 +300,23 @@ function Copy-PacingEvidenceSnapshot(
     [string]$SourcePath,
     [string]$RootPath,
     [string]$DestinationPath,
-    [scriptblock]$TestSnapshotHook = $null
+    [scriptblock]$TestSnapshotHook = $null,
+    [string]$DestinationTrustedRoot = ""
 ) {
     $preIdentity = $null
     $postIdentity = $null
     $snapshotHash = $null
     $snapshotSize = [int64]0
+    $destinationCreated = $false
+    $snapshotAccepted = $false
+    if ([string]::IsNullOrWhiteSpace($DestinationTrustedRoot)) {
+        $DestinationTrustedRoot = Split-Path -Parent ([System.IO.Path]::GetFullPath($DestinationPath))
+    }
+    try {
+        $DestinationPath = Assert-SafeEvidenceDestinationPath $DestinationTrustedRoot $DestinationPath "Pacing evidence snapshot destination"
+    } catch {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $true; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("destination_root_not_regular_or_reparse", $_.Exception.Message)) }
+    }
     try {
         [void](Assert-RegularEvidenceDirectory $RootPath "Godot project candidate")
     } catch {
@@ -258,16 +332,16 @@ function Copy-PacingEvidenceSnapshot(
     }
 
     try {
-        if ($null -ne $TestSnapshotHook) {
-            & $TestSnapshotHook $SourcePath "after_pre_identity"
-        }
-        $sourceStream = New-Object System.IO.FileStream($SourcePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+        [void](Assert-NoReparsePointAncestors $SourcePath "Pacing evidence source before open")
+        # Open the source before invoking the deterministic test hook. The open
+        # handle is the byte snapshot; path metadata is only a supplemental
+        # identity check. Delete sharing lets the regression exercise a rename
+        # race while this handle remains bound to the original file.
+        $sourceStream = New-Object System.IO.FileStream($SourcePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, ([System.IO.FileShare]::ReadWrite -bor [System.IO.FileShare]::Delete))
     } catch {
         return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_open_failed") $preIdentity) }
     }
 
-    $destinationCreated = $false
-    $snapshotAccepted = $false
     try {
         try {
             $openedIdentity = Get-EvidenceFileIdentity $SourcePath
@@ -278,7 +352,13 @@ function Copy-PacingEvidenceSnapshot(
             return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_identity_changed_during_snapshot") $preIdentity) }
         }
 
-        $destinationStream = New-Object System.IO.FileStream($DestinationPath, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+        if ($null -ne $TestSnapshotHook) {
+            & $TestSnapshotHook $SourcePath "after_pre_identity"
+        }
+        [void](Assert-SafeEvidenceDestinationPath $DestinationTrustedRoot $DestinationPath "Pacing evidence snapshot destination before create")
+        # CreateNew prevents truncating a pre-existing leaf and avoids following
+        # a leaf that appeared between validation and creation.
+        $destinationStream = New-Object System.IO.FileStream($DestinationPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
         $destinationCreated = $true
         try {
             $hasher = [System.Security.Cryptography.SHA256]::Create()
@@ -308,12 +388,21 @@ function Copy-PacingEvidenceSnapshot(
         } catch {
             return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_not_regular_or_reparse") $preIdentity) }
         }
-        if (-not (Test-EvidenceFileIdentityEqual $preIdentity $postIdentity) -or $snapshotSize -ne [int64]$preIdentity.size_bytes) {
+        $postPathHash = $null
+        try {
+            $postPathHash = (Get-FileHash -LiteralPath $SourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        } catch {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_hash_verification_failed") $preIdentity) }
+        }
+        if (-not (Test-EvidenceFileIdentityEqual $preIdentity $postIdentity) -or
+            $snapshotSize -ne [int64]$preIdentity.size_bytes -or
+            $postPathHash -ne $snapshotHash) {
             return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_identity_changed_during_snapshot") $preIdentity) }
         }
         if ($null -ne $TestSnapshotHook) {
             & $TestSnapshotHook $SourcePath "before_destination_verification" $DestinationPath
         }
+        [void](Assert-SafeEvidenceDestinationPath $DestinationTrustedRoot $DestinationPath "Pacing evidence snapshot destination verification")
         $destinationIdentity = Get-EvidenceFileIdentity $DestinationPath
         $destinationHash = (Get-FileHash -LiteralPath $DestinationPath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($destinationIdentity.size_bytes -ne $snapshotSize -or $destinationHash -ne $snapshotHash) {
@@ -328,8 +417,20 @@ function Copy-PacingEvidenceSnapshot(
         if ($destinationCreated -and (Test-Path -LiteralPath $DestinationPath)) {
             # The caller promotes a snapshot only after all freshness checks. A rejected
             # snapshot must not remain available as a potentially misleading payload.
+            # Revalidate the full destination path before cleanup; if a component was
+            # swapped to a reparse point, leave it untouched rather than deleting by
+            # pathname outside the trusted evidence root.
             if (-not $snapshotAccepted) {
-                Remove-Item -LiteralPath $DestinationPath -Force -ErrorAction SilentlyContinue
+                try {
+                    [void](Assert-SafeEvidenceDestinationPath $DestinationTrustedRoot $DestinationPath "Pacing evidence rejected snapshot cleanup")
+                    $destinationItem = Get-Item -LiteralPath $DestinationPath -Force -ErrorAction Stop
+                    if (($destinationItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) {
+                        Remove-Item -LiteralPath $DestinationPath -Force -ErrorAction SilentlyContinue
+                    }
+                } catch {
+                    # Preserve an unsafe/replaced path for diagnosis; never follow it
+                    # during rejection cleanup.
+                }
             }
         }
     }
@@ -345,7 +446,7 @@ function Prepare-PacingEvidenceSideChannels(
     [scriptblock]$TestClearHook = $null
 ) {
     $archiveDirectory = Join-Path $DestinationDirectory "prelaunch-stale-sidechannels"
-    New-Item -ItemType Directory -Force -Path $archiveDirectory | Out-Null
+    $archiveDirectory = Initialize-RegularEvidenceDirectory $DestinationDirectory $archiveDirectory "prelaunch pacing archive directory"
     $records = New-Object System.Collections.Generic.List[object]
     $rejected = New-Object System.Collections.Generic.List[object]
     $integrityPassed = $true
@@ -358,7 +459,7 @@ function Prepare-PacingEvidenceSideChannels(
         $candidateIndex = $index
         $index += 1
         $destination = Join-Path $archiveDirectory ("playthrough_pacing_last-$candidateIndex.txt")
-        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination
+        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination $null $DestinationDirectory
         if (-not $snapshot.accepted) {
             [void]$rejected.Add($snapshot.record)
             $integrityPassed = $false
@@ -424,6 +525,8 @@ function Copy-PacingEvidenceSideChannels(
     [string[]]$BaselineHashes,
     [scriptblock]$TestSnapshotHook = $null
 ) {
+    [void](Assert-NoReparsePointAncestors $DestinationDirectory "Pacing harvest destination directory")
+    [void](Assert-RegularEvidenceDirectory $DestinationDirectory "Pacing harvest destination directory")
     $copied = New-Object System.Collections.Generic.List[object]
     $rejected = New-Object System.Collections.Generic.List[object]
     $baselineHashSet = [System.Collections.Generic.HashSet[string]]::new(
@@ -450,7 +553,7 @@ function Copy-PacingEvidenceSideChannels(
             "playthrough_pacing_last-$index.txt"
         }
         $destination = Join-Path $DestinationDirectory $destName
-        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination $TestSnapshotHook
+        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination $TestSnapshotHook $DestinationDirectory
         if (-not $snapshot.accepted) {
             [void]$rejected.Add($snapshot.record)
             # Snapshot/open/reparse/identity/copy anomalies mean the harvest was
@@ -472,7 +575,7 @@ function Copy-PacingEvidenceSideChannels(
             [void]$rejectionReasons.Add("hash_matches_prelaunch_baseline")
         }
         if ($rejectionReasons.Count -gt 0) {
-            Remove-Item -LiteralPath $destination -Force -ErrorAction SilentlyContinue
+            Remove-SafeEvidenceFile $DestinationDirectory $destination "Rejected pacing evidence cleanup"
             $record | Add-Member -NotePropertyName rejection_reasons -NotePropertyValue @($rejectionReasons)
             [void]$rejected.Add($record)
             continue
@@ -492,23 +595,183 @@ function Copy-PacingEvidenceSideChannels(
     }
 }
 
-function Get-UniquePacingPayload([string[]]$LogPaths) {
+function Assert-PacingJsonPropertyMultiplicity([string]$Json) {
+    if ($Json.Length -gt $maxPacingSideChannelBytes) {
+        throw "Pacing JSON exceeds the $maxPacingSideChannelBytes-character limit."
+    }
+
+    $expectedCounts = [System.Collections.Generic.Dictionary[string, int]]::new(
+        [System.StringComparer]::Ordinal
+    )
+    $addExpected = {
+        param([string]$Name, [int]$Count)
+        if ($expectedCounts.ContainsKey($Name)) {
+            $expectedCounts[$Name] += $Count
+        } else {
+            $expectedCounts.Add($Name, $Count)
+        }
+    }
+    foreach ($name in @(
+        "eligible_full_run", "complete", "within_target", "initial_stage",
+        "active_gameplay_seconds", "wall_clock_seconds", "paused_seconds",
+        "boundary_order", "boundary_order_valid", "missing_milestones",
+        "stage_active_seconds", "stage_wall_seconds", "chapter_active_seconds",
+        "chapter_within_target", "target_seconds"
+    )) {
+        & $addExpected $name 1
+    }
+    foreach ($name in $expectedBoundaryOrder) {
+        & $addExpected $name 2
+    }
+    foreach ($name in $expectedChapterTargets.Keys) {
+        & $addExpected $name 3
+    }
+    & $addExpected "total" 1
+
+    $actualCounts = [System.Collections.Generic.Dictionary[string, int]]::new(
+        [System.StringComparer]::Ordinal
+    )
+    for ($index = 0; $index -lt $Json.Length; $index += 1) {
+        if ($Json[$index] -ne '"') {
+            continue
+        }
+        $stringStart = $index + 1
+        $hasEscape = $false
+        $escaped = $false
+        $closed = $false
+        for ($index += 1; $index -lt $Json.Length; $index += 1) {
+            $character = $Json[$index]
+            if ($escaped) {
+                $escaped = $false
+                continue
+            }
+            if ($character -eq '\') {
+                $hasEscape = $true
+                $escaped = $true
+                continue
+            }
+            if ($character -eq '"') {
+                $closed = $true
+                break
+            }
+        }
+        if (-not $closed) {
+            throw "Pacing JSON contains an unterminated string."
+        }
+        $next = $index + 1
+        while ($next -lt $Json.Length -and [char]::IsWhiteSpace($Json[$next])) {
+            $next += 1
+        }
+        if ($next -ge $Json.Length -or $Json[$next] -ne ':') {
+            continue
+        }
+        if ($hasEscape) {
+            throw "Pacing JSON property names must use unescaped canonical ASCII keys."
+        }
+        $propertyName = $Json.Substring($stringStart, $index - $stringStart)
+        if (-not $expectedCounts.ContainsKey($propertyName)) {
+            throw "Pacing JSON contains unexpected property '$propertyName'."
+        }
+        if ($actualCounts.ContainsKey($propertyName)) {
+            $actualCounts[$propertyName] += 1
+        } else {
+            $actualCounts.Add($propertyName, 1)
+        }
+    }
+
+    foreach ($expected in $expectedCounts.GetEnumerator()) {
+        $actual = if ($actualCounts.ContainsKey($expected.Key)) { $actualCounts[$expected.Key] } else { 0 }
+        if ($actual -ne $expected.Value) {
+            throw "Pacing JSON property '$($expected.Key)' must occur exactly $($expected.Value) time(s); found $actual."
+        }
+    }
+}
+
+function Get-UniquePacingPayload([string[]]$LogPaths, [hashtable]$ExpectedHashesByPath = @{}) {
     $payloads = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::Ordinal
     )
-    foreach ($logPath in $LogPaths) {
-        if (-not (Test-Path -LiteralPath $logPath)) {
+    $normalizedExpectedHashes = [System.Collections.Generic.Dictionary[string,string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($entry in $ExpectedHashesByPath.GetEnumerator()) {
+        $expectedPath = [System.IO.Path]::GetFullPath([string]$entry.Key)
+        $expectedHash = [string]$entry.Value
+        if ($normalizedExpectedHashes.ContainsKey($expectedPath)) {
+            if ($normalizedExpectedHashes[$expectedPath] -cne $expectedHash) {
+                throw "Conflicting hashes were supplied for verified pacing side-channel: $expectedPath"
+            }
             continue
         }
-        foreach ($line in Get-Content -LiteralPath $logPath) {
-            $prefixIndex = $line.IndexOf($pacingPrefix, [System.StringComparison]::Ordinal)
-            if ($prefixIndex -lt 0) {
-                continue
+        $normalizedExpectedHashes.Add($expectedPath, $expectedHash)
+    }
+    $seenVerifiedPaths = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($logPath in $LogPaths) {
+        $fullLogPath = [System.IO.Path]::GetFullPath($logPath)
+        $isVerifiedSideChannel = $normalizedExpectedHashes.ContainsKey($fullLogPath)
+        if (-not (Test-Path -LiteralPath $logPath)) {
+            if ($isVerifiedSideChannel) {
+                throw "Verified pacing side-channel is missing: $fullLogPath"
             }
-            $json = $line.Substring($prefixIndex + $pacingPrefix.Length).Trim()
-            if ($json.StartsWith("{", [System.StringComparison]::Ordinal)) {
-                [void]$payloads.Add($json)
+            continue
+        }
+        [void](Assert-NoReparsePointAncestors $fullLogPath "Pacing source log")
+        [void](Assert-RegularEvidenceFile $fullLogPath)
+        $stream = New-Object System.IO.FileStream($fullLogPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+        $pathPayloadCount = 0
+        try {
+            if ($isVerifiedSideChannel) {
+                [void]$seenVerifiedPaths.Add($fullLogPath)
+                if ($stream.Length -gt $maxPacingSideChannelBytes) {
+                    throw "Verified pacing side-channel exceeds the size limit: $fullLogPath"
+                }
+                $hasher = [System.Security.Cryptography.SHA256]::Create()
+                try {
+                    $actualHash = ([System.BitConverter]::ToString($hasher.ComputeHash($stream))).Replace("-", "").ToLowerInvariant()
+                } finally {
+                    $hasher.Dispose()
+                }
+                if ($actualHash -ne $normalizedExpectedHashes[$fullLogPath]) {
+                    throw "Verified pacing side-channel changed before parsing: $fullLogPath"
+                }
+                $stream.Position = 0
             }
+            $reader = New-Object System.IO.StreamReader(
+                $stream,
+                [System.Text.UTF8Encoding]::new($false, $true),
+                $true,
+                4096,
+                $true
+            )
+            try {
+                while (-not $reader.EndOfStream) {
+                    $line = $reader.ReadLine()
+                    $trimmedLine = $line.TrimStart()
+                    if (-not $trimmedLine.StartsWith($pacingPrefix, [System.StringComparison]::Ordinal)) {
+                        continue
+                    }
+                    $json = $trimmedLine.Substring($pacingPrefix.Length).Trim()
+                    if ($json.StartsWith("{", [System.StringComparison]::Ordinal)) {
+                        Assert-PacingJsonPropertyMultiplicity $json
+                        $pathPayloadCount += 1
+                        [void]$payloads.Add($json)
+                    }
+                }
+            } finally {
+                $reader.Dispose()
+            }
+        } finally {
+            $stream.Dispose()
+        }
+        if ($isVerifiedSideChannel -and $pathPayloadCount -ne 1) {
+            throw "Verified pacing side-channel must contain exactly one PLAYTHROUGH_PACING payload; found $pathPayloadCount`: $fullLogPath"
+        }
+    }
+    foreach ($expectedPath in $normalizedExpectedHashes.Keys) {
+        if (-not $seenVerifiedPaths.Contains($expectedPath)) {
+            throw "Verified pacing side-channel was not supplied as a source log: $expectedPath"
         }
     }
     if ($payloads.Count -eq 0) {
@@ -566,13 +829,25 @@ function Get-PacingVerdict([object]$Payload) {
         if ($null -eq $Object) {
             throw "Pacing payload is missing object '$Context'."
         }
-        $actualNames = @($Object.PSObject.Properties.Name)
-        $missing = @($ExpectedNames | Where-Object { $actualNames -notcontains $_ })
-        $unexpected = @($actualNames | Where-Object { $ExpectedNames -notcontains $_ })
+        $actualNames = @($Object.PSObject.Properties | ForEach-Object { $_.Name })
+        $expectedSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $actualSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($expectedName in $ExpectedNames) { [void]$expectedSet.Add($expectedName) }
+        foreach ($actualName in $actualNames) { [void]$actualSet.Add($actualName) }
+        $missing = @($ExpectedNames | Where-Object { -not $actualSet.Contains($_) })
+        $unexpected = @($actualNames | Where-Object { -not $expectedSet.Contains($_) })
         if ($missing.Count -gt 0 -or $unexpected.Count -gt 0) {
             throw "Pacing payload object '$Context' must contain exactly: $([string]::Join(', ', $ExpectedNames))."
         }
     }
+
+    & $requireExactKeys $Payload @(
+        "eligible_full_run", "complete", "within_target", "initial_stage",
+        "active_gameplay_seconds", "wall_clock_seconds", "paused_seconds",
+        "boundary_order", "boundary_order_valid", "missing_milestones",
+        "stage_active_seconds", "stage_wall_seconds", "chapter_active_seconds",
+        "chapter_within_target", "target_seconds"
+    ) "payload"
 
     $eligibleFullRun = & $requireBoolean ((& $requireProperty $Payload "eligible_full_run" "payload").Value) "eligible_full_run"
     $complete = & $requireBoolean ((& $requireProperty $Payload "complete" "payload").Value) "complete"
@@ -592,12 +867,15 @@ function Get-PacingVerdict([object]$Payload) {
     $missingMilestonesValue = (& $requireProperty $Payload "missing_milestones" "payload").Value
     & $requireArray $missingMilestonesValue "missing_milestones"
     $missingMilestones = @($missingMilestonesValue)
+    if (@($missingMilestones | Where-Object { $_ -isnot [string] }).Count -gt 0) {
+        throw "Pacing payload field 'missing_milestones' must contain only strings."
+    }
 
     $targetSeconds = (& $requireProperty $Payload "target_seconds" "payload").Value
     $chapterNames = @($expectedChapterTargets.Keys)
     $targetNames = @($chapterNames + "total")
     & $requireExactKeys $targetSeconds $targetNames "target_seconds"
-    $targetMetadataMatches = $true
+    $chapterTargetMetadataMatches = $true
     foreach ($chapter in $chapterNames) {
         $targetValue = (& $requireProperty $targetSeconds $chapter "target_seconds").Value
         & $requireArray $targetValue "target_seconds.$chapter"
@@ -609,7 +887,7 @@ function Get-PacingVerdict([object]$Payload) {
         $actualMaximum = & $requireNumber $actualTarget[1] "target_seconds.$chapter[1]"
         $expectedTarget = @($expectedChapterTargets[$chapter])
         if ($actualMinimum -ne [double]$expectedTarget[0] -or $actualMaximum -ne [double]$expectedTarget[1]) {
-            $targetMetadataMatches = $false
+            $chapterTargetMetadataMatches = $false
         }
     }
     $targetTotalValue = (& $requireProperty $targetSeconds "total" "target_seconds").Value
@@ -620,8 +898,28 @@ function Get-PacingVerdict([object]$Payload) {
     }
     $targetTotalMinimum = & $requireNumber $targetTotal[0] "target_seconds.total[0]"
     $targetTotalMaximum = & $requireNumber $targetTotal[1] "target_seconds.total[1]"
-    if ($targetTotalMinimum -ne 900.0 -or $targetTotalMaximum -ne 1200.0) {
-        $targetMetadataMatches = $false
+    $totalTargetMetadataMatches = $targetTotalMinimum -eq 900.0 -and $targetTotalMaximum -eq 1200.0
+
+    $stageActiveObject = (& $requireProperty $Payload "stage_active_seconds" "payload").Value
+    $stageWallObject = (& $requireProperty $Payload "stage_wall_seconds" "payload").Value
+    $stageNames = @($expectedBoundaryOrder)
+    & $requireExactKeys $stageActiveObject $stageNames "stage_active_seconds"
+    & $requireExactKeys $stageWallObject $stageNames "stage_wall_seconds"
+    $stageActiveValues = @{}
+    $stageWallValues = @{}
+    $stageFieldsSane = $true
+    $previousActive = -1.0
+    $previousWall = -1.0
+    foreach ($stage in $stageNames) {
+        $stageActive = & $requireNumber ((& $requireProperty $stageActiveObject $stage "stage_active_seconds").Value) "stage_active_seconds.$stage"
+        $stageWall = & $requireNumber ((& $requireProperty $stageWallObject $stage "stage_wall_seconds").Value) "stage_wall_seconds.$stage"
+        $stageActiveValues[$stage] = $stageActive
+        $stageWallValues[$stage] = $stageWall
+        if ($stageActive -lt $previousActive -or $stageWall -lt $previousWall -or $stageWall -lt $stageActive) {
+            $stageFieldsSane = $false
+        }
+        $previousActive = $stageActive
+        $previousWall = $stageWall
     }
 
     $chapterSeconds = (& $requireProperty $Payload "chapter_active_seconds" "payload").Value
@@ -630,6 +928,7 @@ function Get-PacingVerdict([object]$Payload) {
     & $requireExactKeys $chapterVerdicts $chapterNames "chapter_within_target"
     $chapterDurationsInTarget = $true
     $chapterVerdictsRecomputed = $true
+    $chapterDurationsConsistent = $true
     $reportedChaptersInTarget = $true
     $chapterDurationTotal = 0.0
     foreach ($chapter in $chapterNames) {
@@ -637,6 +936,11 @@ function Get-PacingVerdict([object]$Payload) {
         $reportedVerdict = & $requireBoolean ((& $requireProperty $chapterVerdicts $chapter "chapter_within_target").Value) "chapter_within_target.$chapter"
         $expectedTarget = @($expectedChapterTargets[$chapter])
         $computedVerdict = $duration -ge [double]$expectedTarget[0] -and $duration -le [double]$expectedTarget[1]
+        $chapterBoundaries = @($expectedChapterBoundaries[$chapter])
+        $stageDuration = $stageActiveValues[$chapterBoundaries[1]] - $stageActiveValues[$chapterBoundaries[0]]
+        if ([math]::Abs($stageDuration - $duration) -gt 0.02) {
+            $chapterDurationsConsistent = $false
+        }
         $chapterDurationTotal += $duration
         if (-not $computedVerdict) {
             $chapterDurationsInTarget = $false
@@ -652,6 +956,11 @@ function Get-PacingVerdict([object]$Payload) {
     $activeGameplaySeconds = & $requireNumber ((& $requireProperty $Payload "active_gameplay_seconds" "payload").Value) "active_gameplay_seconds"
     $wallClockSeconds = & $requireNumber ((& $requireProperty $Payload "wall_clock_seconds" "payload").Value) "wall_clock_seconds"
     $pausedSeconds = & $requireNumber ((& $requireProperty $Payload "paused_seconds" "payload").Value) "paused_seconds"
+    if ([math]::Abs($stageActiveValues["lobby"]) -gt 0.02 -or
+        [math]::Abs($stageActiveValues["credits"] - $activeGameplaySeconds) -gt 0.02 -or
+        [math]::Abs($stageWallValues["credits"] - $wallClockSeconds) -gt 0.02) {
+        $stageFieldsSane = $false
+    }
     $computedTotalInTarget = $activeGameplaySeconds -ge 900.0 -and $activeGameplaySeconds -le 1200.0
     $timeFieldsSane = $activeGameplaySeconds -ge 0.0 -and
         $wallClockSeconds -ge $activeGameplaySeconds -and
@@ -663,19 +972,20 @@ function Get-PacingVerdict([object]$Payload) {
     $checks = [ordered]@{
         eligible_full_run = $eligibleFullRun
         complete = $complete
-        initial_stage_lobby = $initialStage -eq "lobby"
+        initial_stage_lobby = $initialStage -ceq "lobby"
         boundary_order_valid = $boundaryOrderValid
-        boundary_order_exact = [string]::Join("|", $boundaryOrder) -eq [string]::Join("|", $expectedBoundaryOrder)
+        boundary_order_exact = [string]::Join("|", $boundaryOrder) -ceq [string]::Join("|", $expectedBoundaryOrder)
         no_missing_milestones = $missingMilestones.Count -eq 0
-        total_target_metadata = $targetMetadataMatches
+        total_target_metadata = $totalTargetMetadataMatches
         active_time_in_target = $computedTotalInTarget
         every_chapter_in_target = $chapterDurationsInTarget -and $reportedChaptersInTarget -and $chapterVerdictsRecomputed
-        within_target = $computedTotalInTarget -and $withinTargetReported -eq $computedTotalInTarget
-        chapter_target_metadata = $targetMetadataMatches
+        within_target = $computedTotalInTarget -and ($withinTargetReported -eq $computedTotalInTarget)
+        chapter_target_metadata = $chapterTargetMetadataMatches
         chapter_durations_in_target = $chapterDurationsInTarget
         chapter_verdicts_recomputed = $chapterVerdictsRecomputed
+        chapter_durations_consistent = $chapterDurationsConsistent
         chapter_duration_sum_matches_total = $chapterDurationSumMatchesTotal
-        time_fields_sane = $timeFieldsSane
+        time_fields_sane = $timeFieldsSane -and $stageFieldsSane
     }
     $failedChecks = @(
         $checks.GetEnumerator() |
@@ -725,10 +1035,27 @@ function Test-EvidencePackageReady(
         $CaptureProvided
 }
 
+function Write-SafeEvidenceTextFile(
+    [string]$TrustedDirectory,
+    [string]$Path,
+    [string]$Text
+) {
+    $safePath = Assert-SafeEvidenceDestinationPath $TrustedDirectory $Path "Evidence summary output"
+    $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($Text + [Environment]::NewLine)
+    $stream = New-Object System.IO.FileStream($safePath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+    try {
+        $stream.Write($bytes, 0, $bytes.Length)
+        $stream.Flush($true)
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
     $jsonPath = Join-Path $Directory "summary.json"
     $markdownPath = Join-Path $Directory "summary.md"
-    $Summary | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $jsonPath -Encoding UTF8
+    $jsonText = $Summary | ConvertTo-Json -Depth 20
+    Write-SafeEvidenceTextFile $Directory $jsonPath $jsonText
 
     $checkLines = @()
     if ($null -ne $Summary.pacing_verdict) {
@@ -744,6 +1071,10 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "- Repository commit: ``$($Summary.repository_commit_before)``",
         "- Repository stable/clean: ``$($Summary.repository_stable)``",
         "- Godot version: ``$($Summary.godot_version)``",
+        "- Version probe timeout seconds: ``$($Summary.version_probe_timeout_seconds)``",
+        "- Version probe output limit bytes: ``$($Summary.version_probe_max_combined_output_bytes)``",
+        "- Version probe stdout: ``$($Summary.version_probe_stdout_log)``",
+        "- Version probe stderr: ``$($Summary.version_probe_stderr_log)``",
         "- Launch performed: ``$($Summary.launch_performed)``",
         "- Launch mode: ``$($Summary.launch_mode)``",
         "- Engine exit: ``$($Summary.engine_exit_code)``",
@@ -776,7 +1107,153 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "- [ ] Capture timestamps, commit, logs, and pacing payload all refer to this same run.",
         "- [ ] Reviewer name/date/notes are attached before Phase 7 or the project goal is closed."
     )
-    $markdown | Set-Content -LiteralPath $markdownPath -Encoding UTF8
+    Write-SafeEvidenceTextFile $Directory $markdownPath ([string]::Join([Environment]::NewLine, $markdown))
+}
+
+function ConvertTo-NativeProcessArgument([string]$Value) {
+    if ($Value.Length -gt 0 -and $Value -notmatch '[\s"]') {
+        return $Value
+    }
+    $escaped = [regex]::Replace($Value, '(\\*)"', '$1$1\"')
+    $escaped = [regex]::Replace($escaped, '(\\+)$', '$1$1')
+    return '"' + $escaped + '"'
+}
+
+function Invoke-GodotPhysicalProcess(
+    [string]$Executable,
+    [string[]]$Arguments,
+    [string]$StandardOutputPath,
+    [string]$StandardErrorPath,
+    [int]$TimeoutSeconds,
+    [int64]$CombinedOutputByteLimit
+) {
+    if ($TimeoutSeconds -le 0) {
+        throw "Physical process timeout must be positive."
+    }
+    if ($CombinedOutputByteLimit -le 0) {
+        throw "Physical process combined output limit must be positive."
+    }
+    $stdoutFull = [System.IO.Path]::GetFullPath($StandardOutputPath)
+    $stderrFull = [System.IO.Path]::GetFullPath($StandardErrorPath)
+    if ($stdoutFull -eq $stderrFull) {
+        throw "Physical process stdout and stderr paths must be different."
+    }
+    foreach ($outputPath in @($stdoutFull, $stderrFull)) {
+        $outputParent = Split-Path -Parent $outputPath
+        [void](Assert-NoReparsePointAncestors $outputParent "Physical process output parent")
+        [void](Assert-RegularEvidenceDirectory $outputParent "Physical process output parent")
+        if (Test-Path -LiteralPath $outputPath) {
+            $outputItem = Get-Item -LiteralPath $outputPath -Force
+            if ($outputItem.PSIsContainer -or
+                ($outputItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "Physical process output path is not a regular file: $outputPath"
+            }
+        }
+    }
+
+    if ($null -eq ("Room407ExportJobRun" -as [type])) {
+        if (-not (Test-Path -LiteralPath $physicalJobRunnerSource -PathType Leaf)) {
+            throw "Windows Job Object runner source is missing: $physicalJobRunnerSource"
+        }
+        Add-Type -Path $physicalJobRunnerSource
+    }
+
+    $nativeArguments = (($Arguments | ForEach-Object {
+        ConvertTo-NativeProcessArgument ([string]$_)
+    }) -join " ")
+    $commandLine = ConvertTo-NativeProcessArgument $Executable
+    if (-not [string]::IsNullOrWhiteSpace($nativeArguments)) {
+        $commandLine += " " + $nativeArguments
+    }
+
+    $run = $null
+    $processException = $null
+    $processId = $null
+    $processStartedAtUtc = $null
+    $processExitCode = $null
+    try {
+        $run = [Room407ExportJobRun]::LaunchInteractive(
+            $Executable,
+            $commandLine,
+            (Get-Location).ProviderPath,
+            $stdoutFull,
+            $stderrFull,
+            $CombinedOutputByteLimit
+        )
+        $processId = [int]$run.ProcessId
+        $processStartedAtUtc = [datetime]$run.StartedAtUtc
+        if (-not $run.WaitForExit($TimeoutSeconds * 1000)) {
+            try {
+                $run.TerminateTreeAndWait(10000)
+            } catch {
+                throw "Physical Godot run timed out after $TimeoutSeconds seconds and process-tree shutdown failed: $($_.Exception.Message)"
+            }
+            throw "Physical Godot run timed out after $TimeoutSeconds seconds"
+        }
+        $processExitCode = [int]$run.GetExitCode()
+        $run.EnsureNoDescendants(10000)
+    } catch {
+        $processException = $_.Exception
+    } finally {
+        if ($null -ne $run) {
+            try {
+                $run.EnsureNoDescendants(10000)
+            } catch {
+                if ($null -eq $processException) {
+                    $processException = $_.Exception
+                } else {
+                    $processException = [System.Exception]::new(
+                        "$($processException.Message); process-tree cleanup also failed: $($_.Exception.Message)",
+                        $processException
+                    )
+                }
+            }
+            try {
+                if (-not $run.WaitForOutputDrain(10000)) {
+                    throw "Physical process output pumps did not drain before the watchdog deadline."
+                }
+            } catch {
+                if ($null -eq $processException) {
+                    $processException = $_.Exception
+                } else {
+                    $processException = [System.Exception]::new(
+                        "$($processException.Message); output-pump cleanup also failed: $($_.Exception.Message)",
+                        $processException
+                    )
+                }
+            }
+            try {
+                $run.Dispose()
+            } catch {
+                if ($null -eq $processException) {
+                    $processException = $_.Exception
+                } else {
+                    $processException = [System.Exception]::new(
+                        "$($processException.Message); Job Object disposal also failed: $($_.Exception.Message)",
+                        $processException
+                    )
+                }
+            }
+        }
+    }
+    if ($null -ne $processException) {
+        throw $processException
+    }
+
+    $stdoutLength = ([System.IO.FileInfo]$stdoutFull).Length
+    $stderrLength = ([System.IO.FileInfo]$stderrFull).Length
+    if ($stdoutLength + $stderrLength -gt $CombinedOutputByteLimit) {
+        throw "Physical process output exceeded the combined output limit of $CombinedOutputByteLimit bytes after drain."
+    }
+    $stdout = [System.IO.File]::ReadAllText($stdoutFull)
+    $stderr = [System.IO.File]::ReadAllText($stderrFull)
+    return [pscustomobject][ordered]@{
+        process_id = $processId
+        started_at_utc = $processStartedAtUtc
+        exit_code = $processExitCode
+        stdout = [string]$stdout
+        stderr = [string]$stderr
+    }
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot "project.godot"))) {
@@ -793,9 +1270,16 @@ $evidenceDirectory = Initialize-RegularEvidenceDirectory $EvidenceRoot $evidence
 $startedAt = (Get-Date).ToUniversalTime()
 $diskBefore = [ordered]@{ C = Get-FreeGiB "C"; D = Get-FreeGiB "D" }
 $sourceLogs = @()
+$verifiedSideChannelHashes = @{}
 $launchPerformed = [string]::IsNullOrWhiteSpace($AnalyzeLog)
 $engineExitCode = $null
 $godotVersion = ""
+$versionProbeTimeoutSeconds = 30
+$versionProbeMaxCombinedOutputBytes = [int64]65536
+$versionProbeStdoutLog = ""
+$versionProbeStderrLog = ""
+$consoleStdoutLog = ""
+$consoleStderrLog = ""
 $sideChannelPreparation = [pscustomobject][ordered]@{
     integrity_passed = $true
     archived_count = 0
@@ -816,9 +1300,39 @@ if ($launchPerformed) {
     if (-not (Test-Path -LiteralPath $Godot)) {
         throw "Godot executable not found: $Godot"
     }
-    $godotVersion = [string](& $Godot --version 2>&1 | Select-Object -First 1)
+    $versionProbeStdoutLog = Join-Path $evidenceDirectory "godot-version-stdout.log"
+    $versionProbeStderrLog = Join-Path $evidenceDirectory "godot-version-stderr.log"
+    Push-Location $repositoryRoot
+    try {
+        $versionProbe = Invoke-GodotPhysicalProcess `
+            $Godot `
+            @("--version") `
+            $versionProbeStdoutLog `
+            $versionProbeStderrLog `
+            $versionProbeTimeoutSeconds `
+            $versionProbeMaxCombinedOutputBytes
+    } finally {
+        Pop-Location
+    }
+    if ([int]$versionProbe.exit_code -ne 0) {
+        throw "Godot version probe exited with code $([int]$versionProbe.exit_code)."
+    }
+    $versionProbeOutput = [string]$versionProbe.stdout
+    if (-not [string]::IsNullOrWhiteSpace([string]$versionProbe.stderr)) {
+        if (-not [string]::IsNullOrEmpty($versionProbeOutput) -and -not $versionProbeOutput.EndsWith([Environment]::NewLine, [StringComparison]::Ordinal)) {
+            $versionProbeOutput += [Environment]::NewLine
+        }
+        $versionProbeOutput += [string]$versionProbe.stderr
+    }
+    $versionLines = @($versionProbeOutput -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($versionLines.Count -eq 0) {
+        throw "Godot version probe produced no version text."
+    }
+    $godotVersion = [string]$versionLines[0]
     $engineLog = Join-Path $evidenceDirectory "engine.log"
     $consoleLog = Join-Path $evidenceDirectory "console.log"
+    $consoleStdoutLog = Join-Path $evidenceDirectory "console-stdout.log"
+    $consoleStderrLog = Join-Path $evidenceDirectory "console-stderr.log"
     $sourceLogs = @($engineLog, $consoleLog)
     $arguments = @("--path", $repositoryRoot, "--log-file", $engineLog)
     if ($LaunchMode -eq "EditorF5") {
@@ -831,24 +1345,42 @@ if ($launchPerformed) {
     Write-Host "Keep the same-run recording active. Evidence will be written to $evidenceDirectory"
 
     # A prior run must never be usable as evidence for this launch. Archive it
-    # for audit, clear it fail-closed, then bind the later harvest to this instant.
+    # for audit, clear it fail-closed, then bind the later harvest to the actual
+    # Godot process creation time returned by the operating system.
     $sideChannelPreparation = Prepare-PacingEvidenceSideChannels $evidenceDirectory
-    $launchStartedAtUtc = (Get-Date).ToUniversalTime()
     $baselineHashes = @($sideChannelPreparation.records | ForEach-Object { [string]$_.sha256 })
-    $previousPreference = $ErrorActionPreference
     Push-Location $repositoryRoot
     try {
-        $ErrorActionPreference = "Continue"
-        & $Godot @arguments 2>&1 | Tee-Object -FilePath $consoleLog
-        $engineExitCode = $LASTEXITCODE
+        $godotRun = Invoke-GodotPhysicalProcess `
+            $Godot `
+            $arguments `
+            $consoleStdoutLog `
+            $consoleStderrLog `
+            $LaunchTimeoutSeconds `
+            $MaxCombinedOutputBytes
     } finally {
-        $ErrorActionPreference = $previousPreference
         Pop-Location
+    }
+    $launchStartedAtUtc = [datetime]$godotRun.started_at_utc
+    $engineExitCode = [int]$godotRun.exit_code
+    $consoleOutput = [string]$godotRun.stdout
+    if (-not [string]::IsNullOrEmpty([string]$godotRun.stderr)) {
+        if (-not [string]::IsNullOrEmpty($consoleOutput) -and -not $consoleOutput.EndsWith([Environment]::NewLine, [StringComparison]::Ordinal)) {
+            $consoleOutput += [Environment]::NewLine
+        }
+        $consoleOutput += [string]$godotRun.stderr
+    }
+    [System.IO.File]::WriteAllText($consoleLog, $consoleOutput, [System.Text.UTF8Encoding]::new($false))
+    if (-not [string]::IsNullOrWhiteSpace($consoleOutput)) {
+        Write-Host $consoleOutput.TrimEnd()
     }
 
     # Harvest last-run side-channel even when editor/game processes split.
     $sideChannelHarvest = Copy-PacingEvidenceSideChannels $evidenceDirectory $launchStartedAtUtc $baselineHashes
     $sideChannels = @($sideChannelHarvest.copied | ForEach-Object { [string]$_.evidence_path })
+    foreach ($record in @($sideChannelHarvest.copied)) {
+        $verifiedSideChannelHashes[[System.IO.Path]::GetFullPath([string]$record.evidence_path)] = [string]$record.sha256
+    }
     if ($sideChannels.Count -gt 0) {
         $sourceLogs += $sideChannels
         Write-Host "HARVESTED_PACING_SIDE_CHANNEL_COUNT=$($sideChannels.Count)"
@@ -861,7 +1393,10 @@ if ($launchPerformed) {
     if (-not [System.IO.Path]::IsPathRooted($analyzeLogPath)) {
         $analyzeLogPath = Join-Path $repositoryRoot $analyzeLogPath
     }
-    $resolvedLog = (Resolve-Path -LiteralPath $analyzeLogPath).Path
+    $requestedLog = Assert-ContainedArtifactPath $analyzeLogPath "AnalyzeLog"
+    [void](Assert-NoReparsePointAncestors $requestedLog "AnalyzeLog requested path")
+    $resolvedLog = (Resolve-Path -LiteralPath $requestedLog).Path
+    [void](Assert-ContainedArtifactPath $resolvedLog "AnalyzeLog resolved path")
     [void](Assert-NoReparsePointAncestors $resolvedLog "AnalyzeLog")
     [void](Assert-RegularEvidenceFile $resolvedLog)
     $sourceLogs = @($resolvedLog)
@@ -870,7 +1405,7 @@ if ($launchPerformed) {
 $pacingVerdict = $null
 $pacingError = ""
 try {
-    $payload = Get-UniquePacingPayload $sourceLogs
+    $payload = Get-UniquePacingPayload $sourceLogs $verifiedSideChannelHashes
     $pacingVerdict = Get-PacingVerdict $payload
 } catch {
     $pacingError = $_.Exception.Message
@@ -904,11 +1439,19 @@ $summary = [pscustomobject][ordered]@{
     repository_stable = $repositoryStable
     godot_executable = $Godot
     godot_version = $godotVersion.Trim()
+    version_probe_timeout_seconds = $versionProbeTimeoutSeconds
+    version_probe_max_combined_output_bytes = $versionProbeMaxCombinedOutputBytes
+    version_probe_stdout_log = $versionProbeStdoutLog
+    version_probe_stderr_log = $versionProbeStderrLog
     started_at_utc = $startedAt.ToString("o")
     ended_at_utc = $endedAt.ToString("o")
     launch_performed = $launchPerformed
     launch_mode = if ($launchPerformed) { $LaunchMode } else { "AnalyzeLog" }
     engine_exit_code = $engineExitCode
+    launch_timeout_seconds = $LaunchTimeoutSeconds
+    max_combined_output_bytes = $MaxCombinedOutputBytes
+    console_stdout_log = $consoleStdoutLog
+    console_stderr_log = $consoleStderrLog
     physical_input_confirmed = [bool]$ConfirmPhysicalInput
     capture_reference = $CaptureReference
     capture_reference_provided = $captureProvided

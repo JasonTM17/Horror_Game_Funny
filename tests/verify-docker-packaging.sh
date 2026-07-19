@@ -84,7 +84,8 @@ require_grep "tests/run-headless-tests.sh" "quit-after 120000" "shell runner phy
 require_grep "tests/run-headless-tests.ps1" "120000" "ps1 runner physical-route frame budget"
 require_grep "tests/run-headless-tests.ps1" "settings-persistence-read" "ps1 runner last check"
 
-# Count twelve named checks in the shell runner (must match host runner).
+# Enforce exactly twelve active runner invocations, not just twelve names that
+# happen to appear somewhere in each file.
 expected_checks=(
 	editor-import
 	menu
@@ -99,9 +100,37 @@ expected_checks=(
 	settings-persistence-write
 	settings-persistence-read
 )
+shell_check_count="$(grep -E -c '^[[:space:]]*run_check([[:space:]]|$)' tests/run-headless-tests.sh || true)"
+ps_check_count="$(grep -E -c '^[[:space:]]*Invoke-GodotCheck[[:space:]]+' tests/run-headless-tests.ps1 || true)"
+if [[ "$shell_check_count" -ne 12 ]]; then
+	echo "FAIL shell runner must contain exactly 12 active run_check invocations (got $shell_check_count)" >&2
+	fail=1
+else
+	echo "OK shell runner exact check count"
+fi
+if [[ "$ps_check_count" -ne 12 ]]; then
+	echo "FAIL PowerShell runner must contain exactly 12 active Invoke-GodotCheck invocations (got $ps_check_count)" >&2
+	fail=1
+else
+	echo "OK PowerShell runner exact check count"
+fi
+mapfile -t actual_shell_checks < <(sed -nE 's/^[[:space:]]*run_check[[:space:]]+"([^"]+)".*/\1/p' tests/run-headless-tests.sh)
+if [[ "${actual_shell_checks[*]}" != "${expected_checks[*]}" ]]; then
+	echo "FAIL shell runner check order/name sequence differs from the canonical twelve" >&2
+	fail=1
+else
+	echo "OK shell runner exact check order"
+fi
+mapfile -t actual_ps_checks < <(sed -nE 's/^[[:space:]]*Invoke-GodotCheck[[:space:]]+.*\)[[:space:]]+"([^"]+)"([[:space:]]|$).*/\1/p' tests/run-headless-tests.ps1)
+if [[ "${actual_ps_checks[*]}" != "${expected_checks[*]}" ]]; then
+	echo "FAIL PowerShell runner check order/name sequence differs from the canonical twelve" >&2
+	fail=1
+else
+	echo "OK PowerShell runner exact check order"
+fi
 for check in "${expected_checks[@]}"; do
-	require_grep "tests/run-headless-tests.sh" "\"$check\"" "shell check $check"
-	require_grep "tests/run-headless-tests.ps1" "\"$check\"" "ps1 check $check"
+	require_grep "tests/run-headless-tests.sh" "^[[:space:]]*run_check[[:space:]]+\"$check\"([[:space:]]|$)" "shell check $check"
+	require_grep "tests/run-headless-tests.ps1" "^[[:space:]]*Invoke-GodotCheck .*\)[[:space:]]+\"$check\"([[:space:]]|$)" "ps1 check $check"
 done
 
 if [[ $fail -ne 0 ]]; then

@@ -59,6 +59,64 @@ function New-TestExecutable([string]$Path) {
     [IO.File]::WriteAllBytes($Path, $bytes)
 }
 
+function New-SlowFakeGodotExecutable([string]$Path, [string]$TemplateArchivePath) {
+    New-Item -ItemType Directory -Path (Split-Path -Parent $Path) -Force | Out-Null
+    $typeName = 'Room407SlowFakeGodot_' + $runId
+    $source = @"
+using System;
+using System.Threading;
+
+public static class $typeName
+{
+    public static int Main(string[] args)
+    {
+        foreach (string argument in args)
+        {
+            if (String.Equals(argument, "--version", StringComparison.Ordinal))
+            {
+                Console.WriteLine("4.7.1.stable.official.fake");
+                return 0;
+            }
+        }
+
+        Thread.Sleep(TimeSpan.FromMinutes(2));
+        return 0;
+    }
+}
+"@
+    Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly $Path -OutputType ConsoleApplication
+    Assert-True (Test-Path -LiteralPath $Path -PathType Leaf) 'Slow fake Godot executable was not compiled'
+    $versionOutput = (& $Path '--headless' '--version' 2>&1 | Out-String).Trim()
+    Assert-True ($LASTEXITCODE -eq 0) 'Slow fake Godot --version probe failed'
+    Assert-True ($versionOutput -ceq '4.7.1.stable.official.fake') 'Slow fake Godot returned an unexpected version'
+
+    # The verifier binds the installed template to the executable directory
+    # before invoking export. Extract the already-pinned archive entry beside
+    # the fake so this probe reaches the process-timeout boundary by design.
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $installedTemplate = Join-Path (Split-Path -Parent $Path) 'editor_data\export_templates\4.7.1.stable\windows_release_x86_64.exe'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $installedTemplate) -Force | Out-Null
+    $archive = [IO.Compression.ZipFile]::OpenRead($TemplateArchivePath)
+    try {
+        $entry = $archive.GetEntry('templates/windows_release_x86_64.exe')
+        Assert-True ($null -ne $entry) 'Pinned template archive lacks the Windows release entry for the slow fake Godot'
+        $entryStream = $entry.Open()
+        try {
+            $destinationStream = [IO.FileStream]::new(
+                $installedTemplate,
+                [IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,
+                [IO.FileShare]::None
+            )
+            try { $entryStream.CopyTo($destinationStream) }
+            finally { $destinationStream.Dispose() }
+        }
+        finally { $entryStream.Dispose() }
+    }
+    finally { $archive.Dispose() }
+    Assert-True ((Get-Item -LiteralPath $installedTemplate).Length -gt 0) 'Slow fake Godot installed template fixture is empty'
+}
+
 function New-ValidBundle([string]$Path, [string]$Marker) {
     New-Item -ItemType Directory -Path $Path -Force | Out-Null
     foreach ($name in $bundlePayloadNames) {
@@ -98,6 +156,20 @@ function Invoke-VerifierExpectFailure(
     }
     if ($output.IndexOf($ExpectedText, [StringComparison]::Ordinal) -lt 0) {
         throw "$Context failed without the expected marker '$ExpectedText': $output"
+    }
+    return $output
+}
+
+function Invoke-VerifierExpectExactFailure(
+    [string]$VerifierPath,
+    [string[]]$Arguments,
+    [string]$ExpectedError,
+    [string]$Context
+) {
+    $output = Invoke-VerifierExpectFailure $VerifierPath $Arguments $ExpectedError $Context
+    $exactErrorPattern = '(?m)(?:^|: )' + [regex]::Escape($ExpectedError) + '\r?$'
+    if (-not [regex]::IsMatch($output, $exactErrorPattern)) {
+        throw "$Context did not report the exact error '$ExpectedError': $output"
     }
     return $output
 }
@@ -228,55 +300,103 @@ function Invoke-SourceParserProbe {
 
 function Invoke-TransactionPreservationProbe {
     $verifier = Join-Path $PSScriptRoot 'verify-windows-export.ps1'
-    $output = Join-Path $root '.artifacts\builds\room407-windows-x86_64'
+    # Every preservation target is seeded below this disposable namespace. The
+    # adversarial suite must run on a fresh checkout without requiring one or
+    # two earlier canonical exports to have populated active/rollback slots.
+    $preservationNamespaceRelative = '.artifacts\builds\windows-export-preservation-probe-' + $runId
+    $preservationNamespace = Join-Path $root $preservationNamespaceRelative
+    $outputRelative = Join-Path $preservationNamespaceRelative 'room407-windows-x86_64'
+    $output = Join-Path $root $outputRelative
     $previous = $output + '.previous'
-    $outputBefore = Get-VerifiedBundleIdentity $output
-    $previousBefore = Get-VerifiedBundleIdentity $previous
-
-    [void](Invoke-VerifierExpectFailure $verifier @(
-        '-Godot', $Godot,
-        '-TemplateArchive', $TemplateArchive,
-        '-ExportTimeoutSeconds', '1',
-        '-SmokeTimeoutSeconds', '1'
-    ) 'timed out after 1 seconds' 'Timeout rollback preservation')
-
-    $outputAfterTimeout = Get-VerifiedBundleIdentity $output
-    $previousAfterTimeout = Get-VerifiedBundleIdentity $previous
-    Assert-True ($outputAfterTimeout.Fingerprint -ceq $outputBefore.Fingerprint) 'Timeout changed the active verified bundle'
-    Assert-True ($previousAfterTimeout.Fingerprint -ceq $previousBefore.Fingerprint) 'Timeout changed the verified rollback bundle'
-    Assert-True (Test-Path -LiteralPath $harnessRoot -PathType Container) 'Verifier stale cleanup deleted the adversarial harness namespace'
-
-    $lockPath = Join-Path $root '.artifacts\windows-export.lock'
-    $lockStream = $null
+    $timeoutNamespaceRelative = '.artifacts\builds\windows-export-timeout-probe-' + $runId
+    $timeoutNamespace = Join-Path $root $timeoutNamespaceRelative
+    $timeoutOutputRelative = Join-Path $timeoutNamespaceRelative 'room407-windows-x86_64'
+    $timeoutOutput = Join-Path $root $timeoutOutputRelative
+    $timeoutPrevious = $timeoutOutput + '.previous'
+    $slowFakeGodot = Join-Path $harnessRoot 'slow-fake-godot\slow-fake-godot.exe'
     try {
-        $lockStream = [IO.FileStream]::new(
-            $lockPath,
-            [IO.FileMode]::OpenOrCreate,
-            [IO.FileAccess]::ReadWrite,
-            [IO.FileShare]::None
-        )
-        [void](Invoke-VerifierExpectFailure $verifier @(
-            '-Godot', $Godot,
-            '-TemplateArchive', $TemplateArchive
-        ) 'Another Windows export verification is already running' 'Exclusive-lock rejection')
+        $outputBefore = New-ValidBundle $output 'preservation-active'
+        $previousBefore = New-ValidBundle $previous 'preservation-previous'
+        Assert-True ($outputBefore.Fingerprint -cne $previousBefore.Fingerprint) 'Preservation fixtures must have distinct active and rollback fingerprints'
+
+        # Put every timeout-probe artifact under one unique namespace so cleanup
+        # cannot select any canonical or concurrently-created sibling bundle.
+        New-SlowFakeGodotExecutable $slowFakeGodot $TemplateArchive
+        try {
+            $timeoutOutputBefore = New-ValidBundle $timeoutOutput 'timeout-active'
+            $timeoutPreviousBefore = New-ValidBundle $timeoutPrevious 'timeout-previous'
+            Assert-True ($timeoutOutputBefore.Fingerprint -cne $timeoutPreviousBefore.Fingerprint) 'Timeout fixtures must have distinct active and rollback fingerprints'
+
+            [void](Invoke-VerifierExpectExactFailure $verifier @(
+                '-Godot', $slowFakeGodot,
+                '-TemplateArchive', $TemplateArchive,
+                '-OutputDirectory', $timeoutOutputRelative,
+                '-ExportTimeoutSeconds', '1',
+                '-SmokeTimeoutSeconds', '1'
+            ) 'Windows export timed out after 1 seconds' 'Deterministic export timeout')
+
+            $timeoutOutputAfter = Get-VerifiedBundleIdentity $timeoutOutput
+            $timeoutPreviousAfter = Get-VerifiedBundleIdentity $timeoutPrevious
+            Assert-True ($timeoutOutputAfter.Fingerprint -ceq $timeoutOutputBefore.Fingerprint) 'Deterministic timeout changed the disposable active bundle'
+            Assert-True ($timeoutPreviousAfter.Fingerprint -ceq $timeoutPreviousBefore.Fingerprint) 'Deterministic timeout changed the disposable rollback bundle'
+            Write-Host 'WINDOWS_EXPORT_DETERMINISTIC_TIMEOUT_PRESERVATION_OK'
+        }
+        finally {
+            if (Test-Path -LiteralPath $timeoutNamespace) {
+                Remove-TrustedDirectoryTree $timeoutNamespace 'Disposable timeout-probe namespace cleanup'
+            }
+        }
+        Assert-True (-not (Test-Path -LiteralPath $timeoutNamespace)) 'Disposable timeout-probe namespace was not removed'
+
+        $outputAfterTimeout = Get-VerifiedBundleIdentity $output
+        $previousAfterTimeout = Get-VerifiedBundleIdentity $previous
+        Assert-True ($outputAfterTimeout.Fingerprint -ceq $outputBefore.Fingerprint) 'Timeout changed the active verified bundle'
+        Assert-True ($previousAfterTimeout.Fingerprint -ceq $previousBefore.Fingerprint) 'Timeout changed the verified rollback bundle'
+        Assert-True (Test-Path -LiteralPath $harnessRoot -PathType Container) 'Verifier stale cleanup deleted the adversarial harness namespace'
+
+        $lockPath = Join-Path $root '.artifacts\windows-export.lock'
+        $lockStream = $null
+        try {
+            $lockStream = [IO.FileStream]::new(
+                $lockPath,
+                [IO.FileMode]::OpenOrCreate,
+                [IO.FileAccess]::ReadWrite,
+                [IO.FileShare]::None
+            )
+            [void](Invoke-VerifierExpectFailure $verifier @(
+                '-Godot', $Godot,
+                '-TemplateArchive', $TemplateArchive,
+                '-OutputDirectory', $outputRelative
+            ) 'Another Windows export verification is already running' 'Exclusive-lock rejection')
+        }
+        finally {
+            if ($null -ne $lockStream) { $lockStream.Dispose() }
+            if (Test-Path -LiteralPath $lockPath) { Remove-Item -LiteralPath $lockPath -Force }
+        }
+
+        $outputAfterLock = Get-VerifiedBundleIdentity $output
+        $previousAfterLock = Get-VerifiedBundleIdentity $previous
+        Assert-True ($outputAfterLock.Fingerprint -ceq $outputBefore.Fingerprint) 'Lock rejection changed the active verified bundle'
+        Assert-True ($previousAfterLock.Fingerprint -ceq $previousBefore.Fingerprint) 'Lock rejection changed the verified rollback bundle'
+
+        $stagingLeaks = @(Get-ChildItem -LiteralPath (Join-Path $root '.artifacts\staging') -Directory -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'windows-export-stage-*' })
+        $profileLeaks = @(Get-ChildItem -LiteralPath (Join-Path $root '.tmp') -Directory -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'windows-export-profile-*' })
+        Assert-True ($stagingLeaks.Count -eq 0) 'Timeout/lock probe left a verifier staging directory'
+        Assert-True ($profileLeaks.Count -eq 0) 'Timeout/lock probe left a verifier profile directory'
+        Write-Host 'WINDOWS_EXPORT_TIMEOUT_LOCK_PRESERVATION_OK'
     }
     finally {
-        if ($null -ne $lockStream) { $lockStream.Dispose() }
-        if (Test-Path -LiteralPath $lockPath) { Remove-Item -LiteralPath $lockPath -Force }
+        if (Test-Path -LiteralPath $timeoutNamespace) {
+            Remove-TrustedDirectoryTree $timeoutNamespace 'Disposable timeout-probe outer cleanup'
+        }
+        if (Test-Path -LiteralPath $preservationNamespace) {
+            Remove-TrustedDirectoryTree $preservationNamespace 'Disposable preservation-probe namespace cleanup'
+        }
     }
-
-    $outputAfterLock = Get-VerifiedBundleIdentity $output
-    $previousAfterLock = Get-VerifiedBundleIdentity $previous
-    Assert-True ($outputAfterLock.Fingerprint -ceq $outputBefore.Fingerprint) 'Lock rejection changed the active verified bundle'
-    Assert-True ($previousAfterLock.Fingerprint -ceq $previousBefore.Fingerprint) 'Lock rejection changed the verified rollback bundle'
-
-    $stagingLeaks = @(Get-ChildItem -LiteralPath (Join-Path $root '.artifacts\staging') -Directory -Force -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like 'windows-export-stage-*' })
-    $profileLeaks = @(Get-ChildItem -LiteralPath (Join-Path $root '.tmp') -Directory -Force -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like 'windows-export-profile-*' })
-    Assert-True ($stagingLeaks.Count -eq 0) 'Timeout/lock probe left a verifier staging directory'
-    Assert-True ($profileLeaks.Count -eq 0) 'Timeout/lock probe left a verifier profile directory'
-    Write-Host 'WINDOWS_EXPORT_TIMEOUT_LOCK_PRESERVATION_OK'
+    Assert-True (-not (Test-Path -LiteralPath $timeoutNamespace)) 'Disposable timeout-probe namespace escaped cleanup'
+    Assert-True (-not (Test-Path -LiteralPath $preservationNamespace)) 'Disposable preservation-probe namespace escaped cleanup'
 }
 
 try {
