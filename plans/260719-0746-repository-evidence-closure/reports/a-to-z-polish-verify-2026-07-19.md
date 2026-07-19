@@ -29,9 +29,20 @@
 - Does **not** claim live container suite or Hub publication from this host.
 - Staged screenshots and GIF remain documentation media only.
 
-## Delivery remaining
+## Delivery completed (this session)
 
-1. User-authorized `git commit` of the intentional dirty surface + `git push origin main`.
-2. Confirm GitHub Actions secrets named `DOCKERHUB_USERNAME` (value `nguyenson1710`) and `DOCKERHUB_TOKEN` (token value only in the secret store; never inline in docs).
-3. Observe `docker-suite` CI: build + suite + conditional Hub publish.
-4. Human physical F5 via ProjectRun handoff to close PDR-07.
+| Step | Result |
+|---|---|
+| Commit `c14d7bb` polish slice + push | Done |
+| CI fix `33310de` + push | Done |
+| `ci` workflow on `33310de` | **success** https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29673970430 |
+| `docker-suite` on `33310de` | **success** https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29673970402 |
+| Image build on CI | Named `nguyenson1710/horror-game-suite:latest` |
+| Container twelve checks on CI | `ALL_TWELVE_HEADLESS_CHECKS_OK` |
+| Docker Hub registry push | **Skipped** — repository secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` not configured |
+| Clean tip | `33310de849fe87f23e8ce9e70b8230bf1f8c5707` = `origin/main` |
+
+## Still human / secrets residual
+
+1. Configure GitHub Actions secrets `DOCKERHUB_USERNAME` (`nguyenson1710`) and `DOCKERHUB_TOKEN` (token only in secret store), then re-run `docker-suite` or push an empty docs commit to publish Hub tags.
+2. Human physical F5 via ProjectRun handoff on clean tip to close PDR-07.

@@ -2,8 +2,8 @@
 
 ## Current source boundary
 
-Delivery tip: clean `main` at `c14d7bb8ec7313abf0c4954c496ede1df4e7800e` (matches
-`origin/main` after the 2026-07-19 evidence-closure + Docker Hub / media polish push).
+Delivery tip: clean `main` at `33310de849fe87f23e8ce9e70b8230bf1f8c5707` (matches
+`origin/main` after the 2026-07-19 polish + CI fix; host and container 12/12 green on CI).
 Godot for host runs: `D:\Tools\Godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe`
 (v4.7.1.stable.official). Parent Phase 5/PDR-07 is still **open** because no authorized
 human physical keyboard/mouse run has supplied same-run capture, telemetry, and
@@ -40,7 +40,7 @@ These are local ignored build artifacts, not tracked release binaries.
 
 ## Human operator command (required for PDR-07)
 
-Run only from clean tip `c14d7bb` (or newer `main` after re-verify) with Godot 4.7.1:
+Run only from clean tip `33310de` (or newer `main` after re-verify) with Godot 4.7.1:
 
 ```powershell
 git checkout main

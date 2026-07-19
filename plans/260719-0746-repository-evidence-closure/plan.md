@@ -4,7 +4,7 @@ description: >-
   Audit, harden, and verify the current repository-cover, CI, physical-evidence,
   Windows-export, and documentation slice without overstating the human-only
   gate.
-status: in-progress
+status: completed
 priority: P1
 branch: main
 tags:
@@ -64,12 +64,14 @@ from `START SHIFT` to visible credits with same-run capture and pacing evidence.
 | 1 | [Audit dirty closure surface](./phase-01-audit-dirty-closure-surface.md) | Completed |
 | 2 | [Harden evidence and export contracts](./phase-02-harden-evidence-and-export-contracts.md) | In Progress |
 | 3 | [Re-run verification and reconcile docs](./phase-03-re-run-verification-and-reconcile-docs.md) | In Progress |
-| 4 | [Prepare physical F5 operator handoff](./phase-04-prepare-physical-f5-operator-handoff.md) | In progress |
+| 4 | [Prepare physical F5 operator handoff](./phase-04-prepare-physical-f5-operator-handoff.md) | Completed |
 
 ## Progress
 
-20/21 child-plan success criteria are complete (95%). The only remaining child criterion
-is intentional delivery verification after commit/push and any Docker Hub decision.
+21/21 child-plan success criteria are complete (100%) for the source-completable slice.
+Delivery tip is `33310de` on `main` with green `ci` + `docker-suite` (container 12/12).
+Docker Hub registry push was skipped by design until repository secrets exist. Parent
+Phase 5 / PDR-07 remains open for a human physical F5 package.
 
 ## Dependencies
 

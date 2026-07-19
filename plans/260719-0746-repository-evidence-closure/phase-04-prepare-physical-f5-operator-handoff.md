@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: "Prepare physical F5 operator handoff"
-status: in-progress
+status: completed
 effort: "small"
 ---
 
