@@ -1,6 +1,7 @@
 extends Node
 
 const SETTINGS_SCENE := preload("res://scenes/ui/settings-panel.tscn")
+const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const MENU_SETTINGS_REGRESSION := preload("res://tests/menu-settings-regression.gd")
 const VOICE_OVER_REGRESSION := preload("res://tests/voice-over-regression.gd")
 
@@ -30,6 +31,17 @@ func _ready() -> void:
 	SettingsManager.set_sfx_volume(-12.0)
 	if not _require(is_equal_approx(AudioServer.get_bus_volume_db(sfx_bus_index), -12.0) and is_equal_approx(AudioServer.get_bus_volume_db(voice_bus_index), -12.0), "SFX setting did not keep voice and effects under one user control"): return
 	SettingsManager.set_sfx_volume(previous_sfx_volume)
+	var player := PLAYER_SCENE.instantiate()
+	add_child(player)
+	await get_tree().process_frame
+	if not _require(_method_argument_type(player, "_on_setting_changed", 1) == TYPE_NIL, "production player narrowed the Variant settings signal payload type"): return
+	SettingsManager.set_comfort_head_bob(false)
+	SettingsManager.set_camera_shake_enabled(false)
+	if not _require(is_instance_valid(player) and player.is_inside_tree(), "boolean settings signal invalidated the live production player"): return
+	SettingsManager.set_comfort_head_bob(true)
+	SettingsManager.set_camera_shake_enabled(true)
+	player.queue_free()
+	await get_tree().process_frame
 	var panel := SETTINGS_SCENE.instantiate()
 	add_child(panel)
 	await get_tree().process_frame
@@ -72,6 +84,19 @@ func _ready() -> void:
 	var one_shot_stream := AudioManager._get_tone(loop_id, 60.0, 2.0)
 	var looping_stream := AudioManager._get_looping_tone(loop_id, 60.0)
 	if not _require(one_shot_stream.loop_mode == AudioStreamWAV.LOOP_DISABLED and looping_stream.loop_mode == AudioStreamWAV.LOOP_FORWARD and one_shot_stream != looping_stream, "drone setup mutated the cached one-shot stream"): return
+	var energy_window := 2048
+	var one_shot_start_energy := _pcm16_window_energy(one_shot_stream, 0, energy_window)
+	var one_shot_end_energy := _pcm16_window_energy(one_shot_stream, one_shot_stream.data.size() / 2 - energy_window, energy_window)
+	if not _require(one_shot_end_energy < one_shot_start_energy * 0.2, "one-shot tone lost its fade-out envelope"): return
+	var loop_start_energy := _pcm16_window_energy(looping_stream, 0, energy_window)
+	var loop_end_energy := _pcm16_window_energy(looping_stream, looping_stream.data.size() / 2 - energy_window, energy_window)
+	if not _require(loop_start_energy >= one_shot_start_energy * 0.9, "looping tone has no usable PCM energy"): return
+	if not _require(loop_end_energy >= loop_start_energy * 0.9, "looping tone decays before its loop boundary and will pulse on restart"): return
+	var loop_sample_count := looping_stream.data.size() / 2
+	var seam_step := absi(_pcm16_sample(looping_stream, 0) - _pcm16_sample(looping_stream, loop_sample_count - 1))
+	var reference_step := _pcm16_max_step(looping_stream, 0, energy_window)
+	if not _require(reference_step > 0, "looping tone has no sample-to-sample motion"): return
+	if not _require(seam_step <= reference_step, "looping tone boundary exceeds its normal sample-to-sample step"): return
 	var one_shot_key := AudioManager._make_cache_key(loop_id, 60.0, 2.0)
 	var looping_key := AudioManager._make_cache_key(loop_id, 60.0, 2.0, true)
 	var loop_player := AudioStreamPlayer.new()
@@ -109,8 +134,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	orphan_parent.queue_free()
 	await get_tree().process_frame
+	if not _require(AudioManager._spatial_players.is_empty() and AudioManager._spatial_player_ids.is_empty(), "parent-free spatial tone stayed registered until an explicit stop"): return
 	AudioManager.stop_tone("spatial_orphan_fixture")
-	if not _require(AudioManager._spatial_players.is_empty() and AudioManager._spatial_player_ids.is_empty(), "parent-free spatial tone was not pruned safely"): return
 	var queued_parent := Node3D.new()
 	add_child(queued_parent)
 	queued_parent.queue_free()
@@ -213,6 +238,32 @@ func _verify_malformed_settings_rejected() -> bool:
 	)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(malformed_path))
 	return _require(kept_defaults, "malformed persisted values changed runtime settings")
+
+func _pcm16_sample(stream: AudioStreamWAV, sample_index: int) -> int:
+	var byte_index := sample_index * 2
+	var value := int(stream.data[byte_index]) | (int(stream.data[byte_index + 1]) << 8)
+	return value - 65536 if value >= 32768 else value
+
+func _method_argument_type(instance: Object, method_name: String, argument_index: int) -> int:
+	for method: Dictionary in instance.get_method_list():
+		if str(method.get("name", "")) != method_name:
+			continue
+		var arguments: Array = method.get("args", [])
+		if argument_index >= 0 and argument_index < arguments.size():
+			return int((arguments[argument_index] as Dictionary).get("type", -1))
+	return -1
+
+func _pcm16_window_energy(stream: AudioStreamWAV, start_sample: int, sample_count: int) -> float:
+	var energy := 0.0
+	for sample_index in range(start_sample, start_sample + sample_count):
+		energy += absf(float(_pcm16_sample(stream, sample_index)))
+	return energy / maxf(1.0, float(sample_count))
+
+func _pcm16_max_step(stream: AudioStreamWAV, start_sample: int, sample_count: int) -> int:
+	var max_step := 0
+	for sample_index in range(start_sample + 1, start_sample + sample_count):
+		max_step = maxi(max_step, absi(_pcm16_sample(stream, sample_index) - _pcm16_sample(stream, sample_index - 1)))
+	return max_step
 
 func _require(condition: bool, message: String) -> bool:
 	if condition:

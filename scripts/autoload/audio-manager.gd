@@ -118,6 +118,7 @@ func play_spatial_tone(parent: Node3D, id: String, frequency: float, duration: f
 	_spatial_players.append(player)
 	_spatial_player_ids[player.get_instance_id()] = id
 	player.finished.connect(_on_spatial_player_finished.bind(player))
+	player.tree_exiting.connect(_on_spatial_player_tree_exiting.bind(player))
 	player.play()
 
 func stop_tone(id: String) -> void:
@@ -177,11 +178,19 @@ func _get_or_create_tone(id: String, frequency: float, duration: float, looping:
 		_touch_cached_key(cache_key)
 		return _cache[cache_key] as AudioStreamWAV
 	var sample_count := _effective_sample_count(duration)
+	var loop_cycle_count := 0
+	if looping:
+		loop_cycle_count = maxi(1, roundi(frequency * float(sample_count) / SAMPLE_RATE))
 	var data := PackedByteArray()
 	data.resize(sample_count * 2)
 	for index in sample_count:
-		var envelope := 1.0 - (float(index) / sample_count)
-		var sample := sin(TAU * frequency * float(index) / SAMPLE_RATE) * envelope * 0.2
+		var sample_progress := float(index) / sample_count
+		var phase := TAU * frequency * float(index) / SAMPLE_RATE
+		var envelope := 1.0 - sample_progress
+		if looping:
+			phase = TAU * loop_cycle_count * sample_progress
+			envelope = 1.0
+		var sample := sin(phase) * envelope * 0.2
 		var value := int(sample * 32767.0)
 		data[index * 2] = value & 0xff
 		data[index * 2 + 1] = (value >> 8) & 0xff
@@ -263,6 +272,9 @@ func _on_spatial_player_finished(player: AudioStreamPlayer3D) -> void:
 	_unregister_spatial_player(player)
 	if is_instance_valid(player):
 		player.queue_free()
+
+func _on_spatial_player_tree_exiting(player: AudioStreamPlayer3D) -> void:
+	_unregister_spatial_player(player)
 
 func _on_player_finished(player: AudioStreamPlayer) -> void:
 	if is_instance_valid(player) and not player.playing:

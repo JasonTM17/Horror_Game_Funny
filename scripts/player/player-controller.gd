@@ -130,7 +130,7 @@ func _apply_settings() -> void:
 	mouse_sensitivity = SettingsManager.mouse_sensitivity
 	camera.fov = SettingsManager.field_of_view
 
-func _on_setting_changed(name: String, _value: float) -> void:
+func _on_setting_changed(name: String, _value: Variant) -> void:
 	if name == "mouse_sensitivity":
 		mouse_sensitivity = SettingsManager.mouse_sensitivity
 	elif name == "field_of_view":
