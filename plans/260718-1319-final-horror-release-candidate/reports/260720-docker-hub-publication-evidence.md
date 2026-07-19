@@ -101,6 +101,25 @@ Git tag, GitHub release, signed executable, installer, store package, or complet
 the owner-waived human QA. The optional physical runner and perceptual review matrix
 remain available for future confidence-building.
 
+## Automated Main-Push Confirmation
+
+Commit `9b14293ee03bfa7c5cfcf145b16df4de80cd2c90` subsequently proved the configured
+GitHub Actions path end to end:
+
+| Evidence | Result |
+|---|---|
+| [`ci` run 29707431394](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29707431394) | `success` for the exact commit |
+| [`docker-suite` run 29707431393](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29707431393) | `success`; container emitted `ALL_TWELVE_HEADLESS_CHECKS_OK` |
+| Publish step | Docker login succeeded and pushed `latest` plus SHA-named tag `9b14293ee03bfa7c5cfcf145b16df4de80cd2c90` |
+| Published digest | Both tags resolved to `sha256:5e76442b13c33980da6f62ab14e98776ac47cc0cf151fd298efa65364632c4d0` |
+| Docker Hub API times (UTC) | `latest`: `2026-07-19T23:10:15.490229Z`; SHA-named tag: `2026-07-19T23:10:17.125199Z` |
+
+Unauthenticated Docker Hub API requests and `docker buildx imagetools inspect` confirmed
+both remote tags after the workflow completed. The earlier digest in this report remains
+the immutable identity of the initial manual publication; `latest` moved to the automated
+workflow digest. The SHA-shaped tag is still only a mutable registry locator and is not
+source attestation.
+
 ## Unresolved Questions
 
 - Future `main` publications require fresh tag-and-digest verification after the
