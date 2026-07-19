@@ -6,6 +6,24 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Final source consistency hardening — 2026-07-19
+
+- `PlayerController` now accepts the full `Variant` payload promised by
+  `SettingsManager.setting_changed`, including boolean accessibility/display changes.
+- Procedural drones use constant-amplitude, whole-cycle PCM loops instead of replaying a
+  one-shot fade envelope; one-shot tones keep their existing fade behavior.
+- Spatial tone registrations now clear immediately when their owning parent exits, in
+  addition to finish, explicit stop, and global teardown paths.
+- `settings-audio` now exercises a live production player, positive loop energy, bounded
+  seam motion, preserved one-shot fade, and parent-exit spatial cleanup without changing
+  the canonical twelve-check runner.
+- PowerShell editor policy now agrees with the repository-wide LF contract. Security and
+  superseded-plan wording distinguish current local export evidence from historical
+  source-first boundaries.
+- Review-fix verification passed the host suite 12/12, evidence/export adversarial gates,
+  fresh Windows export/startup smoke, docs/media, packaging, secrets, Compose parsing,
+  and diff checks. Final review scored 10/10 with no unresolved Critical/High/Medium.
+
 #### Professional Docker Hub + repository docs polish — 2026-07-19
 
 - Dockerfile now verifies the official Godot 4.7.1 Linux zip with pinned SHA-256 `c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba` before install.
@@ -25,7 +43,7 @@ All notable changes to this project are documented here.
 - The hardening slice landed on `main` as `ad514cba881270d43fa532d324224618dd48d364` followed by report-containing closure commit `c28beeed7a4bafd871e09225152f329beac09e9a`; real-index media/link validation, remote parity, `ci`, and `docker-suite` passed. The Hub step skipped because Actions secrets are absent, so no registry tag or digest is claimed.
 - Fresh Windows host verification passed all 12 canonical Godot checks (exit 0); the focused physical-evidence regression and Windows export adversarial harness also passed.
 - PowerShell/Bash packaging contracts and a local Docker compose image build plus 12/12 container run passed. Docker Hub publication was not performed; the absence of a digest remains the authoritative unverified boundary.
-- A fresh Windows export reproduced the executable at `117920024` bytes with SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`.
+- A fresh Windows export reproduced the executable at `117920376` bytes with SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190`.
 - V1 bundle IDs are intentionally per-run because their manifests bind a fresh `RUN_ID`; current active/rollback IDs live in the ignored `VERIFY_COMPLETE.txt` files and prior IDs are dated evidence, not durable release constants.
 - The documentation-only cover contract is `1280×640`, SHA-256 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
 - [Final source-closure verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md) is the current reference; PDR-07/parent Phase 5 remains open for a human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) and perception review.

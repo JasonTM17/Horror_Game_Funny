@@ -40,7 +40,7 @@ Stable recorded Windows export identities are:
 
 | Artifact | Role | Identity |
 |---|---|---|
-| `ROOM_407_THE_LAST_SHIFT.exe` | reproducible active payload (`117920024` bytes) | SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| `ROOM_407_THE_LAST_SHIFT.exe` | reproducible active payload (`117920376` bytes) | SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 | Official export-template archive | local export input | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | local export input | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
 
@@ -55,6 +55,12 @@ The current evidence index is the
 PDR-07/parent Phase 5 remains **open** until a human physical production-window run
 (`ProjectRun` preferred, `EditorF5` optional) records the same-run pacing payload,
 capture, and perception review.
+
+The final source-consistency child plan also hardened boolean settings delivery,
+cycle-aligned procedural drone loops, and spatial-player parent-exit cleanup. Its focused
+and full host gates passed, the final review scored 10/10, and the current Windows export
+identity is the `117920376`-byte / `74ef9d12…` artifact above. This closes source-level
+hardening only; it does not substitute for the open human PDR-07 review.
 
 ## Completed Scare Lifecycle Slice
 

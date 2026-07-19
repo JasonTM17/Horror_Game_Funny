@@ -21,6 +21,14 @@ source: skill
 
 # Room 407: The Last Shift
 
+> **Superseded status record:** this file preserves the original implementation plan and
+> its point-in-time evidence. Current release authority is the
+> [final horror release candidate](../260718-1319-final-horror-release-candidate/plan.md),
+> where the implemented voice inventory is 76 cues across 22 groups and automated
+> Windows export is complete. Once the
+> [source-consistency child plan](../260719-2235-final-source-consistency-hardening/plan.md)
+> is complete, only the human physical/perceptual gate remains open.
+
 ## Overview
 
 Create **ROOM 407: THE LAST SHIFT** from an empty public repository. Deliver a complete first-person main path: lobby tutorial, fourth-floor fuse puzzle, three-memory hallway loop, `0007` radio puzzle, Room 407 reveal, checkpointed chase, ending, credits, settings, accessibility, tests, and documentation.

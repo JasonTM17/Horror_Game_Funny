@@ -21,7 +21,7 @@ Linux-container suite also passed 12/12. Docker Hub publication was not attempte
 
 | Artifact | Role | Stable recorded identity |
 |---|---|---|
-| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | reproducible active payload | SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | reproducible active payload | SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 | Official export-template archive | local export input | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | local export input | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
 

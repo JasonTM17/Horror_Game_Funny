@@ -29,7 +29,7 @@ exposure):
    on this repository when available, or use the account contact channel.
 3. Include: affected revision (commit SHA), reproduction steps, impact, and
    whether the issue is present in source-only play (Godot editor / F5) or only
-   in a future exported binary.
+   in a local or otherwise unpublished exported binary.
 
 Please allow a reasonable time for assessment before public disclosure.
 

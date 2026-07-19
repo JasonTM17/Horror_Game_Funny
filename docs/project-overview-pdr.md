@@ -53,8 +53,8 @@ Linux-container suite passed 12/12; registry publication was not performed. The 
 has no separate publish approval: a passing `main` push publishes automatically only
 when both Hub secrets are configured, and no digest means publication is unverified.
 
-Stable recorded export identities are the `117920024`-byte executable SHA-256
-`420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`, official archive
+Stable recorded export identities are the `117920376`-byte executable SHA-256
+`74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190`, official archive
 SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72`, and installed
 release-template SHA-256
 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07`. Per-run bundle

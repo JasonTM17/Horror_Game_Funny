@@ -7,7 +7,7 @@ status: in-progress
 priority: P1
 branch: "main"
 tags: [horror, release-candidate, windows]
-blockedBy: []
+blockedBy: [260719-2235-final-source-consistency-hardening]
 blocks: []
 created: "2026-07-18T13:19:00+07:00"
 createdBy: "ck:cook"
@@ -129,3 +129,14 @@ This parent stays **in progress**: 5/6 phases completed; Phase 5 checklist 4/10 
 success criteria 0/5. Only a human production-window run can close Phase 5/PDR-07;
 `ProjectRun` preferred. Docker build/container 12/12 are green. No Actions secrets are
 listed, so Docker Hub publication/digest is not claimed.
+
+## Final source consistency hardening — 2026-07-19
+
+The [source-consistency child plan](../260719-2235-final-source-consistency-hardening/plan.md)
+is complete: 3/3 phases and 13/13 criteria. It corrected settings-signal type
+compatibility, cycle-aligned procedural loop PCM, spatial parent-exit cleanup, repository
+line-ending/security/history wording, and current export/operator-handoff fingerprints.
+The final host suite passed 12/12; evidence/export/repository gates passed; final review
+scored 10/10 with zero unresolved Critical/High/Medium. This satisfies the temporary
+source-hardening dependency but does not change the parent status: Phase 5/PDR-07 still
+requires a human physical production-window run and perception review.

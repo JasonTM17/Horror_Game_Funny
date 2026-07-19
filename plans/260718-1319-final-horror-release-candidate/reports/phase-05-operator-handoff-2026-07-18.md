@@ -30,7 +30,9 @@ routes the Godot `--version` preflight through the same Job boundary with a fixe
 30-second/65536-byte budget. It rejects stale, mixed, missing, duplicated, or changed
 side-channel evidence. Integrity controls do not replace watching the run.
 
-Pre-run automated authority: [final tester](../../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
+Pre-run automated authority: the current
+[source-consistency QA addendum](../../260719-2235-final-source-consistency-hardening/reports/260719-2321-qa-verification-addendum.md),
+plus the earlier [final tester](../../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
 and [final reviewer](../../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
 Reviewer verdict: Pass for staging, followed by successful real-index landing and CI.
 Docker Hub has no listed Actions secrets; its workflow step skipped, so no publication or
@@ -162,8 +164,8 @@ out-of-target, timed-out, output-overflowed, dirty-tree, or unwatched packages.
 
 ## Stable export inputs
 
-- Exported executable reference: `117920024` bytes, SHA-256
-  `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`.
+- Exported executable reference: `117920376` bytes, SHA-256
+  `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190`.
 - Official export-template archive SHA-256:
   `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72`.
 - Installed Windows release-template SHA-256:

@@ -9,6 +9,12 @@ effort: "medium"
 
 # Phase 8: Documentation Release and Push
 
+> **Superseded status record:** this phase retains the original source-first/export-
+> deferred boundary. Current authority is the
+> [final horror release candidate](../260718-1319-final-horror-release-candidate/plan.md):
+> automated Windows x86_64 export and headless startup are complete, while rendered
+> launch, physical input, audio/visual review, and PDR-07 remain human-only.
+
 ## Overview
 
 Finalize all user/maintainer documentation from verified code, prepare the playable source release candidate, audit every acceptance criterion, clean Git state, and push the atomic `main` history to origin. Documentation reconciliation may overlap Phase 7 evidence collection after Phase 6 implementation is complete; final release closure remains gated by every Phase 7 manual criterion.

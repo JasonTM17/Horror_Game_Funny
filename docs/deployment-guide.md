@@ -150,7 +150,7 @@ Stable recorded identities from the dated handoff are:
 |---|---|
 | Official Godot export-template archive | `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
-| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 
 Do not copy per-run active/rollback `BUNDLE_SHA256` values into evergreen docs. Each V1
 manifest binds a fresh `RUN_ID`; inspect the current ignored `VERIFY_COMPLETE.txt` and
