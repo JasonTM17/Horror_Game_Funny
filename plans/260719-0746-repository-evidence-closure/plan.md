@@ -26,9 +26,11 @@ source: skill
 
 This is a source-completable child plan of the
 [final horror release candidate](../260718-1319-final-horror-release-candidate/plan.md).
-It prepares trustworthy repository and physical-review tooling, but cannot close
-parent Phase 5 or PDR-07. Those require a human-observed physical keyboard/mouse run
-from `START SHIFT` to visible credits with same-run capture and pacing evidence.
+It prepared trustworthy repository and physical-review tooling, but did not close
+parent Phase 5 or PDR-07 at this child plan's delivery snapshot. The parent then required
+a human-observed physical keyboard/mouse run from `START SHIFT` to visible credits with
+same-run capture and pacing evidence. The later owner waiver supersedes that policy
+without retroactively creating the evidence.
 
 ## Requirements contract
 
@@ -59,7 +61,9 @@ from `START SHIFT` to visible credits with same-run capture and pacing evidence.
   QA commit `ad514cba881270d43fa532d324224618dd48d364` and report-containing closure commit
   `c28beeed7a4bafd871e09225152f329beac09e9a`. The real-index docs/media gate emitted all
   four success markers before and after the closure commit.
-- Parent phases 1-4 and 6 are completed; Phase 5 remains in progress.
+- At this child plan's delivery snapshot, parent phases 1-4 and 6 were completed while
+  Phase 5 remained in progress. The later 2026-07-19 parent-plan owner waiver supersedes
+  that status without creating human evidence.
 
 ## Phases
 
@@ -80,8 +84,9 @@ review. See the [final tester report](./reports/tester-final-2026-07-19.md) and
 **Pass for staging**, with 0 Critical/High/Medium and one informational Low. Source and
 delivery closure are complete: non-force push succeeded, local/origin/remote parity is
 0/0, and the matching `ci` plus `docker-suite` runs passed. Docker Hub publication was
-skipped because Actions secrets are absent. Parent Phase 5/PDR-07 remains open for a
-human physical production-window package.
+skipped because Actions secrets are absent. At this historical snapshot, parent Phase
+5/PDR-07 remained open for a human physical production-window package; the later
+owner-approved closure records it as waived/accepted risk rather than human-verified.
 
 ## Scope change log
 
@@ -108,7 +113,7 @@ human physical production-window package.
 | Runtime non-regression | fresh canonical 12/12 host suite and zero bad log lines/profile leaks |
 | Packaging and repository hygiene | packaging/Docker, secret, YAML, link, and `git diff --check` results |
 | Contract safety | final three-stage review: zero unresolved Critical/High/Medium findings; one informational Low |
-| Human-only gate | operator capture, same-run eligible pacing payload, completed review matrix |
+| Optional human confidence evidence | operator capture, same-run eligible pacing payload, completed review matrix |
 
 ## Stable contracts
 
@@ -127,4 +132,5 @@ backed, applicable source and real-index gates are green, final review has no un
 Critical/High/Medium finding, the authorized non-force push has 0/0 remote parity, both
 required workflows passed, and the operator handoff is usable. Docker Hub publication is
 not claimed because no required repository secrets are listed. Parent Phase 5/PDR-07
-stays open until a human supplies and reviews the production-window evidence.
+stayed open at this child plan's delivery snapshot. The later 2026-07-19 owner waiver in
+the parent plan supersedes that project-closure policy; no human evidence is implied.

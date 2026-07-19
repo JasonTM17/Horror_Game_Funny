@@ -6,22 +6,22 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** the 2026-07-19 source/docs closure is landed on `main`; its real-index docs/media gate, Windows-host and Linux-container **12/12** suites, focused evidence/export regressions, Docker packaging contracts, Windows x86_64 export, and exported-process startup smoke passed. The matching [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242) runs are green. Docker Hub publish was skipped because repository secrets are absent, so no tag or registry digest is claimed. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) remains open for a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional. Staged media and headless export startup are not human or perceptual proof.
+**Project status:** project closure was approved by the owner on 2026-07-19. Fresh local closure QA passed the real-index docs/media gate, Windows-host **12/12** suite, focused evidence/export adversarial regressions, Docker packaging contracts, Compose configuration, and secret scans. The current source-hardening evidence separately records a fresh Windows x86_64 export and exported-process startup smoke. The linked [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242) runs are historical green evidence for delivered commit `c28beeed`, not validation of the later closure commit; the current pushed tip must earn its own workflow result. [PDR-07](docs/project-overview-pdr.md) and the human Phase 5 gate are closed as **owner-waived / accepted risk**. No human physical playthrough occurred, and no pacing, chase, audio, visual, input, Settings, fullscreen, or other perceptual pass is claimed. Docker Hub publish was skipped in the historical run because repository secrets were absent; no current registry digest, release, tag, signed binary, or installer is claimed.
 
 | Doc | Purpose |
 |---|---|
 | [Contributing](CONTRIBUTING.md) | Local play, suite, Docker, commit style |
 | [Security](SECURITY.md) | Vulnerability reporting |
 | [Changelog](CHANGELOG.md) | Notable changes |
-| [Deployment guide](docs/deployment-guide.md) | Source, QA, export, CI/Hub, and physical handoff |
+| [Deployment guide](docs/deployment-guide.md) | Source, QA, export, CI/Hub, and optional physical handoff |
 | [Testing](docs/testing.md) | Twelve-check matrix and Docker suite |
-| [Limitations](docs/limitations.md) | Open gates and evidence boundaries |
-| [Roadmap](docs/project-roadmap.md) | Phase status (physical review still open) |
+| [Limitations](docs/limitations.md) | Accepted risks and evidence boundaries |
+| [Roadmap](docs/project-roadmap.md) | Closed phase status and optional future QA |
 | [Asset credits](docs/asset-credits.md) | Cover, stills, voice-over provenance |
 
-Authoritative source-closure and delivery evidence (2026-07-19): [final verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md). Stable export input/payload hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). PDR-07 stays open until the human production-window package is reviewed.
+Authoritative automated evidence is recorded in the [final verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md) and [final source-consistency hardening report](plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md). The [owner-waiver closure review](plans/260718-1319-final-horror-release-candidate/reports/260720-owner-waiver-closure-review.md) records the final three-stage review and accepted boundary. Stable export input/payload hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). Those reports preserve the automated boundary; the later owner waiver disposes PDR-07 as a project requirement without manufacturing human evidence.
 
-The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
+The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry measures the route, but no recorded physical playthrough and same-run payload validate that target.
 
 ## Visual Reference Tour
 
@@ -183,13 +183,13 @@ The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Go
 
 The existing `physical-route` check also covers the optional drawer and painted door: structural visibility/alignment, production-ray acquisition, mapped feedback, cooldown/spam behavior, drawer sweep rejection and movement-only locking, open/close animation, unchanged story state, and spatial-tone/lock cleanup on teardown. These remain headless contract assertions, not rendered-visual, audible-mix, or physical-input evidence.
 
-The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove the required human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a human physical production-window run, 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
-Recent automated contract evidence (not physical proof): a 2026-07-18 Windows host run passed all 12 checks in about 77.5 seconds with clean logs, and a Linux container run passed the same 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The 2026-07-19 evidence-closure re-verify again recorded host 12/12, focused physical-evidence and export-adversarial harnesses, packaging contracts, and secret scan green. Physical and perceptual gates remain open.
+Recent automated contract evidence (not physical proof): a 2026-07-18 Windows host run passed all 12 checks in about 77.5 seconds with clean logs, and a Linux container run passed the same 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The 2026-07-19 evidence-closure re-verify again recorded host 12/12, focused physical-evidence and export-adversarial harnesses, packaging contracts, and secret scan green. Physical and perceptual checks were not performed; the owner accepted that risk for project closure.
 
 ## Capture a Pacing Payload
 
-For the human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), choose **START SHIFT**, not Continue, and complete the route with physical keyboard and mouse input while recording. When credits become visible, preserve the single console line beginning with:
+For an optional future human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), choose **START SHIFT**, not Continue, and complete the route with physical keyboard and mouse input while recording. When credits become visible, preserve the single console line beginning with:
 
 ```text
 PLAYTHROUGH_PACING: {JSON payload}
@@ -197,7 +197,7 @@ PLAYTHROUGH_PACING: {JSON payload}
 
 Keep that exact payload with the same-run boot-to-credits capture. The runtime also overwrites one last-run evidence line to `user://playthrough_pacing_last.txt` so the physical harness can harvest a payload when process logs miss it. There is no UI for the report. A headless runner artifact can contain two identical lines because it concatenates the engine log and captured console output; the runtime still emitted once. Even an eligible, complete, in-target payload is instrumentation, not proof of physical traversal, capture behavior, chase feel, presentation, audio, or Settings behavior.
 
-### Record the production-window run
+### Record an optional production-window run
 
 The repository includes a separate evidence runner. Default `ProjectRun` launches the main scene with `--log-file` on the game process. Choose **START SHIFT** (not Continue), play to visible credits with keyboard/mouse, keep a same-run capture, then quit:
 
@@ -212,7 +212,7 @@ Use `-LaunchMode EditorF5` only when the editor is needed; it cannot attach `--l
 
 The wrapper quarantines stale side-channels, caps each at 1 MiB, verifies source/destination identity and hashes, rejects stale/mixed/malformed/escaped evidence, and keeps output below `.artifacts/manual-playthrough/<timestamp>/`. The parser recomputes pacing verdicts from strict JSON. Read [Testing](docs/testing.md#physical-playthrough-evidence-runner) for the full contract. `-AnalyzeLog` can diagnose an existing artifact but can never make a package ready.
 
-The generated Markdown includes an unchecked human-review matrix. The capture path is a reference, not automated video verification. A reviewer must still watch the recording, complete that matrix, and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before closing the release gate.
+The generated Markdown includes an unchecked human-review matrix. The capture path is a reference, not automated video verification. If this optional QA is performed later, a reviewer should watch the recording, complete that matrix, and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before making any corresponding verification claim. It is no longer a project-closure gate.
 
 ## Assets
 
@@ -225,10 +225,11 @@ Four reviewed staged in-engine stills and one derived visual-reference GIF are c
 - No reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) with same-run telemetry currently verifies the complete route.
 - The 15–20 minute duration is an instrumented authored target, not a recorded physical-playthrough result.
 - Audible audio/mix balance, live chase navigation and fairness, and target-display visual balance remain manually unverified.
+- Physical input, Settings, fullscreen, and target-hardware behavior remain manually unverified; the owner accepted these gaps for project closure.
 - Checkpoints last only for the current application process; only settings persist to disk.
-- No executable, signed installer, or store package is committed. The Windows x86_64 export and headless startup path are automated, but rendered launch, input, audio, and target-hardware behavior remain human-review gates.
+- No executable, signed installer, or store package is committed. The Windows x86_64 export and headless startup path are automated, but rendered launch, input, audio, and target-hardware behavior remain unverified owner-accepted boundaries.
 
-See [Known limitations](docs/limitations.md) for the complete release boundary and required evidence.
+See [Known limitations](docs/limitations.md) for the complete evidence boundary and optional future QA.
 
 ## Export
 

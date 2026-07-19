@@ -9,7 +9,7 @@ The repository has two equivalent twelve-check Godot 4.7.1 headless runners:
 | `tests/run-headless-tests.ps1` | Windows + installed Godot 4.7.1 | PowerShell |
 | `tests/run-headless-tests.sh` | Linux / Docker | bash + `godot` on `PATH` or `$GODOT` |
 
-Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/parse/assert failures. They intentionally ignore known Godot ObjectDB warning noise at process exit while retaining the stronger error/assert scanners. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. Windows export verification and the focused PowerShell hardening regressions are separate gates; they do not add a thirteenth Godot check. None replace the required human physical production-window run; `ProjectRun` preferred, `EditorF5` optional.
+Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/parse/assert failures. They intentionally ignore known Godot ObjectDB warning noise at process exit while retaining the stronger error/assert scanners. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. Windows export verification and the focused PowerShell hardening regressions are separate gates; they do not add a thirteenth Godot check. None prove a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional for future QA.
 
 ## Run the Suite
 
@@ -168,7 +168,7 @@ The latest repository-evidence-closure run recorded the following available gate
 | Windows Godot runner | Exit 0; canonical 12/12 checks passed and the latest twelve logs were clean | Headless contracts only; no physical or perceptual proof |
 | Physical-evidence regression | Recorded exit 0; current harness contract and markers are listed above | Isolated synthetic fixtures; rerun after landing changes; never creates release evidence |
 | Docker packaging + live suite | PowerShell/Bash verifiers passed; compose config/build passed; local container emitted `ALL_TWELVE_HEADLESS_CHECKS_OK` | CI/test image only; registry publication was not performed and no player-facing build is implied |
-| Windows export + adversarial harness | Export and startup markers passed; active/rollback identities were preserved | Headless startup/export contracts; normal-window review remains open |
+| Windows export + adversarial harness | Export and startup markers passed; active/rollback identities were preserved | Headless startup/export contracts; normal-window review was not performed |
 
 The canonical headless runners deliberately do not fail on ObjectDB warning noise. A
 dated report that separately scanned the retained logs and found zero ObjectDB lines is
@@ -188,12 +188,12 @@ fresh `RUN_ID` and rotate even when payload bytes reproduce.
 The documentation-only cover is `1280×640` with SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
 
-The current evidence report is [`pm-260719-1501-source-closure.md`](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md).
+The current automated evidence reports are [`pm-260719-1501-source-closure.md`](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+and the [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md).
 Earlier tester/reviewer reports remain historical traces. The dated review found zero
-Critical or Medium defects. These reports do not close the human
-gate: PDR-07/parent Phase 5 still requires a human physical production-window run;
-`ProjectRun` preferred, `EditorF5` optional, with same-run telemetry, capture, and a
-completed perception matrix. The runner's covered same-profile reparse/TOCTOU
+Critical or Medium defects. PDR-07/parent Phase 5 was later closed by owner waiver, not
+by a human run. No same-run telemetry/capture or completed perception matrix exists. The
+runner's covered same-profile reparse/TOCTOU
 limitation remains in force; it is not a hostile-filesystem guarantee.
 
 ## Recorded Environment
@@ -270,7 +270,7 @@ The recorded capture environment was Godot 4.7.1 Compatibility/OpenGL 3.3 with N
 
 Four reviewed artifact PNGs were resized and optimized to 960×540 with ImageMagick 7.1.2 and copied to [`docs/screenshots/`](./screenshots/): [lobby](./screenshots/room-407-lobby.png), [Room 407 bedroom](./screenshots/room-407-bedroom.png), [chase entity](./screenshots/room-407-chase-entity.png), and [ending reveal](./screenshots/room-407-ending-reveal.png). The [640×360 visual-reference GIF](./screenshots/room-407-gameplay-tour.gif) was derived separately with FFmpeg 8.1.1 at 8 fps using `palettegen` with `max_colors=96` and `paletteuse` with `sierra2_4a`; it contains 59 frames and runs for 7.38 seconds. The four PNGs and GIF total 4.65 MiB. GDScript did not generate the GIF. Source AVI, all eight current source PNGs, and logs remain ignored artifacts.
 
-This tour checks reproducible scene composition and supplies reviewed documentation views only. Because it freezes simulation and selects state directly, it is not an F5 playthrough, gameplay recording, manual test, pacing sample, progression proof, player-driven chase, fairness review, audible-output review, Settings/fullscreen check, or perceptual certification. Use `tests/run-physical-playthrough.ps1` and the manual matrix below for those gates.
+This tour checks reproducible scene composition and supplies reviewed documentation views only. Because it freezes simulation and selects state directly, it is not an F5 playthrough, gameplay recording, manual test, pacing sample, progression proof, player-driven chase, fairness review, audible-output review, Settings/fullscreen check, or perceptual certification. Use `tests/run-physical-playthrough.ps1` and the optional manual matrix below if those checks are performed later.
 
 ## Pacing Telemetry Contract
 
@@ -312,7 +312,7 @@ The automation reaches production code, but it does not inject operating-system 
 - `player-input-integration-test.gd` verifies separate physical-only and logical-only InputMap events for WASD/Shift/E/F/Escape/Tab, then constructs `InputEventAction` objects and passes them directly to production `_unhandled_input()` methods. This exercises the production ray, locks, door logic, and UI handlers without proving that Windows delivered those keys from hardware.
 - `progression-test.gd` calls story methods and radio widget methods directly. It does not type into the `LineEdit`, click buttons, or close the final note through a real device.
 
-Physical keyboard/mouse traversal, event delivery, mouse capture, and input feel therefore remain manual requirements.
+Physical keyboard/mouse traversal, event delivery, mouse capture, and input feel therefore remain unverified; they are optional recommended future QA after the owner's closure waiver.
 
 ## Progression Coverage
 
@@ -488,9 +488,9 @@ Parser verification on 2026-07-16 covered six adversarial cases: the canonical 6
 
 The focused regression covers strict pacing types/schema/recomputed verdicts, stale archive/quarantine, same-metadata pre-clear replacement preservation, the 1 MiB ceiling, absent-file, same-baseline-hash, former-tolerance and exact-boundary timestamps, fresh changed payload, stable byte/hash snapshot, deterministic source swap, rejected-copy cleanup, containment, and supported junction rejection cases. Its synthetic temporary tree is removed and is not release evidence. Record a dated fresh result with the final tree rather than treating this coverage list as a pass claim.
 
-## Required Manual Matrix
+## Optional Future Manual QA Matrix
 
-No current automated check fully verifies the following. Record each result, environment, date, tester, and evidence link before a release claim.
+No current automated check fully verifies the following, and no human playthrough or perceptual pass occurred. The owner waived this phase as a project-closure requirement on 2026-07-19. If future claims are desired, record each result, environment, date, tester, and evidence link.
 
 | Area | Manual procedure | Evidence required |
 |---|---|---|
@@ -504,7 +504,7 @@ No current automated check fully verifies the following. Record each result, env
 | Comfort/input | Toggle flicker, head bob, shake, grain, fullscreen; pause/resume and open settings | mouse capture and toggle behavior trace |
 | Exported build | Launch the generated Windows executable normally on target hardware, operate the boot menu, and start a shift | rendered-window, physical-input, fullscreen, performance, and audible-output observations; headless export smoke already passes |
 
-Do not mark 15-20 minute pacing, visual/audio balance, audible output, full physical traversal, or the physical Settings UI workflow as verified until this evidence exists.
+Do not mark 15-20 minute pacing, chase fairness, visual/audio balance, audible output, full physical traversal, physical input, Settings, fullscreen, or other perceptual behavior as verified until this evidence exists. Owner-approved project closure is not evidence that these checks passed.
 
 ## References
 
@@ -520,7 +520,8 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
 - [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
-- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
+- [Final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md)
+- [Optional physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)

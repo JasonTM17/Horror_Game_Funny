@@ -32,8 +32,10 @@ clean, auditable run without confusing wrapper integrity with perceptual review.
    active time and all chapter verdicts in range; reject mixed or analyze-only packages.
 5. Require a human to watch the capture and complete chase fairness, clue/guide-light
    readability, voice/SFX balance, scare comfort, display, focus, and input judgments.
-6. Record the remaining owner/action plainly. Do not mark parent Phase 5, PDR-07, or the
-   overall release complete until the evidence package and human matrix are reviewed.
+6. At this child plan's delivery snapshot, record the remaining owner/action plainly and
+   leave parent Phase 5/PDR-07 open until the evidence package and human matrix are
+   reviewed. The later owner waiver may supersede that policy only without claiming the
+   absent observations.
 7. At the delivery boundary, require recorded Git commit/push authorization. A `main`
    push may trigger the conditional Docker Hub workflow only when its secrets exist;
    never represent that suite-image result as the game gate.
@@ -57,11 +59,13 @@ matrix, and rejection cases. Git commit/push was authorized and completed on 202
 the real index emitted all four docs/media markers, report-containing commit
 `c28beeed7a4bafd871e09225152f329beac09e9a` reached remote parity, and both matching CI
 workflows passed. No Docker Hub secrets are listed; the publish step skipped and no
-publication or digest is claimed. Parent Phase 5/PDR-07 remains human-only and open.
+publication or digest is claimed. At that snapshot parent Phase 5/PDR-07 remained
+human-only and open. The later 2026-07-19 parent-plan owner waiver supersedes that
+project-closure policy without creating human evidence.
 
-Next owner: the human reviewer runs the handoff from current clean pushed `main`, with
-`ProjectRun` preferred, and closes the phase only after same-run capture/payload plus the
-signed perception matrix.
+Optional next owner: a future human reviewer may run the handoff from a current clean
+pushed `main`, with `ProjectRun` preferred. Only a same-run capture/payload plus completed
+perception matrix can support corresponding human-verification claims.
 
 ## Non-goals and risks
 

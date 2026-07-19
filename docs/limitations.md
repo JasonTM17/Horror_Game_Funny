@@ -6,7 +6,7 @@
 - A credential-free `export_presets.cfg` is tracked for an unsigned Windows Desktop x86_64 release executable with an embedded PCK. Its `0.9.0.0` file/product version is unreleased release-candidate metadata, not a Git tag, GitHub release, or shipped-version claim. Exported binaries, logs, installed templates, and the Godot editor remain outside Git.
 - `tests/verify-windows-export.ps1` validates the selected preset, exact official Godot 4.7.1 archive/template hashes, fresh staged export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored output. Its lock, unique staging, path preflight, rollback, and configured-root checks protect the maintainer-run workflow from ordinary stale/partial state; they are not a hostile same-host guarantee against a concurrent reparse swap after preflight. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
-- Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). A passing `main` push auto-publishes only when both Hub secrets are configured; the workflow has no separate publish approval, and no registry digest means publication is unverified. The image does not ship a player-facing game build or close PDR-07.
+- Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). A passing `main` push auto-publishes only when both Hub secrets are configured; the workflow has no separate publish approval, and no registry digest means publication is unverified. The image does not ship a player-facing game build or provide human evidence for PDR-07.
 - Public-repo hygiene files (`SECURITY.md`, `CONTRIBUTING.md`, Dependabot, packaging CI) document process only; they are not a release certification.
 - An automated Windows export is in scope; signed installers, commercial platform packaging, and platform-specific compliance remain out of scope. The verifier stages the project's current notices, but a distributor must still review all requirements for the exact engine build and destination.
 
@@ -32,12 +32,12 @@ bind a fresh `RUN_ID`. Read the current ignored manifests and dated
 The docs-only cover contract is `1280×640`, SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`. See the dated
 [final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
-for command-level evidence.
+for command-level evidence. The later [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md)
+records the final automated hardening boundary.
 
-These checks do not close PDR-07 or parent Phase 5. A human physical production-window
-run (`ProjectRun` preferred, `EditorF5` optional) must still cover `START SHIFT` to
-credits, preserve its same-run pacing payload and capture, and complete the
-perception/input matrix. The hostile same-profile
+PDR-07 and parent Phase 5 were closed by owner waiver on 2026-07-19, not by these checks.
+No human physical production-window run covered `START SHIFT` to credits, and no same-run
+pacing payload, capture, or perception/input matrix was produced. The hostile same-profile
 reparse/TOCTOU race after path preflight remains a documented limitation; the evidence
 runner is not a hostile-filesystem proof.
 
@@ -46,7 +46,7 @@ runner is not a hostile-filesystem proof.
 - Gameplay checkpoints exist only in the `GameState` autoload for the current process.
 - The boot Continue button appears only when that in-memory checkpoint dictionary is populated.
 - Restarting the application removes checkpoint progress and starts a fresh shift.
-- Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; `save_settings()` returns an error and emits a failure signal when the write fails, so the modal stays open with **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Isolated writer/reader processes verify file creation and all 11 values across relaunch; physical panel interaction and the real player profile remain manual boundaries.
+- Settings changes apply immediately. A successful **SAVE & CLOSE** writes `user://room407.cfg`; `save_settings()` returns an error and emits a failure signal when the write fails, so the modal stays open with **RETRY SAVE** or **CLOSE WITHOUT SAVING**. Isolated writer/reader processes verify file creation and all 11 values across relaunch; physical panel interaction and the real player profile remain unverified owner-accepted boundaries.
 
 ## Automated Test Boundaries
 
@@ -65,11 +65,11 @@ runner is not a hostile-filesystem proof.
 - The Windows export verifier is separate from the twelve Godot checks. Its headless process smoke proves that the generated executable starts and exits without scanned engine/script/parse/crash markers; it does not inspect rendered pixels, hear audio, operate the menu, or certify target-hardware performance.
 - Headless rendering cannot establish darkness readability, flicker/grain comfort, color balance, ending presentation quality, monitor gamma, audible mix, or frame pacing on target hardware.
 
-## Manual Evidence Still Required
+## Unverified Human Evidence
 
-Runtime pacing telemetry is implemented, but no reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) currently proves the pacing target. Required evidence is a fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload; compressed automation and checkpoint-start reports are not substitutes.
+Runtime pacing telemetry is implemented, but no reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) proves the pacing target. The owner waived this phase as a project-closure requirement and accepted the risk. A fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload remains recommended future QA; compressed automation and checkpoint-start reports are not substitutes.
 
-`tests/run-physical-playthrough.ps1` can preserve raw stdout/stderr plus combined console and engine logs, snapshot and atomically quarantine a pre-launch `user://playthrough_pacing_last.txt` without deleting a replaceable path, cap candidates at 1 MiB, require a strictly post-launch changed regular side-channel with exactly one hash-verified payload, verify source/destination identity and hashes, and bind the result to one unchanged clean branch/commit. Its Job Object kills the process tree on timeout or combined-output overflow. It rejects linked/escaped evidence paths, source swaps, malformed or coercible JSON fields, missing target/chapter maps, inconsistent chapter verdicts, mixed runs, stale data, and out-of-target payloads. These checks fail closed for the covered accidental and deterministic race cases but are not proof against a hostile process that already controls the same user profile. The runner cannot inspect the recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary are an evidence package for human review, not automatic proof of the physical gate.
+`tests/run-physical-playthrough.ps1` can preserve raw stdout/stderr plus combined console and engine logs, snapshot and atomically quarantine a pre-launch `user://playthrough_pacing_last.txt` without deleting a replaceable path, cap candidates at 1 MiB, require a strictly post-launch changed regular side-channel with exactly one hash-verified payload, verify source/destination identity and hashes, and bind the result to one unchanged clean branch/commit. Its Job Object kills the process tree on timeout or combined-output overflow. It rejects linked/escaped evidence paths, source swaps, malformed or coercible JSON fields, missing target/chapter maps, inconsistent chapter verdicts, mixed runs, stale data, and out-of-target payloads. These checks fail closed for the covered accidental and deterministic race cases but are not proof against a hostile process that already controls the same user profile. The runner cannot inspect the recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary can support human review, but do not automatically prove the physical observations.
 
 The following are targets or implemented features, not manually verified release claims:
 
@@ -84,14 +84,14 @@ The following are targets or implemented features, not manually verified release
 - mouse capture, pause/settings behavior, fullscreen, and comfort toggles;
 - physical Settings-panel save/close behavior and target-device fullscreen transition.
 
-Use the manual matrix in `testing.md` and attach dated evidence before describing any of these as verified.
+Use the optional manual matrix in `testing.md` and attach dated evidence before describing any of these as verified. Project closure does not imply that pacing, chase, audio, visual, physical input, Settings, fullscreen, or other perceptual behavior passed.
 
 ## Content and Presentation Scope
 
 - Geometry, materials, labels, shader effects, and sound effects are intentionally procedural and asset-light. Committed media exceptions are the generated English story voice set and four project-authored generated still textures used by the boot menu and selected story props. Shader effects currently include grain, scanlines, ordered dithering, VHS tracking/jitter, and a chase-responsive fear vignette/tint.
 - The repository commits four reviewed 960×540 staged in-engine stills and one 640×360 derived visual-reference GIF under `docs/screenshots/`. The reproducible capture harness uses production gameplay/ending scenes but freezes gameplay and player simulation, disables voice, teleports the player, directly selects presentation states, and creates credits manually. These files demonstrate selected rendered views only; they are not a gameplay recording or production-window evidence of traversal, pacing, progression, chase fairness, audio, Settings/fullscreen behavior, pixel determinism, or cross-hardware consistency.
 - Eight source PNGs, the 1280×720 12 fps source AVI, and capture logs stay machine-local under ignored `.artifacts/`; only reviewed, optimized documentation media belongs under `docs/screenshots/`.
-- Generated English narration/character delivery is implemented for every sequenced story line; human-performed acting, external hero props, crouch, and a secondary ending remain out of scope. Voice quality and mix still require a physical listening pass.
+- Generated English narration/character delivery is implemented for every sequenced story line; human-performed acting, external hero props, crouch, and a secondary ending remain out of scope. Voice quality and mix remain unverified because no physical listening pass occurred.
 - The radio, subtitles, and credits use runtime UI/default theme behavior rather than committed font assets.
 - The current story and credits are English-only.
 

@@ -59,7 +59,9 @@ human physical playthrough/PDR-07 gate.
 
 - Blocks source-finalization claims in
   [`260718-1319-final-horror-release-candidate`](../260718-1319-final-horror-release-candidate/plan.md).
-- Parent Phase 5 remains independently blocked on human physical/perceptual evidence.
+- At this child plan's completion snapshot, parent Phase 5 remained independently
+  blocked on human physical/perceptual evidence. The later 2026-07-19 owner waiver in
+  the parent plan supersedes that release-policy status without creating human evidence.
 
 ## Completion
 
@@ -68,4 +70,6 @@ All 3/3 phases and 13/13 success criteria are evidence-backed. The
 host suite, evidence/export gates, and `117920376`-byte Windows artifact. Final mandatory
 review scored 10/10 with zero unresolved Critical/High/Medium. Repository docs, active
 operator handoff, packaging, secrets, Compose config, links/media, and diff checks are
-current. This completes source hardening only; parent Phase 5/PDR-07 remains open.
+current. This completed source hardening only. At that snapshot parent Phase 5/PDR-07
+remained open; the later parent-plan owner waiver closes it as accepted risk, not as a
+human-verified pass.

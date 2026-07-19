@@ -1,27 +1,31 @@
 ---
 phase: 5
-title: "Human physical production-window review and pacing validation"
-status: in-progress
+title: Owner-waived physical review and pacing validation
+status: completed
 effort: large
 ---
 
-# Phase 5: Human Physical Production-Window Review and Pacing Validation
+# Phase 5: Owner-Waived Physical Review and Pacing Validation
 
 ## Goal
 
-Exercise the production window from boot to visible credits with OS-level input and
-retain same-run artifacts without overstating agent-driven evidence.
+Resolve the physical/perceptual review requirement truthfully: preserve its optional
+evidence path, record the owner's risk acceptance, and never present absent human
+evidence as a passed playtest.
 
-## Current execution constraint
+## Owner decision and disposition — 2026-07-19
 
-The source/docs closure is delivered: `c28beeed7a4bafd871e09225152f329beac09e9a`
-contains the report set, the real-index gate emitted all four success markers, remote
-parity reached 0/0, and both matching CI workflows passed. Automated route, input, audio,
-export, host, and container checks still do not replace this physical/perceptual gate.
-Leave the phase open until a human runs the current clean pushed `main`, watches its same-
-run capture, and signs the review matrix.
+The project owner explicitly waived a human physical production-window run and
+perceptual review as project-closure requirements. No human boot-to-credits run,
+same-run pacing package, listening pass, rendered chase/readability review, or physical
+Settings/fullscreen/input check exists. The owner accepts those residual risks. This
+phase therefore completes by documented waiver, not by successful human validation.
 
-## Steps
+Automated route, input, audio, export, host, and container checks retain their narrower
+meaning. The optional evidence workflow remains available if a later reviewer wants to
+replace the accepted uncertainty with observed evidence.
+
+## Optional future evidence path
 
 1. Do not treat agent-driven computer control as the authorized human review.
 2. Prefer the evidence runner in **ProjectRun** mode so `--log-file` binds to the game
@@ -38,33 +42,34 @@ run capture, and signs the review matrix.
 6. Route any defect back to its source phase, repeat automated regressions, then
    repeat the physical run.
 
-## Success Criteria
+## Closure Criteria
 
-- [ ] Fresh production boot reaches visible credits with OS-level keyboard/mouse input.
-- [ ] Capture/log/pacing payload belong to the same run.
-- [ ] Fail/recover, Settings/fullscreen, chase, and ending are exercised.
-- [ ] Found defects are fixed and reverified.
-- [ ] Agent evidence is not mislabeled as a human blind playtest.
+- [x] Owner waiver and acceptance date are recorded without claiming a human pass.
+- [x] Missing pacing, chase, audio, visual, input, Settings, fullscreen, and comfort
+  observations remain explicit residual risks.
+- [x] Automated evidence is described only within its actual source/runtime/export scope.
+- [x] Optional future evidence instructions remain available and fail closed.
+- [x] Agent or headless evidence is not mislabeled as a human blind playtest.
 
-## Automated substitute evidence (not completion proof)
+## Automated basis and accepted boundary
 
 - [x] Canonical host and Linux-container suites pass 12/12.
 - [x] Synthesized route/input, settings/audio, scare lifecycle, checkpoint recovery,
   and pacing-payload contracts pass headlessly.
 - [x] Windows x86_64 export and exported-process headless startup smoke pass.
 - [x] Defects found by source review were fixed and reverified.
-- [ ] Rendered readability, audible balance, physical controls, full-duration pacing,
-  chase feel, comfort, and visible credits remain human/physical observations.
+- [x] Owner accepts that rendered readability, audible balance, physical controls,
+  full-duration pacing, chase feel, comfort, and visible credits remain unverified.
 
 Current automated authority:
 [final tester](../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
 and [final reviewer](../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
 The reviewer verdict was Pass for staging and the delivery gates subsequently passed;
-neither result is human approval.
+neither result is human approval, and this closure does not reinterpret it as one.
 
-## Next owner and done definition
+## Optional next owner
 
-- Human release reviewer: use the
-  [operator handoff](./reports/phase-05-operator-handoff-2026-07-18.md), with `ProjectRun`
-  preferred. Done only when all five human success criteria and the perception matrix are
-  evidence-backed; any defect routes to its source phase and forces a rerun.
+- A future human reviewer may use the
+  [optional operator handoff](./reports/phase-05-operator-handoff-2026-07-18.md), with
+  `ProjectRun` preferred. Any observed defect still routes to its source phase and
+  requires automated re-verification before a new evidence claim is made.

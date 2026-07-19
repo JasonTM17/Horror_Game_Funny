@@ -6,6 +6,13 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Owner-approved project closure — 2026-07-19
+
+- The owner closed the project and disposed PDR-07/parent Phase 5 as **owner-waived / accepted risk**; the [final closure review](plans/260718-1319-final-horror-release-candidate/reports/260720-owner-waiver-closure-review.md) records the three-stage verdict.
+- No human physical playthrough occurred. No pacing, chase, audio, visual, input, Settings, fullscreen, or other perceptual pass is claimed; the physical runner, matrix, and operator handoff remain optional recommended future QA.
+- Automated evidence keeps its original boundary. The [final source-consistency hardening report](plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md) records the final source-level pass, not human evidence.
+- Project closure does not claim a Git tag, GitHub release, Docker Hub publication or digest, signed binary, installer, or store package.
+
 #### Final source consistency hardening — 2026-07-19
 
 - `PlayerController` now accepts the full `Variant` payload promised by
@@ -30,7 +37,7 @@ All notable changes to this project are documented here.
 - `.gitignore` / `.dockerignore` exclude dotenv and common key material; secret-pattern scan covers workflows and markdown; CI workflows set `permissions: contents: read`.
 - Docker Hub publish documents required secrets, enforces username `nguyenson1710`, and tags `latest` + full `GITHUB_SHA`. After the suite passes, a `main` push with both secrets publishes automatically; no separate workflow approval exists. The user authorized the Git push for this 2026-07-19 landing, but publication still requires a resulting registry digest before it is claimed.
 - README gallery presents cover, staged stills, and GIF with explicit evidence boundaries; historical 2026-07-18 export hashes are demoted in testing/roadmap handoff language.
-- Phase 5 uses the standard handoff boundary: human physical production-window run; `ProjectRun` preferred, `EditorF5` optional.
+- Phase 5 tooling standardized the human physical production-window handoff (`ProjectRun` preferred, `EditorF5` optional) before the later owner waiver above.
 - Physical-evidence regression pins a strictly post-launch write timestamp so the fresh-harvest case is non-flaky under coarse wall-clock resolution.
 - Physical evidence now uses strict JSON types and exact chapter/target maps, recomputes pacing verdicts, requires exactly one payload in every hash-verified side-channel, caps side-channels at 1 MiB, contains output below `.artifacts`, and atomically quarantines stale sources without deleting a concurrently replaced path.
 - Physical launch now uses a bounded Windows Job Object: timeout defaults to 7200 seconds (60–14400), combined output defaults to 16 MiB (1–64 MiB), timeout/overflow kills the descendant tree, and the Godot `--version` preflight uses the same boundary with a fixed 30-second/65536-byte budget. Evidence retains raw version/main stdout/stderr plus the combined console log. The focused regression adds process-boundary, pacing-schema, destination-containment, and side-channel completion markers.
@@ -46,7 +53,7 @@ All notable changes to this project are documented here.
 - A fresh Windows export reproduced the executable at `117920376` bytes with SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190`.
 - V1 bundle IDs are intentionally per-run because their manifests bind a fresh `RUN_ID`; current active/rollback IDs live in the ignored `VERIFY_COMPLETE.txt` files and prior IDs are dated evidence, not durable release constants.
 - The documentation-only cover contract is `1280×640`, SHA-256 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
-- [Final source-closure verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md) is the current reference; PDR-07/parent Phase 5 remains open for a human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) and perception review.
+- [Final source-closure verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md) records the automated boundary at that snapshot; PDR-07/parent Phase 5 was subsequently owner-waived as recorded above.
 
 #### Story jumpscare staging polish — 2026-07-18
 
@@ -151,10 +158,10 @@ All notable changes to this project are documented here.
 
 ### Known Validation Gaps
 
-- The telemetry contract and twelve-check suite pass, but a human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) with a same-run boot-to-credits capture and JSON payload is still required before claiming the 15–20 minute pacing target.
-- Full physical input traversal, capture behavior, chase/presentation quality, visual readability, audio balance and audible device output, and physical Settings behavior still require manual evidence.
-- Settings persistence is verified across two isolated Godot processes; the physical Settings-panel save/relaunch workflow on target hardware remains manual evidence.
-- The repository now tracks a Windows x86_64 export preset and has automated export/headless-startup evidence, but no executable, signed installer, or store package is committed; rendered target-hardware startup still requires human review.
+- The telemetry contract and twelve-check suite pass, but no human physical production-window run or same-run boot-to-credits capture/payload verifies the 15–20 minute pacing target.
+- Full physical input traversal, capture behavior, chase/presentation quality, visual readability, audio balance/audible device output, Settings behavior, and fullscreen remain unverified accepted risks.
+- Settings persistence is verified across two isolated Godot processes; the physical Settings-panel save/relaunch workflow on target hardware was not performed.
+- The repository tracks a Windows x86_64 export preset and has automated export/headless-startup evidence, but no executable, signed installer, or store package is committed; rendered target-hardware startup was not human-reviewed.
 
 ## References
 

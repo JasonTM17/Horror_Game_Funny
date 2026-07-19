@@ -2,31 +2,31 @@
 
 ## Delivery State
 
-The delivery roadmap preserves one continuous gameplay scene. Automated packaging can finish independently while the user-controlled physical review remains open.
+The delivery roadmap preserves one continuous gameplay scene. Project closure was approved by the owner on 2026-07-19 with the unperformed human physical/perceptual review accepted as risk.
 
 The parent release-candidate plan calls the same human-only gate **Phase 5** (PDR-07);
-the older roadmap numbering below calls it Phase 4. They are one open gate, not two
-separate delivery requirements.
+the older roadmap numbering below calls it Phase 4. They are one owner-waived gate, not
+two separate delivery requirements.
 
 | Phase | Scope | Evidence | Status |
 |---|---|---|---|
 | 1 | Terminal ending and capture-recovery race | `30199b7`, `5aea891`, focused progression | Complete |
 | 2 | Navigation-safe right-left-right chase route | `0a1ba94`, layout/physical-route checks | Complete |
 | 3 | Voiced two-step interactive epilogue and checkpoint isolation | `a4a3173`, `aaae49a`, 12-check suite | Complete |
-| 4 | Physical release evidence, media capture and final handoff | Human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), telemetry, reviewed media | In progress |
+| 4 | Physical release evidence, media capture and final handoff | Staged media complete; human run, telemetry, and perception matrix not performed | Closed by owner waiver; accepted risk |
 | 5 | Windows x86_64 export automation and redistribution notices | Tracked preset, export verifier, PE/headless-startup contracts | Complete at automated level |
 
-## Phase 4 Worklist
+## Phase 4 Disposition
 
-- [ ] Receive a same-run physical gameplay recording and telemetry from the user or a human reviewer. Per the current instruction, automation must not control the user's desktop or substitute synthetic input for this evidence.
-- [ ] Run a fresh `START SHIFT`-to-credits production-window session with physical keyboard/mouse input; use `ProjectRun` preferably (`EditorF5` is optional), then fail and recover once during the chase.
-- [ ] Preserve the session's single `PLAYTHROUGH_PACING` payload and inspect chapter/total timing against the 900–1200 second target.
-- [ ] Review chase clearance/fairness, red-guide readability, darkness/flicker/grain comfort, six ending voice lines, audio balance, pause/Settings, fullscreen, and relaunch behavior during the live run.
+- [x] Owner waived the human physical/perceptual phase as a project-closure requirement on 2026-07-19 and accepted the unverified risk.
+- [ ] Optional future QA: record a fresh `START SHIFT`-to-credits production-window session with physical keyboard/mouse input; use `ProjectRun` preferably (`EditorF5` is optional), then fail and recover once during the chase.
+- [ ] Optional future QA: preserve the session's single `PLAYTHROUGH_PACING` payload and inspect chapter/total timing against the 900–1200 second target.
+- [ ] Optional future QA: review chase clearance/fairness, red-guide readability, darkness/flicker/grain comfort, six ending voice lines, audio balance, pause/Settings, fullscreen, and relaunch behavior during the live run.
 - [x] Run the reproducible staged Godot capture tour; visually review and commit four optimized PNGs plus a derived visual-reference GIF under `docs/screenshots/`. This media subtask does not satisfy the physical-run or perceptual gates.
 - [x] Add repository-relative gallery links, capture instructions, evidence limits, and media provenance to project documentation.
-- [ ] Complete the physical evidence package, rerun release checks, review the final diff/secrets/worktree state, and push the final evidence commit.
+- [x] Close the human phase by owner waiver without claiming a playthrough, perception pass, release/tag, registry publication, signing, or installer.
 
-The current source-level route/timing audit is recorded in [`phase-04-pacing-audit-20260716.md`](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-04-pacing-audit-20260716.md). It is planning evidence only; it does not replace the physical capture gate.
+The current source-level route/timing audit is recorded in [`phase-04-pacing-audit-20260716.md`](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-04-pacing-audit-20260716.md). It is planning evidence only; it does not establish the physical observations later waived by the owner.
 
 ## Current verification snapshot — 2026-07-19
 
@@ -52,21 +52,21 @@ The documentation-only cover is `1280×640` with SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
 The current evidence index is the
 [`final source-closure verification and review`](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md).
-PDR-07/parent Phase 5 remains **open** until a human physical production-window run
-(`ProjectRun` preferred, `EditorF5` optional) records the same-run pacing payload,
-capture, and perception review.
+PDR-07/parent Phase 5 is **owner-waived / accepted risk**. No human physical
+production-window run, same-run pacing payload, capture, or perception review occurred.
 
 The final source-consistency child plan also hardened boolean settings delivery,
 cycle-aligned procedural drone loops, and spatial-player parent-exit cleanup. Its focused
 and full host gates passed, the final review scored 10/10, and the current Windows export
 identity is the `117920376`-byte / `74ef9d12…` artifact above. This closes source-level
-hardening only; it does not substitute for the open human PDR-07 review.
+hardening only; it does not substitute for human evidence. See the
+[final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md).
 
 ## Completed Scare Lifecycle Slice
 
 The focused [horror scare and spatial-audio plan](../plans/260717-2152-horror-scare-and-spatial-audio-polish/plan.md) is complete. The fixed floor-arrival, photograph, cassette turn-away, and rabbit buildup beats now lead into a separate Room 407 climax with authored anticipation, reveal, and aftermath; low/moderate procedural spatial layers; local light response where available; and non-colliding temporary actors. Shared sequence/factory ownership handles unique cue IDs, pause-safe waits, exact light restoration, actor/audio teardown, cassette cleanup at `memory_cassette_recalled`, and scene-exit cleanup without replacing voice-over.
 
-Focused `progression` and `settings-audio` passed. Host and container twelve-check suites remain the automated source of truth. This closes only that focused source slice; it does not change Phase 4 or PDR-07.
+Focused `progression` and `settings-audio` passed. Host and container twelve-check suites remain the automated source of truth. They do not create the human evidence later waived for Phase 4/PDR-07.
 
 ## Completed packaging and public-repo hygiene (source-level)
 
@@ -74,7 +74,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 - Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; Hub image namespace is `nguyenson1710/horror-game-suite` with `latest` + git-SHA tags. A passing `main` push auto-publishes when both secrets are configured; there is no separate workflow approval, and no digest means publication is unverified.
 - `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
 - Repository cover (`docs/media/room-407-cover.png`), staged stills, and visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
-- These items improve professional maintainability. They **do not** close Phase 4 or PDR-07.
+- These items improve professional maintainability. Phase 4/PDR-07 closed only through the owner's waiver, not through packaging or media evidence.
 
 ## Completed Windows Export Track
 
@@ -94,9 +94,9 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 - Monitor C:/D: before and after recording, voice processing or media encoding.
 - Commit small focused clusters and verify `HEAD == origin/main` after every push.
 
-## Release Exit
+## Project Exit
 
-The parent goal can close only after Phase 4 has real same-run physical evidence, human review notes, retained reviewed documentation media, clean tests, clean secrets scan, clean worktree and exact remote parity. The completed staged-media subtask does not close Phase 4.
+The owner approved project closure on 2026-07-19 after the automated/source gates passed and explicitly waived the remaining Phase 4/PDR-07 human observations. No human playthrough or pacing/chase/audio/visual/input/Settings/fullscreen perceptual pass is claimed. The physical runner, matrix, and handoff remain optional recommended future QA. Project closure is not a Git tag, GitHub release, Docker Hub publication, signed binary, or installer claim.
 
 ## References
 
@@ -106,4 +106,4 @@ The parent goal can close only after Phase 4 has real same-run physical evidence
 - [Staged visual-capture tour](./testing.md#reproducible-visual-capture-tour)
 - [Phase 4 plan](../plans/260716-2113-chase-reliability-and-climax-polish/phase-04-qa-review-and-delivery.md)
 - [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
-- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
+- [Optional physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)

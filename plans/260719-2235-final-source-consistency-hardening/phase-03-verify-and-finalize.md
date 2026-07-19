@@ -49,7 +49,9 @@ sync-back, documentation finalization, and technical journal.
 - [x] Repository/release contract checks pass.
 - [x] Review reports zero unresolved Critical/High/Medium findings.
 - [x] All child-plan checklists and statuses match evidence.
-- [x] Parent remains 5/6 until human PDR-07 evidence exists.
+- [x] At this child plan's completion snapshot, the parent remained 5/6 pending human
+  PDR-07 evidence. The later 2026-07-19 owner waiver supersedes that policy without
+  creating human evidence.
 
 ## Result
 
@@ -57,10 +59,12 @@ The host suite passed 12/12 twice after the final runtime edits, focused and adv
 evidence/export gates passed, and the fresh executable/process smoke produced the
 `117920376`-byte `74ef9d12…` artifact recorded in the QA addendum. Documentation,
 packaging, secret, Compose, link/media, and diff gates are green. Final mandatory review:
-10/10 with zero unresolved Critical/High/Medium. PDR-07 remains human-only and open.
+10/10 with zero unresolved Critical/High/Medium. At that snapshot PDR-07 remained
+human-only and open; the later parent-plan owner waiver records accepted risk, not a
+human-verified pass.
 
 ## Risk Assessment
 
 Docker daemon or signing/registry credentials may be unavailable; record those as
 environment/external limits and rely on the current successful remote suite, never as a
-reason to falsify local evidence or close PDR-07.
+reason to falsify local evidence or claim that human PDR-07 observations occurred.

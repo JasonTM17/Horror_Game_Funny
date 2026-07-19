@@ -1,9 +1,10 @@
 # Deployment Guide
 
 Use this guide to launch source, run host/container QA, verify repository documentation,
-produce the unsigned Windows export, understand CI/Docker Hub behavior, and hand the
-build to a human reviewer. The Docker image is a headless test image, not the game.
-PDR-07 remains open until the required human physical production-window run is reviewed.
+produce the unsigned Windows export, understand CI/Docker Hub behavior, and optionally
+hand the build to a human reviewer. The Docker image is a headless test image, not the
+game. The owner closed PDR-07 on 2026-07-19 by waiver/accepted risk; no human physical or
+perceptual review occurred.
 
 ## Prerequisites
 
@@ -161,9 +162,9 @@ That is unreleased release-candidate metadata, not a Git tag, GitHub release, in
 or shipping claim. Headless startup does not prove a rendered window, input, audio,
 fullscreen behavior, target-device performance, or PDR-07.
 
-## Physical Handoff
+## Optional Physical Handoff
 
-Required boundary: human physical production-window run; `ProjectRun` preferred,
+Recommended future QA: human physical production-window run; `ProjectRun` preferred,
 `EditorF5` optional. From a clean, unchanged landing commit, choose **START SHIFT**, use
 physical keyboard/mouse input, retain a same-run capture, fail/recover once during the
 chase, exercise Settings/fullscreen/comfort controls, and reach visible credits.
@@ -195,9 +196,10 @@ distinct mixed-run JSON, stale/baseline-identical data, malformed/coercible sche
 invalid verdicts, linked/escaped paths, source swaps, and output over limits.
 
 An eligible payload and `evidence_package_ready: true` are instrumentation and provenance,
-not human proof. A reviewer must watch the capture and complete the generated traversal,
-pacing, chase, visual, audio, Settings, fullscreen, comfort, and input matrix before
-PDR-07 can close.
+not human proof. If this optional QA is performed, a reviewer should watch the capture and
+complete the generated traversal, pacing, chase, visual, audio, Settings, fullscreen,
+comfort, and input matrix before making any corresponding verification claim. PDR-07 is
+already disposed as owner-waived; the waiver does not make these observations pass.
 
 ## Rollback and Troubleshooting
 
@@ -216,7 +218,7 @@ unverified.
 | ObjectDB warning appears in a canonical log | Check exit, markers, and error/assert scans; treat a separate zero-line audit as extra evidence only. |
 | Hub has no digest | Confirm the main-push workflow ran and both repository secrets were configured; do not claim publication. |
 | Physical runner times out or exceeds output | Investigate the process/log flood first; any override must stay inside the documented validation ranges. |
-| Physical runner exits 2 | Read `summary.md`; incomplete or review-required evidence must not close PDR-07. |
+| Physical runner exits 2 | Read `summary.md`; incomplete or review-required evidence must not be described as a completed human pass. |
 
 ## References
 
@@ -224,6 +226,7 @@ unverified.
 - [Known limitations](./limitations.md)
 - [Project overview and PDR](./project-overview-pdr.md)
 - [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+- [Final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md)
 - [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 - [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)

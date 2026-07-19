@@ -1,7 +1,7 @@
 ---
-title: Phase 5 human physical production-window operator handoff
+title: Phase 5 optional human physical production-window operator handoff
 type: operator-handoff
-status: ready
+status: owner-waived
 created: 2026-07-18
 updated: 2026-07-19
 source_closure_base: 4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60
@@ -11,15 +11,15 @@ parent_plan: ../plan.md
 
 # Phase 5 Operator Handoff
 
-## Open gate and authority boundary
+## Owner waiver and authority boundary
 
-Parent Phase 5/PDR-07 remains **open**. Only an authorized human physical
-production-window run can close it; `ProjectRun` is preferred and `EditorF5` is
-optional. Headless checks, a Windows export smoke, Docker, screenshots, a derived GIF,
-agent-driven input, and telemetry without a matching capture are not physical or
-perceptual proof.
+The owner closed parent Phase 5/PDR-07 on 2026-07-19 as **owner-waived / accepted risk**.
+No human physical production-window run occurred. No pacing, chase, audio, visual, input,
+Settings, fullscreen, or other perceptual pass is claimed. Headless checks, a Windows
+export smoke, Docker, screenshots, a derived GIF, agent-driven input, and telemetry
+without a matching capture remain non-physical and non-perceptual evidence.
 
-Procedure ready: the 30-path source slice passed its real-index gate and landed in
+Optional future QA procedure: the 30-path source slice passed its real-index gate and landed in
 `c28beeed7a4bafd871e09225152f329beac09e9a`; matching `ci` and `docker-suite` runs passed.
 Run only from the current clean, pushed `main` commit that the reviewer intends to
 approve. Record that exact SHA at run time; the delivery SHA above is provenance, not a
@@ -32,13 +32,14 @@ side-channel evidence. Integrity controls do not replace watching the run.
 
 Pre-run automated authority: the current
 [source-consistency QA addendum](../../260719-2235-final-source-consistency-hardening/reports/260719-2321-qa-verification-addendum.md),
+the [final source-consistency hardening report](../../260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md),
 plus the earlier [final tester](../../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
 and [final reviewer](../../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
 Reviewer verdict: Pass for staging, followed by successful real-index landing and CI.
 Docker Hub has no listed Actions secrets; its workflow step skipped, so no publication or
-digest is claimed or required for this human gate.
+digest is claimed. Registry publication is separate from this optional human QA path.
 
-## Required clean-tip preflight
+## Recommended clean-tip preflight
 
 From the repository root on Windows:
 
@@ -62,7 +63,7 @@ The runner performs the bounded version probe and requires Godot identity
 `4.7.1.stable.official.a13da4feb`. The `D:\Tools` and `D:\Captures` paths are
 maintainer-local examples; pass another exact Godot/capture path when needed.
 
-Before launching, rerun the commands in
+If performing this optional QA, before launching rerun the commands in
 [`docs/deployment-guide.md`](../../../docs/deployment-guide.md#release-candidate-verification):
 
 - Windows host suite: exactly 12 named checks and `ALL_TWELVE_HEADLESS_CHECKS_OK`.
@@ -75,7 +76,7 @@ Before launching, rerun the commands in
 - Container suite when Docker is available: exactly 12 checks and
   `ALL_TWELVE_HEADLESS_CHECKS_OK`.
 
-Do not continue if any gate is red or if the test/export run changes the reviewed source
+Do not continue with the optional run if any gate is red or if the test/export run changes the reviewed source
 commit.
 
 ## Preferred ProjectRun command
@@ -114,9 +115,9 @@ provenance therefore depends on a strictly post-launch
 `user://playthrough_pacing_last.txt`; that verified side-channel must contain exactly one
 canonical `PLAYTHROUGH_PACING` payload.
 
-## Required route and interaction matrix
+## Recommended route and interaction matrix
 
-The same uninterrupted run must:
+For a future verification claim, the same uninterrupted run should:
 
 - start from **START SHIFT** at the boot menu with no Continue/checkpoint shortcut;
 - use physical keyboard/mouse and no manual method calls, remote-control automation, or
@@ -129,9 +130,9 @@ The same uninterrupted run must:
 - retain one eligible and complete same-run payload with 900-1200 active seconds and all
   five chapter verdicts in range.
 
-## Expected evidence package
+## Optional evidence package
 
-The runner creates one new directory below `.artifacts/manual-playthrough/` containing:
+If run, the runner creates one new directory below `.artifacts/manual-playthrough/` containing:
 
 - bounded `godot-version-stdout.log`, `godot-version-stderr.log`,
   `console-stdout.log`, and `console-stderr.log`, plus `engine.log` and combined
@@ -147,8 +148,8 @@ distinct payloads or a missing/empty/duplicate verified side-channel are rejecte
 
 ## Human perception review
 
-The reviewer must watch the entire capture and record name, date, commit, timestamps, and
-notes for:
+If a future perceptual claim is desired, the reviewer should watch the entire capture and
+record name, date, commit, timestamps, and notes for:
 
 - route completeness, collision/door behavior, soft-locks, and checkpoint recovery;
 - chase distance, line-of-sight readability, fairness, capture feedback, and recovery;
@@ -177,7 +178,8 @@ bundle ID into release authority docs.
 
 ## Closure decision
 
-Mark parent Phase 5/PDR-07 complete only after the evidence package is ready, the same-run
-capture has been watched, every matrix item is recorded, and all defects are either fixed
-and rerun or explicitly rejected. Docker Hub publication is a separate CI delivery result
-and never closes this game gate.
+Parent Phase 5/PDR-07 is closed by the owner's 2026-07-19 waiver, not by an evidence
+package or human pass. The unperformed physical/perceptual observations are accepted risk.
+This handoff remains optional recommended future QA; completing it would support only the
+specific claims actually observed. Project closure does not claim Docker Hub publication,
+a registry digest, Git release/tag, signing, installer, or store package.

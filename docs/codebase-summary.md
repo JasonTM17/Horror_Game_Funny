@@ -1,7 +1,7 @@
 # Codebase Summary
 
 Snapshot provenance: Repomix 1.14.0 was run from the repository root on 2026-07-19 with
-its default XML output (`repomix-output.xml`): 4,129 files were packed and Repomix's
+its default XML output (`repomix-output.xml`): 4,140 files were packed and Repomix's
 security scan reported no suspicious files. The snapshot reflects files visible to that
 workspace run, including repository-local tooling; it is orientation input, not a
 substitute for source, test logs, or dated evidence reports.
@@ -173,12 +173,14 @@ fresh `RUN_ID`; read the ignored manifests and dated
 The cover contract is `1280×640`, SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
 See the [final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+and [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md)
 for command-level evidence. Earlier tester/reviewer reports remain historical traces.
 
-PDR-07 and parent release-candidate Phase 5 remain open. A human physical
-production-window run (`ProjectRun` preferred, `EditorF5` optional) must provide a fresh
-`START SHIFT`-to-credits capture, same-run eligible pacing payload, and completed
-traversal/perception review. The maintainer-run side-channel checks retain the
+The owner closed PDR-07 and parent release-candidate Phase 5 on 2026-07-19 by waiver and
+accepted the remaining human-validation risk. No physical production-window run,
+`START SHIFT`-to-credits capture, same-run eligible pacing payload, or completed
+traversal/perception review exists. The runner and matrix remain optional recommended
+future QA. The maintainer-run side-channel checks retain the
 hostile same-profile reparse/TOCTOU limitation; they are not a hostile-filesystem proof.
 
 ## Documentation map
@@ -190,4 +192,4 @@ hostile same-profile reparse/TOCTOU limitation; they are not a hostile-filesyste
 - [Deployment guide](./deployment-guide.md) — source launch, QA, export, CI/Hub, handoff, and rollback.
 - [Known limitations](./limitations.md) — distribution, persistence, and evidence boundaries.
 - [Asset credits and provenance](./asset-credits.md) — media origins and license scope.
-- [Project roadmap](./project-roadmap.md) — phase status and remaining human gate.
+- [Project roadmap](./project-roadmap.md) — closed phase status and optional future QA.

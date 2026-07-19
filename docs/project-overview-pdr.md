@@ -13,13 +13,13 @@ The current implementation uses Godot 4.7.1 with the Compatibility renderer, pro
 | PDR-01 | One continuous `gameplay.tscn` run from lobby to credits | Scene construction, progression and checkpoint tests | Implemented |
 | PDR-02 | Guarded lobby, blackout, memory, radio, Room 407 and final-clue progression | `progression-test.tscn`, exact flags/objectives | Implemented |
 | PDR-03 | Voice-backed narrative with exact subtitle contracts | 76 cues, 22 groups, `settings-audio` regression | Implemented |
-| PDR-04 | Physical chase route with alternating obstructions and connected navigation | Layout, physical-route and live-LOS tests; human fairness review remains open | Implemented; fairness unverified |
+| PDR-04 | Physical chase route with alternating obstructions and connected navigation | Layout, physical-route and live-LOS tests; no human fairness review occurred | Implemented; fairness unverified and accepted risk |
 | PDR-05 | Ending wins over capture recovery and gates credits behind two in-world reveals | Phase 3 progression/checkpoint tests | Implemented |
 | PDR-06 | Settings, pause, comfort and process-local checkpoint behavior | Input, visual, audio and persistence tests | Implemented |
-| PDR-07 | 15–20 minute pacing verified by a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional | Same-run eligible telemetry plus human traversal/perception review | Open |
+| PDR-07 | 15–20 minute pacing verified by a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional | No human run, same-run eligible payload, or traversal/perception review was produced | Owner-waived; accepted risk |
 | PDR-08 | Final documentation includes reviewed in-engine screenshots and an optimized visual-reference GIF | Four 960×540 PNGs and one 640×360 derived GIF under `docs/screenshots/`, with links and provenance | Complete |
-| PDR-09 | Fixed story-aligned scares use anticipation → reveal → aftermath with one-shot, pause-safe, teardown-safe spatial audio/light/actor ownership | `horror-event-director.gd`, `horror-scare-sequence.gd`, apparition factory/turn-away actor, focused progression/settings-audio, final 12-check run | Implemented; perceptual quality unverified |
-| PDR-10 | Reproducible, credential-free Windows Desktop x86_64 release export with redistribution notices | `export_presets.cfg`, `tests/verify-windows-export.ps1`, PE x86_64 and headless-startup verification | Implemented; rendered target-hardware review open |
+| PDR-09 | Fixed story-aligned scares use anticipation → reveal → aftermath with one-shot, pause-safe, teardown-safe spatial audio/light/actor ownership | `horror-event-director.gd`, `horror-scare-sequence.gd`, apparition factory/turn-away actor, focused progression/settings-audio, final 12-check run | Implemented; perceptual quality unverified and accepted risk |
+| PDR-10 | Reproducible, credential-free Windows Desktop x86_64 release export with redistribution notices | `export_presets.cfg`, `tests/verify-windows-export.ps1`, PE x86_64 and headless-startup verification | Implemented; rendered target-hardware review waived as accepted risk |
 
 ## Player Experience
 
@@ -35,14 +35,14 @@ The player should understand each immediate goal through an objective, a readabl
 
 ## Acceptance Criteria
 
-The implementation is release-ready only when all of the following are true:
+Project closure was approved by the owner on 2026-07-19 with the following acceptance-criteria disposition:
 
 1. The canonical twelve-check suite exits zero with all required markers and no scanned engine, script, parse or assertion failures. Known ObjectDB warning noise is intentionally outside runner failure policy; a dated zero-line scan is an additional closure audit.
-2. A human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) reaches visible credits with no manual method calls or Continue checkpoint.
-3. That same run emits one eligible, complete and order-valid `PLAYTHROUGH_PACING` payload with active total between 900 and 1200 seconds and chapter durations in range.
-4. A human review on the target build records rendered startup/menu behavior, chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles.
+2. A human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) reaches visible credits with no manual method calls or Continue checkpoint. **Owner-waived; not performed.**
+3. That same run emits one eligible, complete and order-valid `PLAYTHROUGH_PACING` payload with active total between 900 and 1200 seconds and chapter durations in range. **Owner-waived; no same-run payload exists.**
+4. A human review on the target build records rendered startup/menu behavior, chase fairness, prop readability, audible voice/effects balance, Settings behavior and comfort toggles. **Owner-waived; no perceptual pass occurred.**
 5. Reviewed in-engine screenshots and an optimized derived GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly. **Complete for PDR-08; staged media is not physical-playthrough evidence.**
-6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory, passes archive/template/hash/preset/PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; normal-window review remains part of criterion 4.**
+6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory, passes archive/template/hash/preset/PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; criterion 4 was waived rather than verified.**
 
 ## Current Verification Snapshot — 2026-07-19
 
@@ -64,15 +64,16 @@ cover is `1280×640`, SHA-256
 
 Current command-level evidence is indexed by the
 [final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
-(zero Critical or Medium findings). This is automated/repository evidence only.
+and [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md).
+This is automated/repository evidence only.
 
 ## Current Release Decision
 
 Recorded source implementation and automated contracts are green for the available gates. Both the current Windows host suite and local Linux-container suite passed 12/12. The Windows x86_64 export path has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. These verify source lifecycle and packaging/startup contracts, not registry publication, audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
 
-PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 remains open:** no reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
+PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 is owner-waived / accepted risk:** no reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), same-run telemetry, player-driven chase-fairness review, live audio/visual review, physical input review, or Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute evidence.
 
-PDR-10's automated export requirement is complete, but it does not close PDR-07. Per the current testing boundary, no automation controls the user's desktop to manufacture physical or perceptual evidence.
+PDR-10's automated export requirement is complete. Project closure rests on the owner's explicit waiver of the remaining human observations, not on manufactured physical or perceptual evidence. The physical runner and review matrix remain optional recommended future QA. This closure does not create a Git tag, GitHub release, signed binary, installer, store package, or Docker Hub publication claim.
 
 ## References
 
@@ -89,5 +90,5 @@ PDR-10's automated export requirement is complete, but it does not close PDR-07.
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
-- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
+- [Optional physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)
