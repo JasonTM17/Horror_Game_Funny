@@ -22,6 +22,7 @@ All notable changes to this project are documented here.
 
 #### Repository evidence closure snapshot — 2026-07-19
 
+- The hardening slice landed on `main` as `ad514cba881270d43fa532d324224618dd48d364` followed by report-containing closure commit `c28beeed7a4bafd871e09225152f329beac09e9a`; real-index media/link validation, remote parity, `ci`, and `docker-suite` passed. The Hub step skipped because Actions secrets are absent, so no registry tag or digest is claimed.
 - Fresh Windows host verification passed all 12 canonical Godot checks (exit 0); the focused physical-evidence regression and Windows export adversarial harness also passed.
 - PowerShell/Bash packaging contracts and a local Docker compose image build plus 12/12 container run passed. Docker Hub publication was not performed; the absence of a digest remains the authoritative unverified boundary.
 - A fresh Windows export reproduced the executable at `117920024` bytes with SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`.

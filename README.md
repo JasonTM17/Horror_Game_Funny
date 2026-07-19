@@ -6,7 +6,7 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** the recorded source-closure evidence includes Windows-host and local Linux-container **12/12** suites, focused evidence/export regressions, Docker packaging contracts, a tracked Windows x86_64 export preset, and exported-process startup smoke. A push to `main` automatically publishes the suite image only when both Docker Hub secrets are configured; the workflow has no separate publish-approval step. Without a resulting registry digest, publication remains unverified. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) remains open for a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional. Staged media and headless export startup are not human or perceptual proof.
+**Project status:** the 2026-07-19 source/docs closure is landed on `main`; its real-index docs/media gate, Windows-host and Linux-container **12/12** suites, focused evidence/export regressions, Docker packaging contracts, Windows x86_64 export, and exported-process startup smoke passed. The matching [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242) runs are green. Docker Hub publish was skipped because repository secrets are absent, so no tag or registry digest is claimed. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) remains open for a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional. Staged media and headless export startup are not human or perceptual proof.
 
 | Doc | Purpose |
 |---|---|
@@ -19,7 +19,7 @@ A short first-person psychological horror game built with Godot 4.7.1 and GDScri
 | [Roadmap](docs/project-roadmap.md) | Phase status (physical review still open) |
 | [Asset credits](docs/asset-credits.md) | Cover, stills, voice-over provenance |
 
-Authoritative source-closure evidence (2026-07-19): [final verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md). Stable export input/payload hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). PDR-07 stays open until the human production-window package is reviewed.
+Authoritative source-closure and delivery evidence (2026-07-19): [final verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md). Stable export input/payload hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). PDR-07 stays open until the human production-window package is reviewed.
 
 The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
 

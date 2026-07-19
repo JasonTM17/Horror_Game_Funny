@@ -79,16 +79,17 @@ staging**: 0 unresolved Critical/High/Medium and one informational Low for per-b
 media-extension bypass, authorization drift, and report-authority drift were fixed and
 rechecked.
 
-Delivery is not yet Pass. The real index intentionally fails closed on the unindexed
-`docs/deployment-guide.md`; temporary landing-index/OID/mode probes pass but are not the
-authoritative pre-commit gate. Git commit/push is authorized and `gh` authentication is
-operational. Stage all 30 intended paths, rerun the real-index verifier, then record the
-commit, remote parity, and CI only after the report-containing commit exists. No Docker
-Hub Actions secrets are listed, so no publication, tag, or registry digest is claimed.
+Delivery passed after all 30 intended paths entered the real index. The verifier emitted
+`REPOSITORY_MEDIA_OK`, `MARKDOWN_LOCAL_LINKS_OK`, `MARKDOWN_INDEXED_LOCAL_LINKS_OK`, and
+`PRO_DOCS_OK` before and after report-containing commit
+`c28beeed7a4bafd871e09225152f329beac09e9a`. The authorized non-force push reached 0/0
+remote parity; matching `ci` and `docker-suite` runs passed. No Docker Hub Actions secrets
+are listed, and the workflow log records a skipped publish, so no publication, tag, or
+registry digest is claimed.
 
 ## Non-goals and risks
 
-- Real-index verification remains the delivery blocker; isolated-index proof cannot close it.
+- Real-index delivery is closed; future docs changes must continue to pass the same indexed-blob/mode gate.
 - The informational `git cat-file` N+1 pattern is accepted at current scale, not erased.
 - No Docker Hub secret means no publication claim; local Docker is test evidence only.
 - Do not rewrite historical evidence; explicitly supersede stale results.

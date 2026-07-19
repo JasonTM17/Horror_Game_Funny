@@ -5,7 +5,8 @@ status: passed
 date: 2026-07-19
 base_commit: 4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60
 review_verdict: pass-for-staging
-landing_status: pending-real-index-verification
+landing_status: landed-ci-green
+landing_commit: c28beeed7a4bafd871e09225152f329beac09e9a
 ---
 
 # Final Code Review: Repository Evidence Closure
@@ -14,7 +15,8 @@ landing_status: pending-real-index-verification
 
 ### Scope
 
-- Base and current `HEAD`: `4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60`.
+- Verdict-time base and current `HEAD`: `4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60`;
+  see the delivery addendum for the landed commit.
 - Focus: the complete working-tree closure slice against the base commit, before this
   review report was added.
 - Files: 29 input paths (24 tracked modifications and 5 new paths), grouped as:
@@ -127,8 +129,9 @@ Accepted and resolved findings:
    enumerates every indexed entry in both public-media directories and includes an
    unexpected-extension negative self-check.
 4. **Medium - report authority drift.** Git authorization and final-index state were
-   contradictory across reports. The PM authority now records Git authorization,
-   separates Docker Hub authorization, and leaves delivery/index verification pending.
+   contradictory across reports. The PM authority records Git authorization and
+   separates Docker Hub authorization; the post-review delivery addendum below records
+   the completed index/push/CI boundary.
 5. **Low - case-insensitive PowerShell order comparison.** PowerShell `-ne` could accept
    case-only canonical-name drift. Both exact sequence comparisons now use `-cne`.
 6. **High/Medium C# failure paths from the preceding review cycle.** Output writes no
@@ -224,6 +227,9 @@ None unresolved.
 
 ## Recommended Actions
 
+These are the verdict-time recommendations. Items 1-3 are completed by the post-review
+delivery addendum; items 4-6 remain standing boundaries or optional follow-up.
+
 1. Stage the entire intentional slice, including every new report, deployment guide, and
    `tests/verify-repository-docs.py`.
 2. Run `python tests/verify-repository-docs.py` against the **real** final index and require
@@ -241,8 +247,9 @@ None unresolved.
 - Child repository-evidence-closure plan: implementation criteria support `completed`.
 - Parent final-horror-release-candidate plan: keep `in-progress`.
 - Parent Phase 5/PDR-07: keep open; no automated evidence in this slice closes it.
-- Delivery/index verification: pending lead/PM action after this report is staged. No plan
-  file or task state was changed by this reviewer.
+- Delivery/index verification was outside the verdict-time review and is now closed by
+  the post-review delivery addendum below. No plan file or task state was changed by the
+  reviewer itself.
 
 ## Metrics
 
@@ -255,11 +262,25 @@ None unresolved.
 - Linting issues: 0 from configured syntax/diff gates; the repository has no aggregate
   formal lint-count command for this mixed PowerShell/Python/C#/Markdown slice.
 
+## Post-review Delivery Addendum
+
+The delivery lead completed the review's staging recommendations without changing the
+reviewed QA/runtime content: six QA paths landed as
+`ad514cba881270d43fa532d324224618dd48d364`, followed by the 24-path report-containing
+closure commit `c28beeed7a4bafd871e09225152f329beac09e9a`. The authoritative real index emitted
+all four docs/media markers before and after commit; secret, syntax, UTF-8, YAML, cached-
+diff, physical regression, and both packaging gates passed. The non-force push reached
+0/0 local/origin/remote parity. Matching [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245)
+and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242)
+runs passed. Docker Hub publication skipped because repository secrets are absent.
+
+This addendum closes delivery/index verification, not Phase 5/PDR-07. The original review
+verdict and informational Low remain unchanged.
+
 ## Unresolved Questions
 
-No unresolved technical question blocks staging. Operational ownership remains:
+No unresolved technical question blocks source delivery. Operational ownership remains:
 
-- Who performs the final real-index stage/gate/commit/push and records the immutable SHA?
-- Are Docker Hub secrets configured for the resulting `main` workflow, and if so, who
-  records the published digest?
+- Does the repository owner want Docker Hub publication later, and if so, who configures
+  both secrets and records the published digest?
 - Which human reviewer owns the Phase 5/PDR-07 production-window run?

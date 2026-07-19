@@ -135,3 +135,19 @@ Delta verdict:
 - Media allowlist self-test passed.
 - The earlier temp-clone bundle-missing note is superseded: the current adversarial harness passes when the canonical active/previous bundles are moved aside and restored after the run.
 - The regression surface is still exercised end to end.
+
+## Landing-Index and CI Delivery Attestation
+
+After the test/review cycle, the delivery lead staged the exact 30-path manifest and ran
+the authoritative validator against the real index. It exited 0 with
+`REPOSITORY_MEDIA_OK`, `MARKDOWN_LOCAL_LINKS_OK`, `MARKDOWN_INDEXED_LOCAL_LINKS_OK`, and
+`PRO_DOCS_OK`; the same four markers passed again after report-containing commit
+`c28beeed7a4bafd871e09225152f329beac09e9a`. Cached diff, secret, PowerShell/C#/Bash/Python
+syntax, UTF-8, workflow YAML, physical regression, and both packaging gates also passed.
+
+The authorized non-force push reached 0/0 local/origin/remote parity. Matching
+[`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and
+[`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242)
+runs passed; the latter built the image and ran container 12/12. Its Hub publish step
+skipped because repository secrets are absent. This attests delivery only; the human
+Phase 5/PDR-07 gate remains open.

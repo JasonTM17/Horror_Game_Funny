@@ -1,11 +1,11 @@
 ---
 title: Phase 5 human physical production-window operator handoff
 type: operator-handoff
-status: ready-after-delivery
+status: ready
 created: 2026-07-18
 updated: 2026-07-19
 source_closure_base: 4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60
-delivery_commit: resolve-and-record-at-run-time
+delivery_commit: c28beeed7a4bafd871e09225152f329beac09e9a
 parent_plan: ../plan.md
 ---
 
@@ -19,10 +19,12 @@ optional. Headless checks, a Windows export smoke, Docker, screenshots, a derive
 agent-driven input, and telemetry without a matching capture are not physical or
 perceptual proof.
 
-Procedure ready; execution blocked until the 30-path source slice passes its real-index
-gate and lands. Run only from the clean, pushed report-containing `main` commit that the
-reviewer intends to approve. Record its exact SHA at run time; do not copy the pre-landing
-base SHA into the package. The runner records process start time and exact Git state,
+Procedure ready: the 30-path source slice passed its real-index gate and landed in
+`c28beeed7a4bafd871e09225152f329beac09e9a`; matching `ci` and `docker-suite` runs passed.
+Run only from the current clean, pushed `main` commit that the reviewer intends to
+approve. Record that exact SHA at run time; the delivery SHA above is provenance, not a
+substitute when later documentation-only commits are present. The runner records process
+start time and exact Git state,
 caps combined console output, terminates the whole Job Object on timeout/overflow, and
 routes the Godot `--version` preflight through the same Job boundary with a fixed
 30-second/65536-byte budget. It rejects stale, mixed, missing, duplicated, or changed
@@ -30,8 +32,9 @@ side-channel evidence. Integrity controls do not replace watching the run.
 
 Pre-run automated authority: [final tester](../../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
 and [final reviewer](../../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
-Reviewer verdict: Pass for staging, not landed. Docker Hub has no listed Actions secrets;
-no publication or digest is claimed or required for this human gate.
+Reviewer verdict: Pass for staging, followed by successful real-index landing and CI.
+Docker Hub has no listed Actions secrets; its workflow step skipped, so no publication or
+digest is claimed or required for this human gate.
 
 ## Required clean-tip preflight
 

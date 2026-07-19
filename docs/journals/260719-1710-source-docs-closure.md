@@ -9,7 +9,7 @@ status: resolved
 **Date**: 2026-07-19 17:10
 **Severity**: High
 **Component**: Physical evidence, Windows export, packaging, repository docs
-**Status**: Resolved for source/review — real-index delivery pending; PDR-07 vẫn mở
+**Status**: Resolved for source/review/delivery; PDR-07 vẫn mở
 
 ## What Happened
 
@@ -22,9 +22,9 @@ Diff lộ năm đường xanh giả. Runner gọi Godot trực tiếp nên có t
 ## Technical Details
 
 - `tests/run-physical-playthrough.ps1` nay dùng Job Object, mặc định `7200` giây/`16777216` byte, và đòi đúng một `PLAYTHROUGH_PACING` payload trong mỗi verified side-channel.
-- Review bắt **2 High/1 Medium** trong `tests/windows-export-job-runner.cs`: write dưới `outputLock` chặn pumps; `Dispose()` join vô hạn treo cleanup; `CreatePipe` failure để output handles không xác định. Targeted fixes đã áp dụng; delegated final review còn pending.
+- Review bắt **2 High/1 Medium** trong `tests/windows-export-job-runner.cs`: write dưới `outputLock` chặn pumps; `Dispose()` join vô hạn treo cleanup; `CreatePipe` failure để output handles không xác định. Targeted fixes đã áp dụng; final review đóng với 0 Critical/High/Medium.
 - Sau sửa: cold physical regression đủ **5 markers** và Windows export adversarial pass. Host **12/12**, actual Windows export/process smoke, packaging PS+Bash, Docker build/container **12/12** cũng pass.
-- Bash verifier nay ràng đúng 12 active invocations theo thứ tự; docs validator dùng `git ls-files --cached -z`. Staged-index docs gate chưa chạy.
+- Bash verifier nay ràng đúng 12 active invocations theo thứ tự; docs validator dùng `git ls-files --cached -z`. Real-index gate đã chạy trước/sau commit và phát đủ bốn marker thành công.
 
 ## What We Tried
 
@@ -40,8 +40,8 @@ Mọi resource phải có budget; mỗi evidence source phải tự hoàn chỉn
 
 ## Next Steps
 
-- Delegated reviewer: re-review ba targeted C# fixes trước khi đóng automated/source closure.
-- QA/delivery owner: stage intended docs index, chạy docs gate/final matrix, rồi mới commit/push/CI; SHA, registry digest và delivery vẫn **pending**.
+- Delegated reviewer và QA/delivery owner: **hoàn tất**. Hai commit `ad514cb`/`c28beee` đã land non-force; remote parity và hai workflow CI đều xanh.
+- Docker Hub: workflow skip vì không có Actions secrets; registry digest vẫn không tồn tại và không được claim.
 - Human reviewer: chạy production-window bằng input vật lý, capture từ `START SHIFT` tới credits và ký review; chỉ bước đó mới đóng PDR-07.
 
 ## Resolution Update
@@ -52,5 +52,7 @@ allowlist suffix blind spot. The version probe now shares the bounded Job path; 
 gate reads stage-0 regular blobs by object ID and rejects staged content/mode drift; the
 media allowlist covers every indexed path regardless of extension. Final review is
 **Pass for staging** with zero unresolved Critical/High/Medium findings and one
-informational `git cat-file` process-efficiency Low. The real-index gate, Git delivery,
-remote CI, and the separate human PDR-07 gate remain explicit next boundaries.
+informational `git cat-file` process-efficiency Low. Delivery then passed the real-index
+gate, landed `ad514cb` plus report-containing `c28beee`, reached 0/0 remote parity, and
+completed both matching CI workflows successfully. Docker Hub skipped for absent secrets.
+Only the separate human PDR-07 gate remains open.

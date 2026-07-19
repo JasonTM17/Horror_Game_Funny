@@ -14,10 +14,11 @@ retain same-run artifacts without overstating agent-driven evidence.
 
 ## Current execution constraint
 
-No eligible report-containing delivery commit exists yet: the 30-path slice still needs
-its real-index gate, commit, push, remote-parity check, and CI result. Automated route,
-input, audio, export, host, and container checks do not replace this physical/perceptual
-gate. Leave the phase open until a human runs the clean pushed commit, watches its same-
+The source/docs closure is delivered: `c28beeed7a4bafd871e09225152f329beac09e9a`
+contains the report set, the real-index gate emitted all four success markers, remote
+parity reached 0/0, and both matching CI workflows passed. Automated route, input, audio,
+export, host, and container checks still do not replace this physical/perceptual gate.
+Leave the phase open until a human runs the current clean pushed `main`, watches its same-
 run capture, and signs the review matrix.
 
 ## Steps
@@ -58,12 +59,11 @@ run capture, and signs the review matrix.
 Current automated authority:
 [final tester](../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
 and [final reviewer](../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
-The reviewer verdict is Pass for staging, not human approval or landing proof.
+The reviewer verdict was Pass for staging and the delivery gates subsequently passed;
+neither result is human approval.
 
 ## Next owner and done definition
 
-- Main agent/delivery lead: finish real-index gate, report-containing commit, authorized
-  non-force push, remote parity, and CI.
 - Human release reviewer: use the
   [operator handoff](./reports/phase-05-operator-handoff-2026-07-18.md), with `ProjectRun`
   preferred. Done only when all five human success criteria and the perception matrix are

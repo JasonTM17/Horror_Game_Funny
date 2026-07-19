@@ -2,13 +2,13 @@
 title: Final source-closure verification and review
 type: plan-completion-report
 status: completed
-delivery_status: pending-real-index-verification
+delivery_status: completed
 review_verdict: pass-for-staging
 date: 2026-07-19T15:01:00+07:00
-updated: 2026-07-19T19:49:15+07:00
+updated: 2026-07-19T20:18:08+07:00
 plan: ../plan.md
 base_commit: 4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60
-landing_commit: pending-report-containing-commit
+landing_commit: c28beeed7a4bafd871e09225152f329beac09e9a
 ---
 
 # Final Source-Closure Verification and Review
@@ -16,13 +16,15 @@ landing_commit: pending-report-containing-commit
 ## Summary
 
 - Child source plan: **Completed**, 4/4 phases, 21/21 criteria.
-- Delivery: **Pending real-index gate**. Reviewer verdict **Pass for staging**, not landed.
+- Delivery: **Completed**. Reviewer verdict **Pass for staging** was followed by real-index,
+  commit, non-force push, remote-parity, and CI success.
 - Scope: 30 paths = 24 modified tracked + 6 new. New: `docs/deployment-guide.md`,
   `docs/journals/260719-1710-source-docs-closure.md`,
   `reports/code-review-final-2026-07-19.md`, `reports/pm-260719-1501-source-closure.md`,
   `reports/tester-final-2026-07-19.md`, and `tests/verify-repository-docs.py`.
-- Git boundary before landing: `HEAD == origin/main == remote main == 4ec7edd`. The
-  report-containing commit, push, remote parity, and CI result do not exist yet.
+- Git boundary: audited base `4ec7edd`; QA commit `ad514cba881270d43fa532d324224618dd48d364`;
+  report-containing closure commit `c28beeed7a4bafd871e09225152f329beac09e9a`.
+  Local, `origin/main`, and remote main reached 0/0 parity after the non-force push.
 - Authorization: user approved commit/push on 2026-07-19; `gh` auth works. No Actions
   secrets are listed, so Docker Hub publication/digest is not claimed.
 - Runtime boundary: no GDScript, scene, `project.godot`, export preset, Dockerfile,
@@ -39,7 +41,7 @@ landing_commit: pending-report-containing-commit
 | Export negative cases preserve active/rollback bundles | Pass | Windows adversarial timeout/lock/manifest/recovery markers |
 | Canonical suite remains exactly twelve checks | Pass | Structural PS/Bash verifiers plus host/container 12/12 |
 | Packaging, local Docker, secrets, YAML, UTF-8, diff, cleanup | Pass | [Final tester report](./tester-final-2026-07-19.md), including post-review delta |
-| Repository docs/media against the final Git index | Pending final staging | Working-tree and isolated-index checks are diagnostic; the authoritative gate runs after every intended landing path is staged |
+| Repository docs/media against the final Git index | Pass | All 30 intended paths were staged; immutable indexed blobs/modes emitted all four success markers before and after the closure commit |
 | Public runtime/export contracts stay stable | Pass | No runtime/config diff; public runner contract regression; full suites green |
 | Docs and handoff are current and honest | Pass | Authority surfaces reconciled; stale Docker and SHA claims removed |
 | Physical F5 package and perceptual review | Open in parent | Human-only; deliberately not fabricated or administratively closed |
@@ -59,7 +61,7 @@ landing_commit: pending-report-containing-commit
 | Windows export adversarial | Pass | Exit 0 in 41.292 s; timeout/lock preservation; canonical-absent self-seeding delta passed |
 | Packaging PowerShell | Pass | `DOCKER_PACKAGING_VERIFY_OK`; exact ordered twelve enforced |
 | Packaging Bash | Pass | `DOCKER_PACKAGING_VERIFY_OK`; exact ordered twelve enforced |
-| Repository docs/media | Pending final staging | The verifier fails closed while required landing files are outside the real index; rerun after staging the complete slice |
+| Repository docs/media | Pass | Real index emitted `REPOSITORY_MEDIA_OK`, `MARKDOWN_LOCAL_LINKS_OK`, `MARKDOWN_INDEXED_LOCAL_LINKS_OK`, and `PRO_DOCS_OK` before and after the closure commit |
 | Secret scan | Pass | `SECRET_PATTERN_SCAN_OK` |
 | Workflow YAML | Pass | `ci.yml` and `docker-suite.yml` parsed with PyYAML 6.0.3 |
 | Docker live | Pass | Engine 29.5.3; compose config/build; container 12/12 marker |
@@ -103,7 +105,7 @@ broken links, authorization drift, and report authority drift.
 | Bash/PowerShell canonical order/case drift | Both verifiers enforce exact same twelve names/order; PowerShell comparison case-sensitive |
 | Docs filesystem/index path/blob/mode confusion | Stage-0 mode and immutable indexed OID validation; OID and `120000` negatives fail closed |
 | Media extension blind spot | Every indexed media-directory entry must equal exact allowlist; extension negative green |
-| Git authorization and report status drift | Git approval recorded; delivery/index pending; Hub publication separated and unclaimed |
+| Git authorization and report status drift | Git approval recorded; delivery/index completed; Hub publication separated and unclaimed |
 
 Residual documented boundaries:
 
@@ -133,7 +135,7 @@ of the record.
 |---|---:|---|
 | Child source closure | 21/21 criteria; 4/4 phases | Completed |
 | Final review | 0 Critical, 0 High, 0 Medium; 1 informational Low | Pass for staging |
-| Landing | Real-index gate, commit, push, remote, CI: 0/5 | Pending |
+| Landing | Real-index gate, commit, push, remote, CI: 5/5 | Completed |
 | Parent RC | 5/6 phases; Phase 5 checklist 4/10 | In progress |
 | Human Phase 5 core | 0/5 success criteria | Open |
 
@@ -141,14 +143,13 @@ of the record.
 
 | Blocker | Age | Owner | Unblock / done definition |
 |---|---|---|---|
-| Final paths outside real Git index | >1 session | Main agent / delivery lead | Stage exact 30 paths; `PRO_DOCS_OK` + 3 companion markers; cached diff, secrets, syntax, packaging green |
 | Human production-window proof absent | >1 session | Human release reviewer | Clean pushed commit; `ProjectRun` preferred; visible credits, same-run capture/payload, chase recovery/settings, signed perception matrix |
 
 ### Risk Register
 
 | Risk | State | Control / owner |
 |---|---|---|
-| Working tree mistaken for landing truth | Open, delivery blocker | Real-index verifier fails closed; delivery lead reruns after staging |
+| Working tree mistaken for landing truth | Closed for this delivery | Real-index verifier read staged/committed blobs by OID and rejected non-regular modes |
 | Parent closed without watched capture | Open, release blocker | Phase 5/PDR-07 remains open; human reviewer owns matrix |
 | Per-blob `git cat-file` N+1 | Open, informational Low | Accept at 112 Markdown files; batch only if startup becomes material |
 | Docker Hub represented as published | Controlled | No Actions secrets, no tag/digest claim; repo admin decides future setup |
@@ -158,16 +159,32 @@ of the record.
 
 | Priority | Owner | Action | Definition of done |
 |---:|---|---|---|
-| P0 | Main agent / delivery lead | Finish implementation plan: stage exact 30-path slice and rerun landing gates | Real index emits all four docs markers; cached diff, secret, syntax, packaging checks green |
-| P0 | Main agent / delivery lead | Create authorized report-containing commit; non-force push; monitor CI | Record immutable SHA only after commit; `HEAD == origin/main == remote main`; required workflows green |
 | P1 | Human release reviewer | Execute Phase 5 handoff with `ProjectRun` preferred | Eligible same-run package + watched capture + signed matrix; defects rerouted/retested |
 | P2, conditional | Repository admin | Decide whether Hub publication is wanted | If wanted: configure both secrets, observe workflow, record registry tag/digest; otherwise remain unclaimed |
 
+## Delivery Attestation
+
+- QA commit: `ad514cba881270d43fa532d324224618dd48d364`
+  (`fix(qa): harden release evidence boundaries`), six paths.
+- Report-containing closure commit: `c28beeed7a4bafd871e09225152f329beac09e9a`
+  (`chore(release): finalize repository evidence closure`), 24 paths.
+- Real-index verifier: exit 0 with `REPOSITORY_MEDIA_OK`, `MARKDOWN_LOCAL_LINKS_OK`,
+  `MARKDOWN_INDEXED_LOCAL_LINKS_OK`, and `PRO_DOCS_OK`, both pre-commit and post-commit.
+- Git: non-force `main` push succeeded; `HEAD == origin/main == remote main == c28beee`
+  and divergence was 0/0 at the delivery boundary.
+- [`ci` run 29688458245](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245):
+  success for the report-containing commit.
+- [`docker-suite` run 29688458242](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242):
+  success, including image build and container 12/12. Its publish log says repository
+  secrets are not configured, so Docker Hub was skipped and no registry digest exists.
+- This post-delivery documentation reconciliation records those already immutable facts;
+  it does not alter QA/runtime code or close the human gate.
+
 ## Delivery Decision
 
-- Git commit/push: authorized 2026-07-19; `gh` authentication operational. Main agent must
-  finish the plan. Do not stop at source completion: real-index gate, report-containing
-  commit, non-force push, remote parity, and CI still unfinished.
+- Git commit/push: completed 2026-07-19. The real-index gate passed, the two authorized
+  commits landed non-force, local/origin/remote parity reached 0/0, and both required CI
+  workflows passed for `c28beeed7a4bafd871e09225152f329beac09e9a`.
 - Docker Hub: separate from Git authorization. No repository Hub secrets or verified
   registry digest present; publication not claimed.
 - Local Docker result: valid CI/test evidence only, not a registry or player-build claim.

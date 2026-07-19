@@ -47,20 +47,21 @@ clean, auditable run without confusing wrapper integrity with perceptual review.
 - [x] The handoff records the authorization/evidence rule for Git and any conditional
   Docker Hub result.
 
-## Result so far
+## Result
 
 The [operator handoff](../260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 rejects a dirty or unpushed worktree, records the exact clean `main` SHA at run time,
 passes the exact Godot 4.7.1 executable, and provides primary `ProjectRun` plus optional
 `EditorF5` commands. It lists bounded process controls, expected files, route/perception
-matrix, and rejection cases. Git commit/push was authorized on 2026-07-19, but the real
-index, report-containing commit, push, remote parity, and CI remain delivery work. Record
-those outcomes only after landing. No Docker Hub secrets are listed; no publication or
-digest is claimed. Parent Phase 5/PDR-07 remains human-only and open.
+matrix, and rejection cases. Git commit/push was authorized and completed on 2026-07-19:
+the real index emitted all four docs/media markers, report-containing commit
+`c28beeed7a4bafd871e09225152f329beac09e9a` reached remote parity, and both matching CI
+workflows passed. No Docker Hub secrets are listed; the publish step skipped and no
+publication or digest is claimed. Parent Phase 5/PDR-07 remains human-only and open.
 
-Next owner: delivery lead stages the exact 30-path slice and lands only after the real-
-index gate passes. Human reviewer then runs the handoff with `ProjectRun` preferred and
-closes the phase only after same-run capture/payload plus the signed perception matrix.
+Next owner: the human reviewer runs the handoff from current clean pushed `main`, with
+`ProjectRun` preferred, and closes the phase only after same-run capture/payload plus the
+signed perception matrix.
 
 ## Non-goals and risks
 

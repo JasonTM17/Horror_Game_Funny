@@ -53,12 +53,12 @@ from `START SHIFT` to visible credits with same-run capture and pacing evidence.
 
 ## Starting evidence boundary
 
-- Pre-landing `HEAD`, `origin/main`, and remote `main` are
-  `4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60`. This is the base/current source boundary,
-  not the eventual report-containing delivery commit.
-- The intended landing slice is 30 paths: 24 modified tracked paths plus six new paths.
-  It remains unstaged; the real-index docs/media gate therefore fails closed until all
-  intended paths are staged. Temporary-index proof does not replace that delivery gate.
+- Pre-landing `HEAD`, `origin/main`, and remote `main` were
+  `4ec7eddaf4aaeadfc2cb2be613f7303cc8058b60`; it remains the audited base boundary.
+- The 30-path landing slice (24 modified tracked paths plus six new paths) was split into
+  QA commit `ad514cba881270d43fa532d324224618dd48d364` and report-containing closure commit
+  `c28beeed7a4bafd871e09225152f329beac09e9a`. The real-index docs/media gate emitted all
+  four success markers before and after the closure commit.
 - Parent phases 1-4 and 6 are completed; Phase 5 remains in progress.
 
 ## Phases
@@ -77,10 +77,11 @@ process-boundary, exact-check, export-timeout, Git-index, media/link, and docume
 paths passed focused tests, host 12/12, local Docker 12/12, export preservation, and final
 review. See the [final tester report](./reports/tester-final-2026-07-19.md) and
 [final reviewer report](./reports/code-review-final-2026-07-19.md). Reviewer verdict:
-**Pass for staging**, with 0 Critical/High/Medium and one informational Low. Source closure
-is complete; real-index verification, commit, push, remote parity, and CI are delivery
-work that must run against the final report-containing commit. Parent Phase 5/PDR-07
-remains open for a human physical production-window package.
+**Pass for staging**, with 0 Critical/High/Medium and one informational Low. Source and
+delivery closure are complete: non-force push succeeded, local/origin/remote parity is
+0/0, and the matching `ci` plus `docker-suite` runs passed. Docker Hub publication was
+skipped because Actions secrets are absent. Parent Phase 5/PDR-07 remains open for a
+human physical production-window package.
 
 ## Scope change log
 
@@ -121,10 +122,9 @@ remains open for a human physical production-window package.
 
 ## Completion boundary
 
-This source-completable child plan is complete: all four phases and 21/21 criteria are
-evidence-backed, applicable source gates are green, final review has no unresolved
-Critical/High/Medium finding, and the operator handoff is usable. Completion does not
-mean landed: stage the exact 30-path slice, pass the real-index gate, then commit/push and
-verify remote/CI from the report-containing commit. Docker Hub publication is not claimed;
-no required repository secrets are listed. Parent Phase 5/PDR-07 stays open until a human
-supplies and reviews the production-window evidence.
+This child plan is complete and landed: all four phases and 21/21 criteria are evidence-
+backed, applicable source and real-index gates are green, final review has no unresolved
+Critical/High/Medium finding, the authorized non-force push has 0/0 remote parity, both
+required workflows passed, and the operator handoff is usable. Docker Hub publication is
+not claimed because no required repository secrets are listed. Parent Phase 5/PDR-07
+stays open until a human supplies and reviews the production-window evidence.
