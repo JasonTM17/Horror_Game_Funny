@@ -26,11 +26,25 @@ $expectedBoundaryOrder = @(
     "ending",
     "credits"
 )
+$expectedChapterTargets = [ordered]@{
+    opening = @(120.0, 180.0)
+    floor4 = @(180.0, 240.0)
+    memory_loop = @(240.0, 300.0)
+    room407 = @(180.0, 240.0)
+    chase_ending = @(120.0, 180.0)
+}
+$maxPacingSideChannelBytes = [int64](1MB)
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+$artifactRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot ".artifacts")).TrimEnd("\")
 if (-not $EvidenceRoot) {
     $EvidenceRoot = Join-Path $repositoryRoot ".artifacts\manual-playthrough"
 } elseif (-not [System.IO.Path]::IsPathRooted($EvidenceRoot)) {
     $EvidenceRoot = Join-Path $repositoryRoot $EvidenceRoot
+}
+$EvidenceRoot = [System.IO.Path]::GetFullPath($EvidenceRoot).TrimEnd("\")
+$artifactPrefix = $artifactRoot + [System.IO.Path]::DirectorySeparatorChar
+if ($EvidenceRoot -ne $artifactRoot -and -not $EvidenceRoot.StartsWith($artifactPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "EvidenceRoot must stay below the repository .artifacts directory: $EvidenceRoot"
 }
 
 function Get-FreeGiB([string]$DriveName) {
@@ -50,6 +64,73 @@ function Assert-RegularEvidenceDirectory([string]$Path, [string]$Label) {
         throw "Refusing reparse-point evidence directory ($Label): $Path"
     }
     return $item
+}
+
+function Assert-NoReparsePointAncestors([string]$Path, [string]$Label, [switch]$AllowMissing) {
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    $pathRoot = [System.IO.Path]::GetPathRoot($fullPath)
+    if ([string]::IsNullOrWhiteSpace($pathRoot)) {
+        throw "Could not determine path root ($Label): $fullPath"
+    }
+    $current = $pathRoot
+    $relative = $fullPath.Substring($pathRoot.Length)
+    $parts = $relative.Split([char[]]@('\', '/'), [System.StringSplitOptions]::RemoveEmptyEntries)
+    for ($index = 0; $index -lt $parts.Count; $index += 1) {
+        $current = Join-Path $current $parts[$index]
+        if (-not (Test-Path -LiteralPath $current)) {
+            if ($AllowMissing) {
+                continue
+            }
+            throw "Expected evidence path component was not found ($Label): $current"
+        }
+        $item = Get-Item -LiteralPath $current -Force
+        if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Refusing reparse-point evidence path component ($Label): $current"
+        }
+        if ($index -lt ($parts.Count - 1) -and -not $item.PSIsContainer) {
+            throw "Evidence path ancestor is not a directory ($Label): $current"
+        }
+    }
+    return $fullPath
+}
+
+function Initialize-RegularEvidenceDirectory([string]$TrustedRoot, [string]$TargetPath, [string]$Label) {
+    $trustedFull = [System.IO.Path]::GetFullPath($TrustedRoot).TrimEnd("\")
+    $targetFull = [System.IO.Path]::GetFullPath($TargetPath).TrimEnd("\")
+    $trustedPrefix = $trustedFull + [System.IO.Path]::DirectorySeparatorChar
+    if ($targetFull -ne $trustedFull -and -not $targetFull.StartsWith($trustedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Evidence directory escaped its trusted root ($Label): $targetFull"
+    }
+
+    $trustedParent = Split-Path -Parent $trustedFull
+    [void](Assert-NoReparsePointAncestors $trustedParent "$Label trusted parent")
+    if (-not (Test-Path -LiteralPath $trustedFull)) {
+        try {
+            New-Item -ItemType Directory -Path $trustedFull | Out-Null
+        } catch {
+            if (-not (Test-Path -LiteralPath $trustedFull -PathType Container)) {
+                throw
+            }
+        }
+    }
+    [void](Assert-RegularEvidenceDirectory $trustedFull "$Label trusted root")
+
+    $current = $trustedFull
+    $relative = if ($targetFull -eq $trustedFull) { "" } else { $targetFull.Substring($trustedPrefix.Length) }
+    foreach ($part in $relative.Split([char[]]@('\', '/'), [System.StringSplitOptions]::RemoveEmptyEntries)) {
+        $current = Join-Path $current $part
+        if (-not (Test-Path -LiteralPath $current)) {
+            try {
+                New-Item -ItemType Directory -Path $current | Out-Null
+            } catch {
+                if (-not (Test-Path -LiteralPath $current -PathType Container)) {
+                    throw
+                }
+            }
+        }
+        [void](Assert-RegularEvidenceDirectory $current $Label)
+    }
+    return $targetFull
 }
 
 function Get-GodotAppUserDataRoots {
@@ -172,6 +253,9 @@ function Copy-PacingEvidenceSnapshot(
     } catch {
         return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_not_regular_or_reparse")) }
     }
+    if ([int64]$preIdentity.size_bytes -gt $maxPacingSideChannelBytes) {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_exceeds_size_limit") $preIdentity) }
+    }
 
     try {
         if ($null -ne $TestSnapshotHook) {
@@ -202,6 +286,9 @@ function Copy-PacingEvidenceSnapshot(
                 $buffer = New-Object byte[] 65536
                 $snapshotSize = [int64]0
                 while (($read = $sourceStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+                    if (($snapshotSize + $read) -gt $maxPacingSideChannelBytes) {
+                        return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_exceeds_size_limit") $preIdentity) }
+                    }
                     [void]$hasher.TransformBlock($buffer, 0, $read, $buffer, 0)
                     $destinationStream.Write($buffer, 0, $read)
                     $snapshotSize += $read
@@ -253,7 +340,10 @@ function Get-PacingEvidenceRecord([string]$SourcePath, [string]$RootPath) {
     return New-PacingEvidenceRecord $SourcePath $RootPath $identity (Get-FileHash -LiteralPath $SourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
-function Prepare-PacingEvidenceSideChannels([string]$DestinationDirectory) {
+function Prepare-PacingEvidenceSideChannels(
+    [string]$DestinationDirectory,
+    [scriptblock]$TestClearHook = $null
+) {
     $archiveDirectory = Join-Path $DestinationDirectory "prelaunch-stale-sidechannels"
     New-Item -ItemType Directory -Force -Path $archiveDirectory | Out-Null
     $records = New-Object System.Collections.Generic.List[object]
@@ -265,7 +355,9 @@ function Prepare-PacingEvidenceSideChannels([string]$DestinationDirectory) {
         if (-not (Test-Path -LiteralPath $source)) {
             continue
         }
-        $destination = Join-Path $archiveDirectory ("playthrough_pacing_last-$index.txt")
+        $candidateIndex = $index
+        $index += 1
+        $destination = Join-Path $archiveDirectory ("playthrough_pacing_last-$candidateIndex.txt")
         $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination
         if (-not $snapshot.accepted) {
             [void]$rejected.Add($snapshot.record)
@@ -273,26 +365,50 @@ function Prepare-PacingEvidenceSideChannels([string]$DestinationDirectory) {
             continue
         }
         $record = $snapshot.record
+        $quarantine = Join-Path $root (".room407-pacing-prelaunch-" + [guid]::NewGuid().ToString("N") + ".quarantine")
+        $preservedPath = $null
         try {
-            $identityBeforeClear = Get-EvidenceFileIdentity $source
-            if ($identityBeforeClear.size_bytes -ne $record.size_bytes -or $identityBeforeClear.last_write_utc -ne $record.last_write_utc) {
-                throw "source_identity_changed_before_clear"
+            if ($null -ne $TestClearHook) {
+                & $TestClearHook $source "before_quarantine"
             }
-            Remove-Item -LiteralPath $source -Force
+            Move-Item -LiteralPath $source -Destination $quarantine
+            $quarantineIdentity = Get-EvidenceFileIdentity $quarantine
+            $quarantineHash = (Get-FileHash -LiteralPath $quarantine -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ([int64]$quarantineIdentity.size_bytes -ne [int64]$record.size_bytes -or $quarantineHash -ne $record.sha256) {
+                throw "quarantined_source_does_not_match_archive"
+            }
             if (Test-Path -LiteralPath $source) {
-                throw "source_not_cleared"
+                throw "source_reappeared_after_quarantine"
             }
         } catch {
-            if (Test-Path -LiteralPath $destination) {
-                Remove-Item -LiteralPath $destination -Force -ErrorAction SilentlyContinue
+            if (Test-Path -LiteralPath $quarantine) {
+                if (-not (Test-Path -LiteralPath $source)) {
+                    try {
+                        Move-Item -LiteralPath $quarantine -Destination $source
+                        $preservedPath = $source
+                    } catch {
+                        $preservedPath = $quarantine
+                    }
+                } else {
+                    $preservedPath = $quarantine
+                }
             }
-            [void]$rejected.Add((New-PacingEvidenceRejection $source $root @("prelaunch_archive_or_clear_failed") $null))
+            $rejection = New-PacingEvidenceRejection $source $root @(
+                "prelaunch_archive_or_clear_failed",
+                $_.Exception.Message
+            ) $null
+            $rejection | Add-Member -NotePropertyName archive_path -NotePropertyValue $destination
+            $rejection | Add-Member -NotePropertyName preserved_source_path -NotePropertyValue $preservedPath
+            [void]$rejected.Add($rejection)
             $integrityPassed = $false
             continue
         }
         $record | Add-Member -NotePropertyName archive_path -NotePropertyValue $destination
+        # Keep the exact stale source under a unique non-runtime filename. Clearing
+        # the canonical path is atomic, and no later path-based delete can remove a
+        # same-size/same-timestamp replacement that appeared during preparation.
+        $record | Add-Member -NotePropertyName quarantine_path -NotePropertyValue $quarantine
         [void]$records.Add($record)
-        $index += 1
     }
     return [pscustomobject][ordered]@{
         integrity_passed = $integrityPassed
@@ -405,27 +521,161 @@ function Get-UniquePacingPayload([string[]]$LogPaths) {
 }
 
 function Get-PacingVerdict([object]$Payload) {
-    $boundaryOrder = @($Payload.boundary_order)
-    $targetTotal = @($Payload.target_seconds.total)
-    if ($targetTotal.Count -ne 2) {
-        throw "Pacing payload does not contain a two-value total target."
+    $requireProperty = {
+        param([object]$Object, [string]$Name, [string]$Context)
+        if ($null -eq $Object) {
+            throw "Pacing payload is missing object '$Context'."
+        }
+        $property = $Object.PSObject.Properties[$Name]
+        if ($null -eq $property) {
+            throw "Pacing payload is missing '$Context.$Name'."
+        }
+        return $property
+    }
+    $requireBoolean = {
+        param([object]$Value, [string]$Context)
+        if ($Value -isnot [bool]) {
+            throw "Pacing payload field '$Context' must be a JSON boolean."
+        }
+        return [bool]$Value
+    }
+    $requireNumber = {
+        param([object]$Value, [string]$Context)
+        $allowedTypes = @(
+            "System.Byte", "System.SByte", "System.Int16", "System.UInt16",
+            "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+            "System.Single", "System.Double", "System.Decimal"
+        )
+        if ($null -eq $Value -or $allowedTypes -notcontains $Value.GetType().FullName) {
+            throw "Pacing payload field '$Context' must be a JSON number."
+        }
+        $number = [double]$Value
+        if ([double]::IsNaN($number) -or [double]::IsInfinity($number)) {
+            throw "Pacing payload field '$Context' must be finite."
+        }
+        return $number
+    }
+    $requireArray = {
+        param([object]$Value, [string]$Context)
+        if ($Value -isnot [System.Array]) {
+            throw "Pacing payload field '$Context' must be a JSON array."
+        }
+    }
+    $requireExactKeys = {
+        param([object]$Object, [string[]]$ExpectedNames, [string]$Context)
+        if ($null -eq $Object) {
+            throw "Pacing payload is missing object '$Context'."
+        }
+        $actualNames = @($Object.PSObject.Properties.Name)
+        $missing = @($ExpectedNames | Where-Object { $actualNames -notcontains $_ })
+        $unexpected = @($actualNames | Where-Object { $ExpectedNames -notcontains $_ })
+        if ($missing.Count -gt 0 -or $unexpected.Count -gt 0) {
+            throw "Pacing payload object '$Context' must contain exactly: $([string]::Join(', ', $ExpectedNames))."
+        }
     }
 
-    $chapterFailures = @(
-        $Payload.chapter_within_target.PSObject.Properties |
-            Where-Object { $_.Value -ne $true }
-    )
+    $eligibleFullRun = & $requireBoolean ((& $requireProperty $Payload "eligible_full_run" "payload").Value) "eligible_full_run"
+    $complete = & $requireBoolean ((& $requireProperty $Payload "complete" "payload").Value) "complete"
+    $boundaryOrderValid = & $requireBoolean ((& $requireProperty $Payload "boundary_order_valid" "payload").Value) "boundary_order_valid"
+    $withinTargetReported = & $requireBoolean ((& $requireProperty $Payload "within_target" "payload").Value) "within_target"
+
+    $initialStage = (& $requireProperty $Payload "initial_stage" "payload").Value
+    if ($initialStage -isnot [string]) {
+        throw "Pacing payload field 'initial_stage' must be a JSON string."
+    }
+    $boundaryOrderValue = (& $requireProperty $Payload "boundary_order" "payload").Value
+    & $requireArray $boundaryOrderValue "boundary_order"
+    $boundaryOrder = @($boundaryOrderValue)
+    if (@($boundaryOrder | Where-Object { $_ -isnot [string] }).Count -gt 0) {
+        throw "Pacing payload field 'boundary_order' must contain only strings."
+    }
+    $missingMilestonesValue = (& $requireProperty $Payload "missing_milestones" "payload").Value
+    & $requireArray $missingMilestonesValue "missing_milestones"
+    $missingMilestones = @($missingMilestonesValue)
+
+    $targetSeconds = (& $requireProperty $Payload "target_seconds" "payload").Value
+    $chapterNames = @($expectedChapterTargets.Keys)
+    $targetNames = @($chapterNames + "total")
+    & $requireExactKeys $targetSeconds $targetNames "target_seconds"
+    $targetMetadataMatches = $true
+    foreach ($chapter in $chapterNames) {
+        $targetValue = (& $requireProperty $targetSeconds $chapter "target_seconds").Value
+        & $requireArray $targetValue "target_seconds.$chapter"
+        $actualTarget = @($targetValue)
+        if ($actualTarget.Count -ne 2) {
+            throw "Pacing payload field 'target_seconds.$chapter' must contain exactly two numbers."
+        }
+        $actualMinimum = & $requireNumber $actualTarget[0] "target_seconds.$chapter[0]"
+        $actualMaximum = & $requireNumber $actualTarget[1] "target_seconds.$chapter[1]"
+        $expectedTarget = @($expectedChapterTargets[$chapter])
+        if ($actualMinimum -ne [double]$expectedTarget[0] -or $actualMaximum -ne [double]$expectedTarget[1]) {
+            $targetMetadataMatches = $false
+        }
+    }
+    $targetTotalValue = (& $requireProperty $targetSeconds "total" "target_seconds").Value
+    & $requireArray $targetTotalValue "target_seconds.total"
+    $targetTotal = @($targetTotalValue)
+    if ($targetTotal.Count -ne 2) {
+        throw "Pacing payload field 'target_seconds.total' must contain exactly two numbers."
+    }
+    $targetTotalMinimum = & $requireNumber $targetTotal[0] "target_seconds.total[0]"
+    $targetTotalMaximum = & $requireNumber $targetTotal[1] "target_seconds.total[1]"
+    if ($targetTotalMinimum -ne 900.0 -or $targetTotalMaximum -ne 1200.0) {
+        $targetMetadataMatches = $false
+    }
+
+    $chapterSeconds = (& $requireProperty $Payload "chapter_active_seconds" "payload").Value
+    $chapterVerdicts = (& $requireProperty $Payload "chapter_within_target" "payload").Value
+    & $requireExactKeys $chapterSeconds $chapterNames "chapter_active_seconds"
+    & $requireExactKeys $chapterVerdicts $chapterNames "chapter_within_target"
+    $chapterDurationsInTarget = $true
+    $chapterVerdictsRecomputed = $true
+    $reportedChaptersInTarget = $true
+    $chapterDurationTotal = 0.0
+    foreach ($chapter in $chapterNames) {
+        $duration = & $requireNumber ((& $requireProperty $chapterSeconds $chapter "chapter_active_seconds").Value) "chapter_active_seconds.$chapter"
+        $reportedVerdict = & $requireBoolean ((& $requireProperty $chapterVerdicts $chapter "chapter_within_target").Value) "chapter_within_target.$chapter"
+        $expectedTarget = @($expectedChapterTargets[$chapter])
+        $computedVerdict = $duration -ge [double]$expectedTarget[0] -and $duration -le [double]$expectedTarget[1]
+        $chapterDurationTotal += $duration
+        if (-not $computedVerdict) {
+            $chapterDurationsInTarget = $false
+        }
+        if ($reportedVerdict -ne $computedVerdict) {
+            $chapterVerdictsRecomputed = $false
+        }
+        if (-not $reportedVerdict) {
+            $reportedChaptersInTarget = $false
+        }
+    }
+
+    $activeGameplaySeconds = & $requireNumber ((& $requireProperty $Payload "active_gameplay_seconds" "payload").Value) "active_gameplay_seconds"
+    $wallClockSeconds = & $requireNumber ((& $requireProperty $Payload "wall_clock_seconds" "payload").Value) "wall_clock_seconds"
+    $pausedSeconds = & $requireNumber ((& $requireProperty $Payload "paused_seconds" "payload").Value) "paused_seconds"
+    $computedTotalInTarget = $activeGameplaySeconds -ge 900.0 -and $activeGameplaySeconds -le 1200.0
+    $timeFieldsSane = $activeGameplaySeconds -ge 0.0 -and
+        $wallClockSeconds -ge $activeGameplaySeconds -and
+        $pausedSeconds -ge 0.0 -and
+        $pausedSeconds -le $wallClockSeconds -and
+        $activeGameplaySeconds -le (($wallClockSeconds - $pausedSeconds) + 0.02)
+    $chapterDurationSumMatchesTotal = [math]::Abs($chapterDurationTotal - $activeGameplaySeconds) -le 0.06
+
     $checks = [ordered]@{
-        eligible_full_run = [bool]$Payload.eligible_full_run
-        complete = [bool]$Payload.complete
-        initial_stage_lobby = [string]$Payload.initial_stage -eq "lobby"
-        boundary_order_valid = [bool]$Payload.boundary_order_valid
+        eligible_full_run = $eligibleFullRun
+        complete = $complete
+        initial_stage_lobby = $initialStage -eq "lobby"
+        boundary_order_valid = $boundaryOrderValid
         boundary_order_exact = [string]::Join("|", $boundaryOrder) -eq [string]::Join("|", $expectedBoundaryOrder)
-        no_missing_milestones = @($Payload.missing_milestones).Count -eq 0
-        total_target_metadata = [double]$targetTotal[0] -eq 900.0 -and [double]$targetTotal[1] -eq 1200.0
-        active_time_in_target = [double]$Payload.active_gameplay_seconds -ge [double]$targetTotal[0] -and [double]$Payload.active_gameplay_seconds -le [double]$targetTotal[1]
-        every_chapter_in_target = $chapterFailures.Count -eq 0
-        within_target = $Payload.within_target -eq $true
+        no_missing_milestones = $missingMilestones.Count -eq 0
+        total_target_metadata = $targetMetadataMatches
+        active_time_in_target = $computedTotalInTarget
+        every_chapter_in_target = $chapterDurationsInTarget -and $reportedChaptersInTarget -and $chapterVerdictsRecomputed
+        within_target = $computedTotalInTarget -and $withinTargetReported -eq $computedTotalInTarget
+        chapter_target_metadata = $targetMetadataMatches
+        chapter_durations_in_target = $chapterDurationsInTarget
+        chapter_verdicts_recomputed = $chapterVerdictsRecomputed
+        chapter_duration_sum_matches_total = $chapterDurationSumMatchesTotal
+        time_fields_sane = $timeFieldsSane
     }
     $failedChecks = @(
         $checks.GetEnumerator() |
@@ -436,9 +686,9 @@ function Get-PacingVerdict([object]$Payload) {
         passed = $failedChecks.Count -eq 0
         failed_checks = $failedChecks
         checks = [pscustomobject]$checks
-        active_gameplay_seconds = [double]$Payload.active_gameplay_seconds
-        wall_clock_seconds = [double]$Payload.wall_clock_seconds
-        paused_seconds = [double]$Payload.paused_seconds
+        active_gameplay_seconds = $activeGameplaySeconds
+        wall_clock_seconds = $wallClockSeconds
+        paused_seconds = $pausedSeconds
         payload = $Payload
     }
 }
@@ -533,12 +783,13 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot "project.godot"))) {
     throw "project.godot was not found below $repositoryRoot"
 }
 
+$EvidenceRoot = Initialize-RegularEvidenceDirectory $artifactRoot $EvidenceRoot "physical playthrough evidence root"
 $repositoryCommitBefore = [string](git -C $repositoryRoot rev-parse HEAD)
 $repositoryBranchBefore = [string](git -C $repositoryRoot branch --show-current)
 $repositoryDirtyBefore = @(git -C $repositoryRoot status --porcelain).Count -ne 0
 $runId = (Get-Date).ToString("yyyyMMdd-HHmmss-fff")
 $evidenceDirectory = Join-Path $EvidenceRoot $runId
-New-Item -ItemType Directory -Force -Path $evidenceDirectory | Out-Null
+$evidenceDirectory = Initialize-RegularEvidenceDirectory $EvidenceRoot $evidenceDirectory "physical playthrough run directory"
 $startedAt = (Get-Date).ToUniversalTime()
 $diskBefore = [ordered]@{ C = Get-FreeGiB "C"; D = Get-FreeGiB "D" }
 $sourceLogs = @()
@@ -611,6 +862,8 @@ if ($launchPerformed) {
         $analyzeLogPath = Join-Path $repositoryRoot $analyzeLogPath
     }
     $resolvedLog = (Resolve-Path -LiteralPath $analyzeLogPath).Path
+    [void](Assert-NoReparsePointAncestors $resolvedLog "AnalyzeLog")
+    [void](Assert-RegularEvidenceFile $resolvedLog)
     $sourceLogs = @($resolvedLog)
 }
 

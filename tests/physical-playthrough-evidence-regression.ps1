@@ -28,6 +28,8 @@ function Import-RunnerFunctions([string]$Path) {
 
     $needed = @(
         "Assert-RegularEvidenceDirectory",
+        "Assert-NoReparsePointAncestors",
+        "Initialize-RegularEvidenceDirectory",
         "Get-GodotAppUserDataRoots",
         "Assert-RegularEvidenceFile",
         "Get-EvidenceFileIdentity",
@@ -38,6 +40,7 @@ function Import-RunnerFunctions([string]$Path) {
         "Get-PacingEvidenceRecord",
         "Prepare-PacingEvidenceSideChannels",
         "Copy-PacingEvidenceSideChannels",
+        "Get-PacingVerdict",
         "Test-EvidencePackageReady"
     )
     $definitions = @{}
@@ -53,6 +56,10 @@ function Import-RunnerFunctions([string]$Path) {
         $scopedDefinition = [regex]::Replace($definitions[$name], $functionPattern, "function script:$name", 1)
         Invoke-Expression $scopedDefinition
     }
+
+    # Runner snapshot helpers read these script-scope constants. Mirror them here
+    # so imported functions remain StrictMode-safe outside the runner script file.
+    $script:maxPacingSideChannelBytes = [int64](1MB)
 }
 
 function Assert-RunnerPublicContract([string]$Path) {
@@ -147,6 +154,18 @@ $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("room407-pacing-ev
 try {
     $env:APPDATA = Join-Path $temporaryRoot "appdata"
     $pacingSideChannelRelative = "playthrough_pacing_last.txt"
+    $expectedBoundaryOrder = @(
+        "lobby", "floor4_dark", "floor4_powered", "memory_loop",
+        "room_407", "chase", "ending", "credits"
+    )
+    $expectedChapterTargets = [ordered]@{
+        opening = @(120.0, 180.0)
+        floor4 = @(180.0, 240.0)
+        memory_loop = @(240.0, 300.0)
+        room407 = @(180.0, 240.0)
+        chase_ending = @(120.0, 180.0)
+    }
+    $maxPacingSideChannelBytes = [int64](1MB)
     Assert-RunnerPublicContract $RunnerPath
     Import-RunnerFunctions $RunnerPath
 
