@@ -43,13 +43,15 @@ clean, auditable run without confusing wrapper integrity with perceptual review.
 - [x] Operator matrix covers the full main route, chase recovery, settings, and perception.
 - [x] Parent plan/PDR/README still state physical review is open before valid evidence.
 - [x] No automation, staged media, export smoke, or Docker result is called human proof.
-- [ ] Commit/Git push and any Docker Hub result have explicit, recorded authorization/evidence.
+- [x] Commit/Git push and any Docker Hub result have explicit, recorded authorization/evidence.
 
 ## Result so far
 
-The existing parent Phase 5 operator handoff is current and remains human-only. The final
-delivery checkbox stays open until the clean commit/remote and any Docker publication are
-verified; this phase must not imply that PDR-07 is closed.
+Delivery commit `c14d7bb8ec7313abf0c4954c496ede1df4e7800e` is on `main` and matches
+`origin/main` after an authorized push of the evidence-closure + Docker Hub / media polish
+slice. Live Docker daemon build/run remained unavailable on the authoring host; Hub
+publication is delegated to CI (`docker-suite.yml`) when `DOCKERHUB_USERNAME` /
+`DOCKERHUB_TOKEN` are configured. Parent Phase 5 / PDR-07 remains human-only and open.
 
 ## Non-goals and risks
 

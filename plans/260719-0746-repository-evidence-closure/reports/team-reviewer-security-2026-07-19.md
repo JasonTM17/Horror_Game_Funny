@@ -79,7 +79,7 @@ Only version string is checked later via `HEALTHCHECK` / runtime (`Dockerfile:74
 **Evidence:** `tests/scan-secret-patterns.sh:11-20`
 
 ```bash
-PATTERN='ghp_[...]|github_pat_[...]|sk-[...]|AIza[...]|BEGIN (RSA |OPENSSH )?PRIVATE KEY|DOCKERHUB_TOKEN=...'
+PATTERN='ghp_[...]|github_pat_[...]|sk-[...]|AIza[...]|BEGIN (RSA |OPENSSH )?PRIVATE KEY|DOCKERHUB_TOKEN assignment shape'
 
 if git grep -nIE "$PATTERN" -- . \
 	':(exclude)*.md' \

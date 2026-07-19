@@ -2,11 +2,12 @@
 
 ## Current source boundary
 
-The repository-side evidence wrapper, export checks, documentation, and automated
-regressions have been re-verified on the current dirty worktree. The clean delivery
-commit is intentionally recorded only after the final Git step. Parent Phase 5/PDR-07
-is still **open** because no authorized human physical keyboard/mouse run has supplied
-same-run capture, telemetry, and perception review.
+Delivery tip: clean `main` at `c14d7bb8ec7313abf0c4954c496ede1df4e7800e` (matches
+`origin/main` after the 2026-07-19 evidence-closure + Docker Hub / media polish push).
+Godot for host runs: `D:\Tools\Godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe`
+(v4.7.1.stable.official). Parent Phase 5/PDR-07 is still **open** because no authorized
+human physical keyboard/mouse run has supplied same-run capture, telemetry, and
+perception review.
 
 ## Automated gates (current worktree)
 
@@ -39,11 +40,24 @@ These are local ignored build artifacts, not tracked release binaries.
 
 ## Human operator command (required for PDR-07)
 
-Run only from the eventual clean commit with Godot 4.7.1 available:
+Run only from clean tip `c14d7bb` (or newer `main` after re-verify) with Godot 4.7.1:
+
+```powershell
+git checkout main
+git pull
+git rev-parse HEAD   # expect c14d7bb… or a newer tip you re-verified
+
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthrough.ps1 `
+  -LaunchMode ProjectRun `
+  -ConfirmPhysicalInput `
+  -CaptureReference "D:\Captures\room407-full-run.mp4"
+```
+
+Optional EditorF5 (side-channel harvest only; no game-bound `--log-file`):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthrough.ps1 `
-  -LaunchMode ProjectRun `
+  -LaunchMode EditorF5 `
   -ConfirmPhysicalInput `
   -CaptureReference "D:\Captures\room407-full-run.mp4"
 ```

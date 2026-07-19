@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           if [[ -z "${DOCKERHUB_USERNAME:-}" || -z "${DOCKERHUB_TOKEN:-}" ]]; then
             echo "Docker Hub publish skipped: repository secrets are not configured."
-            echo "Configure DOCKERHUB_USERNAME=nguyenson1710 and DOCKERHUB_TOKEN at"
+            echo "Configure repository secrets DOCKERHUB_USERNAME (nguyenson1710) and DOCKERHUB_TOKEN at"
             echo "https://github.com/${GITHUB_REPOSITORY}/settings/secrets/actions"
             exit 0
           fi

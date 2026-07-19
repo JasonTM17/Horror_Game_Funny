@@ -32,6 +32,6 @@
 ## Delivery remaining
 
 1. User-authorized `git commit` of the intentional dirty surface + `git push origin main`.
-2. Confirm GitHub secrets: `DOCKERHUB_USERNAME=nguyenson1710`, `DOCKERHUB_TOKEN=<token>`.
+2. Confirm GitHub Actions secrets named `DOCKERHUB_USERNAME` (value `nguyenson1710`) and `DOCKERHUB_TOKEN` (token value only in the secret store; never inline in docs).
 3. Observe `docker-suite` CI: build + suite + conditional Hub publish.
 4. Human physical F5 via ProjectRun handoff to close PDR-07.
