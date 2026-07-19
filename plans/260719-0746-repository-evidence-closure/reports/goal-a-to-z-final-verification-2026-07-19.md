@@ -18,19 +18,25 @@ images and GIF.
 | Professional README media | Done | Cover + GIF + 4 stills linked with evidence boundaries |
 | Cover contract | Done | 1280×640, SHA-256 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980` |
 | Evidence-closure child plan | Done | 21/21 criteria; status completed |
-| Clean remote tip | Done | `main` == `origin/main` at `c6ebf76d4c025df7d6f1a78b4e5dc6b9b5733302` |
+| Clean remote tip | Done | `main` == `origin/main` at `b5df3d02765595590621f09a71b5a6d1e1cf9df8` |
+| Physical evidence path hardening | Done | EvidenceRoot under `.artifacts`, reparse ancestors rejected, 1MB snapshot cap |
 
-## Verification plan (executed on tip `c6ebf76`)
+## Verification plan (executed; tip advanced to `b5df3d0`)
+
+Primary automated re-verify was recorded on `c6ebf76` (host 12/12, packaging, secrets,
+evidence regression). Tip `b5df3d0` adds EvidenceRoot containment + regression
+StrictMode constant mirroring; focused evidence regression re-passed at exit 0 before
+push. CI on `b5df3d0` must be green (see live URLs below after poll).
 
 ### V1 — Repository identity
 
 ```text
 git rev-parse HEAD
-# c6ebf76d4c025df7d6f1a78b4e5dc6b9b5733302
+# b5df3d02765595590621f09a71b5a6d1e1cf9df8
 git rev-parse origin/main
-# c6ebf76d4c025df7d6f1a78b4e5dc6b9b5733302
+# b5df3d02765595590621f09a71b5a6d1e1cf9df8
 git status --short --branch
-# ## main...origin/main   (clean)
+# ## main...origin/main   (clean after tip commits)
 ```
 
 ### V2 — Host twelve-check suite
