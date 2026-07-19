@@ -1480,7 +1480,7 @@ Write-Host "PHYSICAL_PLAYTHROUGH_EVIDENCE_DIR=$evidenceDirectory"
 Write-Host "PACING_PASS=$pacingPass"
 Write-Host "EVIDENCE_PACKAGE_READY=$evidencePackageReady"
 if (-not $evidencePackageReady) {
-    Write-Warning "Evidence is incomplete or outside target. See summary.md; this run must not close the manual release gate."
+    Write-Warning "Evidence is incomplete or outside target. See summary.md; do not describe this run as human-verified evidence."
     exit 2
 }
 exit 0
