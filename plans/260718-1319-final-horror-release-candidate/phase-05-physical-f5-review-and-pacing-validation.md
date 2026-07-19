@@ -25,13 +25,18 @@ review.
 
 1. Do not invoke computer control unless the user explicitly reverses the current
    no-desktop-control instruction.
-2. Start the evidence runner in EditorF5 mode without falsely asserting human input.
-3. Start fresh, traverse every action, fail/recover once during chase, test pause/settings/
-   fullscreen/comfort, and reach credits.
+2. Prefer the evidence runner in **ProjectRun** mode so `--log-file` binds to the game
+   process. Use `-LaunchMode EditorF5` only when the editor is required; that path
+   does not attach `--log-file` to the F5 game process and depends on the
+   `user://playthrough_pacing_last.txt` side-channel after credits. Never pass
+   `-ConfirmPhysicalInput` unless a human actually used keyboard/mouse.
+3. Start fresh with **START SHIFT** (not Continue), traverse every action, fail/recover
+   once during chase, test pause/settings/fullscreen/comfort, and reach credits.
 4. Preserve same-run capture, raw log, and unique pacing payload.
 5. Review objective clarity, scare timing/readability, chase fairness, audio balance,
    focus/relaunch/fullscreen, and comfort row by row.
-6. Route any defect back to its source phase, repeat Phase 4, then repeat the run.
+6. Route any defect back to its source phase, repeat automated regressions, then
+   repeat the physical run.
 
 ## Success Criteria
 

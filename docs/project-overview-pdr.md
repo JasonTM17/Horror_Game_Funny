@@ -44,9 +44,27 @@ The implementation is release-ready only when all of the following are true:
 5. Reviewed in-engine screenshots and an optimized derived GIF are committed under `docs/screenshots/`, linked from the documentation, and render correctly. **Complete for PDR-08; staged media is not physical-playthrough evidence.**
 6. The tracked Windows x86_64 preset exports with Godot 4.7.1, stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory, passes archive/template/hash/preset/PE/log/headless-startup verification, and leaves binaries/templates outside Git. **Complete for PDR-10 at the automated level; normal-window review remains part of criterion 4.**
 
+## Current Verification Snapshot — 2026-07-19
+
+The latest source-completable run passed the Windows host suite (12/12, exit 0), the
+focused physical-evidence regression, both Docker packaging contract verifiers, and the
+Windows export/adversarial checks. The local Docker daemon was unavailable, so live image
+build/run and registry publication remain unverified. The active Windows executable is
+`117920024` bytes with SHA-256
+`420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`; the active bundle is
+`2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d`; the rollback bundle
+is `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701`. The docs-only
+cover is `1280×640`, SHA-256
+`58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
+
+Current command-level evidence is indexed by the [tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
+[tester re-verification](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
+and [cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)
+(9/10, zero critical findings). These reports are automated/repository evidence only.
+
 ## Current Release Decision
 
-Recorded source implementation and automated contracts are green. The fixed scare slice and subsequent Docker packaging are verified by the host twelve-check suite and the GitHub Actions container suite (`nguyenson1710/horror-game-suite`). The Windows x86_64 export path now has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. These verify source lifecycle and packaging/startup contracts, not audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
+Recorded source implementation and automated contracts are green for the available gates. Historical GitHub Actions evidence also records a passing container suite; the latest local Docker packaging checks are contract-only because the daemon was unavailable. The Windows x86_64 export path has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. These verify source lifecycle and packaging/startup contracts, not audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
 
 PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 remains open:** no fresh 15–20-minute F5 boot-to-credits run, same-run telemetry, player-driven chase-fairness review, live audio/visual review, or physical Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute for those gates.
 

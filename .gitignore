@@ -14,6 +14,20 @@ builds/
 # Local export configuration (credential-free export preset is tracked)
 export.cfg
 
+# Secrets and local credentials (never commit)
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*
+*secret*.local.*
+id_rsa
+id_ed25519
+
 # Editors and operating systems
 .vscode/
 .idea/

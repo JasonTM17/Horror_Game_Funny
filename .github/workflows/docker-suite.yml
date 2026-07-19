@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   packaging-and-suite:
     runs-on: ubuntu-latest
@@ -28,11 +31,20 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+          set -euo pipefail
+          if [[ -z "${DOCKERHUB_USERNAME:-}" || -z "${DOCKERHUB_TOKEN:-}" ]]; then
             echo "Docker Hub publish skipped: repository secrets are not configured."
+            echo "Configure DOCKERHUB_USERNAME=nguyenson1710 and DOCKERHUB_TOKEN at"
+            echo "https://github.com/${GITHUB_REPOSITORY}/settings/secrets/actions"
             exit 0
           fi
+          if [[ "$DOCKERHUB_USERNAME" != "nguyenson1710" ]]; then
+            echo "DOCKERHUB_USERNAME must be nguyenson1710 (got: $DOCKERHUB_USERNAME)" >&2
+            exit 1
+          fi
           echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-          docker tag nguyenson1710/horror-game-suite:latest "nguyenson1710/horror-game-suite:${GITHUB_SHA}"
-          docker push nguyenson1710/horror-game-suite:latest
-          docker push "nguyenson1710/horror-game-suite:${GITHUB_SHA}"
+          IMAGE="nguyenson1710/horror-game-suite"
+          docker tag "${IMAGE}:latest" "${IMAGE}:${GITHUB_SHA}"
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          echo "Published ${IMAGE}:latest and ${IMAGE}:${GITHUB_SHA}"

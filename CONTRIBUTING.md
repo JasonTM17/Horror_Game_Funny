@@ -36,12 +36,35 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 
 On Linux: `bash tests/verify-docker-packaging.sh`
 
+### Focused PowerShell hardening checks
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\physical-playthrough-evidence-regression.ps1
+```
+
+After a successful Windows export verifier run has produced verified active and
+rollback bundles, also run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\windows-export-adversarial.ps1
+```
+
+These focused harnesses do not add a thirteenth Godot check or replace the
+manual physical playthrough gate. See [Testing](docs/testing.md) for their
+prerequisites and evidence boundaries.
+
 ### Docker suite
 
 ```powershell
 docker compose build suite
 docker compose run --rm suite
 ```
+
+Public image: [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite).
+CI (`.github/workflows/docker-suite.yml`) builds and runs the suite on every PR/push to
+`main`. Hub publish happens only on main when repository secrets
+`DOCKERHUB_USERNAME` (`nguyenson1710`) and `DOCKERHUB_TOKEN` are configured. The
+Dockerfile pins the Godot 4.7.1 Linux download SHA-256.
 
 The suite must stay at **exactly twelve** Godot headless checks. Do not add a
 thirteenth runner entry without an explicit project decision.

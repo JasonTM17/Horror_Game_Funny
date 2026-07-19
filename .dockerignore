@@ -23,6 +23,17 @@ plans
 docs/screenshots
 docs/journals
 
+# Secrets and local credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*
+id_rsa
+id_ed25519
+
 # OS junk
 .DS_Store
 Thumbs.db

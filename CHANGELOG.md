@@ -6,6 +6,23 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Professional Docker Hub + repository docs polish — 2026-07-19
+
+- Dockerfile now verifies the official Godot 4.7.1 Linux zip with pinned SHA-256 `c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba` before install.
+- `.gitignore` / `.dockerignore` exclude dotenv and common key material; secret-pattern scan covers workflows and markdown; CI workflows set `permissions: contents: read`.
+- Docker Hub publish step documents required secrets, enforces username `nguyenson1710`, and tags `latest` + full `GITHUB_SHA`.
+- README gallery presents cover, staged stills, and GIF with explicit evidence boundaries; historical 2026-07-18 export hashes are demoted in testing/roadmap handoff language.
+- Phase 5 physical steps prefer `ProjectRun` over EditorF5 for same-run log integrity.
+- Physical-evidence regression pins a strictly post-launch write timestamp so the fresh-harvest case is non-flaky under coarse wall-clock resolution.
+
+#### Repository evidence closure snapshot — 2026-07-19
+
+- Fresh Windows host verification passed all 12 canonical Godot checks (exit 0); the focused physical-evidence regression and Windows export adversarial harness also passed.
+- PowerShell and Bash Docker packaging contracts passed. Live image build/run and Docker Hub publication remain environment- and secrets-dependent.
+- The active Windows executable is `117920024` bytes with SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`; active bundle `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d`; rollback bundle `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701`.
+- The documentation-only cover contract is `1280×640`, SHA-256 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
+- [Tester re-verify](plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md) and [cycle-2 review](plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md) are current references; PDR-07/parent Phase 5 remains open for human physical F5 and perception review.
+
 #### Story jumpscare staging polish — 2026-07-18
 
 - Apparitions use elongated humanoid silhouettes (shoulders/arms), face the player on reveal, and Room 407 flashes emission eyes.
@@ -17,7 +34,8 @@ All notable changes to this project are documented here.
 #### Physical playthrough evidence capture — 2026-07-18
 
 - Credits now overwrite one last-run `user://playthrough_pacing_last.txt` line with the same `PLAYTHROUGH_PACING:` payload so Editor F5 (separate game process) no longer drops evidence when the host `--log-file` only covers the editor.
-- `tests/run-physical-playthrough.ps1` defaults to `ProjectRun` (game-bound log), harvests the side-channel into the evidence folder, and warns when `EditorF5` is used.
+- `tests/run-physical-playthrough.ps1` defaults to `ProjectRun` (game-bound log), archives and clears any stale side-channel before launch, requires a strictly post-launch write, snapshots through one open stream, rejects source identity changes and reparse paths, verifies copied size/hash, and warns when `EditorF5` is used.
+- Added `tests/physical-playthrough-evidence-regression.ps1` for isolated stale/fresh/boundary/hash/source-swap/junction coverage without manufacturing release evidence.
 - Progression suite asserts the side-channel matches the finalized pacing report.
 
 ### Added
@@ -28,6 +46,7 @@ All notable changes to this project are documented here.
 - `.github/dependabot.yml` for weekly GitHub Actions and Docker base-image updates.
 - `.github/workflows/ci.yml` for packaging-contract verification, professional-doc presence checks, and a lightweight committed-tree secret-pattern scan (does not replace the twelve Godot checks).
 - `.github/CODEOWNERS` defaulting to `@JasonTM17`.
+- Added a reviewed 1280x640 repository cover under `docs/media/`, placed it at the top of the README, excluded documentation media from Godot import, and recorded the final image prompt, hash, license scope, and evidence boundary.
 
 #### Docker / CI test packaging — 2026-07-18
 
@@ -40,6 +59,7 @@ All notable changes to this project are documented here.
 
 - Credential-free `export_presets.cfg` for an unsigned Windows Desktop x86_64 release executable with an embedded PCK and repository-local ignored output.
 - `tests/verify-windows-export.ps1` binds checks to the selected preset; verifies the official Godot archive and installed release-template hashes; enforces unsigned, credential-free, remote-deploy-disabled settings; uses exclusive locking plus unique staging; and validates export/startup logs, PE x86_64 architecture, and current output size/SHA-256.
+- `tests/windows-export-adversarial.ps1` covers Job Object descendant teardown, canonical manifest/hash tampering, rollback recovery, preset parser mutations, configured output-root containment, timeout preservation, and lock rejection without changing the verified active/rollback bundles. It does not claim protection from a hostile same-host reparse swap after path preflight.
 - Verified export bundles `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt` inventory beside the executable. Generated binaries, logs, templates, staging trees, and isolated profiles remain outside Git.
 
 - Godot 4.7.1 Compatibility-renderer project foundation, boot scene, input map, and project icon.

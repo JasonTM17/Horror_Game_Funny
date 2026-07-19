@@ -41,12 +41,37 @@ function Get-FreeGiB([string]$DriveName) {
     return [math]::Round($drive.Free / 1GB, 2)
 }
 
+function Assert-RegularEvidenceDirectory([string]$Path, [string]$Label) {
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        throw "Expected evidence directory was not found ($Label): $Path"
+    }
+    $item = Get-Item -LiteralPath $Path -Force
+    if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing reparse-point evidence directory ($Label): $Path"
+    }
+    return $item
+}
+
 function Get-GodotAppUserDataRoots {
     $roots = New-Object System.Collections.Generic.List[string]
-    $appDataGodot = Join-Path $env:APPDATA "Godot\app_userdata"
+    if ([string]::IsNullOrWhiteSpace($env:APPDATA)) {
+        throw "APPDATA is required to locate Godot evidence side-channels."
+    }
+    $appDataRoot = [System.IO.Path]::GetFullPath($env:APPDATA)
+    if (-not (Test-Path -LiteralPath $appDataRoot -PathType Container)) {
+        return @()
+    }
+    [void](Assert-RegularEvidenceDirectory $appDataRoot "APPDATA")
+    $godotDirectory = Join-Path $appDataRoot "Godot"
+    if (-not (Test-Path -LiteralPath $godotDirectory -PathType Container)) {
+        return @()
+    }
+    [void](Assert-RegularEvidenceDirectory $godotDirectory "APPDATA/Godot")
+    $appDataGodot = Join-Path $godotDirectory "app_userdata"
     if (-not (Test-Path -LiteralPath $appDataGodot)) {
         return @()
     }
+    [void](Assert-RegularEvidenceDirectory $appDataGodot "APPDATA/Godot/app_userdata")
     # Godot normalizes project config/name for the userdata folder (":" -> "-").
     $candidates = @(
         "ROOM 407: THE LAST SHIFT",
@@ -55,22 +80,248 @@ function Get-GodotAppUserDataRoots {
     foreach ($name in $candidates) {
         $path = Join-Path $appDataGodot $name
         if (Test-Path -LiteralPath $path) {
-            [void]$roots.Add((Resolve-Path -LiteralPath $path).Path)
+            [void](Assert-RegularEvidenceDirectory $path "Godot project candidate")
+            [void]$roots.Add([System.IO.Path]::GetFullPath($path))
         }
     }
     Get-ChildItem -LiteralPath $appDataGodot -Directory -ErrorAction SilentlyContinue |
         Where-Object { $_.Name -like "*ROOM 407*" } |
         ForEach-Object {
-            $resolved = (Resolve-Path -LiteralPath $_.FullName).Path
-            if (-not $roots.Contains($resolved)) {
-                [void]$roots.Add($resolved)
+            [void](Assert-RegularEvidenceDirectory $_.FullName "Godot project candidate")
+            $candidatePath = [System.IO.Path]::GetFullPath($_.FullName)
+            if (-not $roots.Contains($candidatePath)) {
+                [void]$roots.Add($candidatePath)
             }
         }
     return @($roots)
 }
 
-function Copy-PacingEvidenceSideChannels([string]$DestinationDirectory) {
-    $copied = New-Object System.Collections.Generic.List[string]
+function Assert-RegularEvidenceFile([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "Expected regular evidence file was not found: $Path"
+    }
+    $item = Get-Item -LiteralPath $Path -Force
+    if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing reparse-point evidence file: $Path"
+    }
+    return $item
+}
+
+function Get-EvidenceFileIdentity([string]$Path) {
+    $item = Assert-RegularEvidenceFile $Path
+    return [pscustomobject][ordered]@{
+        full_name = [System.IO.Path]::GetFullPath($item.FullName)
+        size_bytes = [int64]$item.Length
+        last_write_utc = $item.LastWriteTimeUtc.ToString("o")
+        creation_time_utc = $item.CreationTimeUtc.ToString("o")
+        attributes = [int]$item.Attributes
+    }
+}
+
+function Test-EvidenceFileIdentityEqual([object]$Expected, [object]$Actual) {
+    return $Expected.full_name -eq $Actual.full_name -and
+        [int64]$Expected.size_bytes -eq [int64]$Actual.size_bytes -and
+        $Expected.last_write_utc -eq $Actual.last_write_utc -and
+        $Expected.creation_time_utc -eq $Actual.creation_time_utc -and
+        [int]$Expected.attributes -eq [int]$Actual.attributes
+}
+
+function New-PacingEvidenceRecord([string]$SourcePath, [string]$RootPath, [object]$Identity, [string]$Sha256) {
+    return [pscustomobject][ordered]@{
+        root = $RootPath
+        source_path = $SourcePath
+        sha256 = $Sha256
+        size_bytes = [int64]$Identity.size_bytes
+        last_write_utc = $Identity.last_write_utc
+    }
+}
+
+function New-PacingEvidenceRejection([string]$SourcePath, [string]$RootPath, [string[]]$Reasons, [object]$Identity = $null) {
+    $record = [ordered]@{
+        root = $RootPath
+        source_path = $SourcePath
+        sha256 = $null
+        size_bytes = $null
+        last_write_utc = $null
+        rejection_reasons = @($Reasons)
+    }
+    if ($null -ne $Identity) {
+        $record.size_bytes = [int64]$Identity.size_bytes
+        $record.last_write_utc = $Identity.last_write_utc
+    }
+    return [pscustomobject]$record
+}
+
+function Copy-PacingEvidenceSnapshot(
+    [string]$SourcePath,
+    [string]$RootPath,
+    [string]$DestinationPath,
+    [scriptblock]$TestSnapshotHook = $null
+) {
+    $preIdentity = $null
+    $postIdentity = $null
+    $snapshotHash = $null
+    $snapshotSize = [int64]0
+    try {
+        [void](Assert-RegularEvidenceDirectory $RootPath "Godot project candidate")
+    } catch {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $true; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_root_not_regular_or_reparse")) }
+    }
+    try {
+        $preIdentity = Get-EvidenceFileIdentity $SourcePath
+    } catch {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_not_regular_or_reparse")) }
+    }
+
+    try {
+        if ($null -ne $TestSnapshotHook) {
+            & $TestSnapshotHook $SourcePath "after_pre_identity"
+        }
+        $sourceStream = New-Object System.IO.FileStream($SourcePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+    } catch {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_open_failed") $preIdentity) }
+    }
+
+    $destinationCreated = $false
+    $snapshotAccepted = $false
+    try {
+        try {
+            $openedIdentity = Get-EvidenceFileIdentity $SourcePath
+        } catch {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_not_regular_or_reparse") $preIdentity) }
+        }
+        if (-not (Test-EvidenceFileIdentityEqual $preIdentity $openedIdentity)) {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_identity_changed_during_snapshot") $preIdentity) }
+        }
+
+        $destinationStream = New-Object System.IO.FileStream($DestinationPath, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+        $destinationCreated = $true
+        try {
+            $hasher = [System.Security.Cryptography.SHA256]::Create()
+            try {
+                $buffer = New-Object byte[] 65536
+                $snapshotSize = [int64]0
+                while (($read = $sourceStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+                    [void]$hasher.TransformBlock($buffer, 0, $read, $buffer, 0)
+                    $destinationStream.Write($buffer, 0, $read)
+                    $snapshotSize += $read
+                }
+                [void]$hasher.TransformFinalBlock((New-Object byte[] 0), 0, 0)
+                $snapshotHash = ([System.BitConverter]::ToString($hasher.Hash)).Replace("-", "").ToLowerInvariant()
+            } finally {
+                $hasher.Dispose()
+            }
+            $destinationStream.Flush($true)
+        } finally {
+            $destinationStream.Dispose()
+        }
+
+        try {
+            $postIdentity = Get-EvidenceFileIdentity $SourcePath
+        } catch {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_not_regular_or_reparse") $preIdentity) }
+        }
+        if (-not (Test-EvidenceFileIdentityEqual $preIdentity $postIdentity) -or $snapshotSize -ne [int64]$preIdentity.size_bytes) {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("source_identity_changed_during_snapshot") $preIdentity) }
+        }
+        if ($null -ne $TestSnapshotHook) {
+            & $TestSnapshotHook $SourcePath "before_destination_verification" $DestinationPath
+        }
+        $destinationIdentity = Get-EvidenceFileIdentity $DestinationPath
+        $destinationHash = (Get-FileHash -LiteralPath $DestinationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($destinationIdentity.size_bytes -ne $snapshotSize -or $destinationHash -ne $snapshotHash) {
+            return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("snapshot_copy_verification_failed") $preIdentity) }
+        }
+        $snapshotAccepted = $true
+        return [pscustomobject]@{ accepted = $true; containment_unsafe = $false; record = (New-PacingEvidenceRecord $SourcePath $RootPath $preIdentity $snapshotHash) }
+    } catch {
+        return [pscustomobject]@{ accepted = $false; containment_unsafe = $false; record = (New-PacingEvidenceRejection $SourcePath $RootPath @("snapshot_failed") $preIdentity) }
+    } finally {
+        $sourceStream.Dispose()
+        if ($destinationCreated -and (Test-Path -LiteralPath $DestinationPath)) {
+            # The caller promotes a snapshot only after all freshness checks. A rejected
+            # snapshot must not remain available as a potentially misleading payload.
+            if (-not $snapshotAccepted) {
+                Remove-Item -LiteralPath $DestinationPath -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+}
+
+function Get-PacingEvidenceRecord([string]$SourcePath, [string]$RootPath) {
+    $identity = Get-EvidenceFileIdentity $SourcePath
+    return New-PacingEvidenceRecord $SourcePath $RootPath $identity (Get-FileHash -LiteralPath $SourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+
+function Prepare-PacingEvidenceSideChannels([string]$DestinationDirectory) {
+    $archiveDirectory = Join-Path $DestinationDirectory "prelaunch-stale-sidechannels"
+    New-Item -ItemType Directory -Force -Path $archiveDirectory | Out-Null
+    $records = New-Object System.Collections.Generic.List[object]
+    $rejected = New-Object System.Collections.Generic.List[object]
+    $integrityPassed = $true
+    $index = 0
+    foreach ($root in Get-GodotAppUserDataRoots) {
+        $source = Join-Path $root $pacingSideChannelRelative
+        if (-not (Test-Path -LiteralPath $source)) {
+            continue
+        }
+        $destination = Join-Path $archiveDirectory ("playthrough_pacing_last-$index.txt")
+        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination
+        if (-not $snapshot.accepted) {
+            [void]$rejected.Add($snapshot.record)
+            $integrityPassed = $false
+            continue
+        }
+        $record = $snapshot.record
+        try {
+            $identityBeforeClear = Get-EvidenceFileIdentity $source
+            if ($identityBeforeClear.size_bytes -ne $record.size_bytes -or $identityBeforeClear.last_write_utc -ne $record.last_write_utc) {
+                throw "source_identity_changed_before_clear"
+            }
+            Remove-Item -LiteralPath $source -Force
+            if (Test-Path -LiteralPath $source) {
+                throw "source_not_cleared"
+            }
+        } catch {
+            if (Test-Path -LiteralPath $destination) {
+                Remove-Item -LiteralPath $destination -Force -ErrorAction SilentlyContinue
+            }
+            [void]$rejected.Add((New-PacingEvidenceRejection $source $root @("prelaunch_archive_or_clear_failed") $null))
+            $integrityPassed = $false
+            continue
+        }
+        $record | Add-Member -NotePropertyName archive_path -NotePropertyValue $destination
+        [void]$records.Add($record)
+        $index += 1
+    }
+    return [pscustomobject][ordered]@{
+        integrity_passed = $integrityPassed
+        archived_count = $records.Count
+        records = $records.ToArray()
+        rejected = $rejected.ToArray()
+    }
+}
+
+function Copy-PacingEvidenceSideChannels(
+    [string]$DestinationDirectory,
+    [datetime]$NotBeforeUtc,
+    [string[]]$BaselineHashes,
+    [scriptblock]$TestSnapshotHook = $null
+) {
+    $copied = New-Object System.Collections.Generic.List[object]
+    $rejected = New-Object System.Collections.Generic.List[object]
+    $baselineHashSet = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($hash in @($BaselineHashes)) {
+        if (-not [string]::IsNullOrWhiteSpace($hash)) {
+            [void]$baselineHashSet.Add($hash)
+        }
+    }
+    # The side-channel is only supporting evidence. It must be written strictly
+    # after the recorded launch instant; there is intentionally no clock tolerance.
+    $freshnessThresholdUtc = $NotBeforeUtc
+    $integrityPassed = $true
     $index = 0
     foreach ($root in Get-GodotAppUserDataRoots) {
         $source = Join-Path $root $pacingSideChannelRelative
@@ -83,11 +334,46 @@ function Copy-PacingEvidenceSideChannels([string]$DestinationDirectory) {
             "playthrough_pacing_last-$index.txt"
         }
         $destination = Join-Path $DestinationDirectory $destName
-        Copy-Item -LiteralPath $source -Destination $destination -Force
-        [void]$copied.Add($destination)
+        $snapshot = Copy-PacingEvidenceSnapshot $source $root $destination $TestSnapshotHook
+        if (-not $snapshot.accepted) {
+            [void]$rejected.Add($snapshot.record)
+            # Snapshot/open/reparse/identity/copy anomalies mean the harvest was
+            # not anomaly-free, even though rejected bytes are never consumed.
+            $integrityPassed = $false
+            continue
+        }
+        $record = $snapshot.record
+        $rejectionReasons = New-Object System.Collections.Generic.List[string]
+        $lastWriteUtc = [datetime]::Parse(
+            [string]$record.last_write_utc,
+            [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::RoundtripKind
+        ).ToUniversalTime()
+        if ($lastWriteUtc -le $freshnessThresholdUtc) {
+            [void]$rejectionReasons.Add("last_write_at_or_before_launch")
+        }
+        if ($baselineHashSet.Contains($record.sha256)) {
+            [void]$rejectionReasons.Add("hash_matches_prelaunch_baseline")
+        }
+        if ($rejectionReasons.Count -gt 0) {
+            Remove-Item -LiteralPath $destination -Force -ErrorAction SilentlyContinue
+            $record | Add-Member -NotePropertyName rejection_reasons -NotePropertyValue @($rejectionReasons)
+            [void]$rejected.Add($record)
+            continue
+        }
+        $record | Add-Member -NotePropertyName evidence_path -NotePropertyValue $destination
+        [void]$copied.Add($record)
         $index += 1
     }
-    return @($copied)
+    return [pscustomobject][ordered]@{
+        integrity_passed = $integrityPassed
+        freshness_not_before_utc = $NotBeforeUtc.ToString("o")
+        freshness_threshold_utc = $freshnessThresholdUtc.ToString("o")
+        copied_count = $copied.Count
+        rejected_count = $rejected.Count
+        copied = $copied.ToArray()
+        rejected = $rejected.ToArray()
+    }
 }
 
 function Get-UniquePacingPayload([string[]]$LogPaths) {
@@ -173,6 +459,22 @@ function Get-UniqueLogFailures([string[]]$LogPaths) {
     return @($failures)
 }
 
+function Test-EvidencePackageReady(
+    [bool]$EnginePassed,
+    [bool]$PacingPassed,
+    [bool]$SideChannelIntegrityPassed,
+    [bool]$RepositoryStable,
+    [bool]$PhysicalInputConfirmed,
+    [bool]$CaptureProvided
+) {
+    return $EnginePassed -and
+        $PacingPassed -and
+        $SideChannelIntegrityPassed -and
+        $RepositoryStable -and
+        $PhysicalInputConfirmed -and
+        $CaptureProvided
+}
+
 function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
     $jsonPath = Join-Path $Directory "summary.json"
     $markdownPath = Join-Path $Directory "summary.md"
@@ -200,6 +502,10 @@ function Write-EvidenceFiles([string]$Directory, [object]$Summary) {
         "- Log failure count: ``$($Summary.log_failure_count)``",
         "- Pacing parsed: ``$($Summary.pacing_parsed)``",
         "- Pacing pass: ``$($Summary.pacing_pass)``",
+        "- Side-channel baseline archived: ``$($Summary.pacing_side_channel_baseline.Count)``",
+        "- Side-channel harvested: ``$($Summary.pacing_side_channel_harvest.Count)``",
+        "- Side-channel rejected: ``$($Summary.pacing_side_channel_rejected.Count)``",
+        "- Side-channel integrity: ``$($Summary.pacing_side_channel_integrity_passed)``",
         "- Evidence package ready: ``$($Summary.evidence_package_ready)``",
         "- Human review still required: ``$($Summary.review_required)``",
         "- Error: ``$($Summary.error)``",
@@ -239,6 +545,21 @@ $sourceLogs = @()
 $launchPerformed = [string]::IsNullOrWhiteSpace($AnalyzeLog)
 $engineExitCode = $null
 $godotVersion = ""
+$sideChannelPreparation = [pscustomobject][ordered]@{
+    integrity_passed = $true
+    archived_count = 0
+    records = @()
+    rejected = @()
+}
+$sideChannelHarvest = [pscustomobject][ordered]@{
+    integrity_passed = $true
+    freshness_not_before_utc = $null
+    freshness_threshold_utc = $null
+    copied_count = 0
+    rejected_count = 0
+    copied = @()
+    rejected = @()
+}
 
 if ($launchPerformed) {
     if (-not (Test-Path -LiteralPath $Godot)) {
@@ -258,6 +579,11 @@ if ($launchPerformed) {
     }
     Write-Host "Keep the same-run recording active. Evidence will be written to $evidenceDirectory"
 
+    # A prior run must never be usable as evidence for this launch. Archive it
+    # for audit, clear it fail-closed, then bind the later harvest to this instant.
+    $sideChannelPreparation = Prepare-PacingEvidenceSideChannels $evidenceDirectory
+    $launchStartedAtUtc = (Get-Date).ToUniversalTime()
+    $baselineHashes = @($sideChannelPreparation.records | ForEach-Object { [string]$_.sha256 })
     $previousPreference = $ErrorActionPreference
     Push-Location $repositoryRoot
     try {
@@ -270,13 +596,15 @@ if ($launchPerformed) {
     }
 
     # Harvest last-run side-channel even when editor/game processes split.
-    $sideChannels = @(Copy-PacingEvidenceSideChannels $evidenceDirectory)
+    $sideChannelHarvest = Copy-PacingEvidenceSideChannels $evidenceDirectory $launchStartedAtUtc $baselineHashes
+    $sideChannels = @($sideChannelHarvest.copied | ForEach-Object { [string]$_.evidence_path })
     if ($sideChannels.Count -gt 0) {
         $sourceLogs += $sideChannels
         Write-Host "HARVESTED_PACING_SIDE_CHANNEL_COUNT=$($sideChannels.Count)"
     } else {
         Write-Host "HARVESTED_PACING_SIDE_CHANNEL_COUNT=0"
     }
+    Write-Host "REJECTED_PACING_SIDE_CHANNEL_COUNT=$($sideChannelHarvest.rejected_count)"
 } else {
     $analyzeLogPath = $AnalyzeLog
     if (-not [System.IO.Path]::IsPathRooted($analyzeLogPath)) {
@@ -299,11 +627,18 @@ $captureProvided = -not [string]::IsNullOrWhiteSpace($CaptureReference)
 $logFailures = @(Get-UniqueLogFailures $sourceLogs)
 $pacingPass = $null -ne $pacingVerdict -and [bool]$pacingVerdict.passed
 $enginePassed = $launchPerformed -and $engineExitCode -eq 0 -and $logFailures.Count -eq 0
+$pacingSideChannelIntegrityPassed = [bool]$sideChannelPreparation.integrity_passed -and [bool]$sideChannelHarvest.integrity_passed
 $repositoryCommitAfter = [string](git -C $repositoryRoot rev-parse HEAD)
 $repositoryBranchAfter = [string](git -C $repositoryRoot branch --show-current)
 $repositoryDirtyAfter = @(git -C $repositoryRoot status --porcelain).Count -ne 0
 $repositoryStable = -not $repositoryDirtyBefore -and -not $repositoryDirtyAfter -and $repositoryCommitBefore -eq $repositoryCommitAfter -and $repositoryBranchBefore -eq $repositoryBranchAfter
-$evidencePackageReady = $enginePassed -and $pacingPass -and $repositoryStable -and [bool]$ConfirmPhysicalInput -and $captureProvided
+$evidencePackageReady = Test-EvidencePackageReady `
+    $enginePassed `
+    $pacingPass `
+    $pacingSideChannelIntegrityPassed `
+    $repositoryStable `
+    ([bool]$ConfirmPhysicalInput) `
+    $captureProvided
 $endedAt = (Get-Date).ToUniversalTime()
 $summary = [pscustomobject][ordered]@{
     run_id = $runId
@@ -330,6 +665,13 @@ $summary = [pscustomobject][ordered]@{
     pacing_parsed = $null -ne $pacingVerdict
     pacing_pass = $pacingPass
     pacing_verdict = $pacingVerdict
+    pacing_side_channel_baseline = @($sideChannelPreparation.records)
+    pacing_side_channel_preparation_rejected = @($sideChannelPreparation.rejected)
+    pacing_side_channel_harvest = @($sideChannelHarvest.copied)
+    pacing_side_channel_rejected = @($sideChannelHarvest.rejected)
+    pacing_side_channel_integrity_passed = $pacingSideChannelIntegrityPassed
+    pacing_side_channel_freshness_not_before_utc = $sideChannelHarvest.freshness_not_before_utc
+    pacing_side_channel_freshness_threshold_utc = $sideChannelHarvest.freshness_threshold_utc
     evidence_package_ready = $evidencePackageReady
     review_required = $true
     error = $pacingError

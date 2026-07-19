@@ -4,11 +4,39 @@
 
 - The project is source-playable with Godot 4.7.1 standard and targets the Compatibility renderer.
 - A credential-free `export_presets.cfg` is tracked for an unsigned Windows Desktop x86_64 release executable with an embedded PCK. Exported binaries, logs, installed templates, and the Godot editor remain outside Git.
-- `tests/verify-windows-export.ps1` validates the selected preset, exact official Godot 4.7.1 archive/template hashes, fresh staged export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored output. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
+- `tests/verify-windows-export.ps1` validates the selected preset, exact official Godot 4.7.1 archive/template hashes, fresh staged export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored output. Its lock, unique staging, path preflight, rollback, and configured-root checks protect the maintainer-run workflow from ordinary stale/partial state; they are not a hostile same-host guarantee against a concurrent reparse swap after preflight. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
 - Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). It does not ship a player-facing game build, close PDR-07, or prove a physical F5 run.
 - Public-repo hygiene files (`SECURITY.md`, `CONTRIBUTING.md`, Dependabot, packaging CI) document process only; they are not a release certification.
 - An automated Windows export is in scope; signed installers, commercial platform packaging, and platform-specific compliance remain out of scope. The verifier stages the project's current notices, but a distributor must still review all requirements for the exact engine build and destination.
+
+## Current Verification Snapshot — 2026-07-19
+
+The current source-completable evidence is green: the Windows Godot runner exited 0 with
+all twelve checks passing, the focused physical-evidence regression passed, and the
+Windows export/adversarial checks preserved the verified bundle identities. The
+PowerShell and Bash Docker packaging contracts also passed. The Docker daemon was
+unavailable in this environment, so a live image build/run and Docker Hub publication
+are **unverified**, not passed.
+
+| Artifact | Role | SHA-256 |
+|---|---|---|
+| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | active executable | `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| `room407-windows-x86_64` | active verified bundle | `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d` |
+| `room407-windows-x86_64.previous` | rollback bundle | `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701` |
+
+The docs-only cover contract is `1280×640`, SHA-256
+`58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`. See the dated
+[tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
+[tester re-verification](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
+and [cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)
+for command-level evidence.
+
+These checks do not close PDR-07 or parent Phase 5. A human must still perform a fresh
+physical F5 `START SHIFT`-to-credits run, preserve its same-run pacing payload and
+capture, and complete the perception/input matrix. The hostile same-profile
+reparse/TOCTOU race after path preflight remains a documented limitation; the evidence
+runner is not a hostile-filesystem proof.
 
 ## Persistence
 
@@ -37,7 +65,7 @@
 
 Runtime pacing telemetry is implemented, but no dated physical F5 run currently proves the pacing target. Required evidence is a fresh blind keyboard-and-mouse boot-to-credits recording plus its same-run eligible, complete, order-valid `PLAYTHROUGH_PACING: ` payload; compressed automation and checkpoint-start reports are not substitutes.
 
-`tests/run-physical-playthrough.ps1` can preserve same-session logs, harvest the last-run `user://playthrough_pacing_last.txt` side-channel, bind them to one unchanged clean branch/commit, reject mixed, faulty, or out-of-target payloads, and record a tester-supplied capture reference. Default `ProjectRun` attaches `--log-file` to the game process; `EditorF5` only logs the editor host and relies on that side-channel after credits. The runner cannot inspect the recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary are an evidence package for human review, not automatic proof of the physical gate.
+`tests/run-physical-playthrough.ps1` can preserve same-session logs, snapshot/archive/clear a pre-launch `user://playthrough_pacing_last.txt`, require a strictly post-launch changed regular side-channel, copy it through one open stream, verify source identity and copied size/hash, bind the result to one unchanged clean branch/commit, reject reparse/source-swap paths plus mixed, faulty, stale, or out-of-target payloads, and record a tester-supplied capture reference. These checks fail closed for the covered accidental and deterministic race cases but are not proof against a hostile process that already controls the same user profile. Default `ProjectRun` attaches `--log-file` to the game process; `EditorF5` only logs the editor host and relies on that side-channel after credits. The runner cannot inspect the recording, distinguish a real key press from an inaccurate declaration, or judge presentation quality. Its generated checklist and summary are an evidence package for human review, not automatic proof of the physical gate.
 
 The following are targets or implemented features, not manually verified release claims:
 

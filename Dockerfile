@@ -1,11 +1,14 @@
 # syntax=docker/dockerfile:1.7
 # ROOM 407: multi-stage CI/test image with Godot 4.7.1 standard (not .NET).
 # Image: nguyenson1710/horror-game-suite
+# Player-facing builds use the Windows export path; this image is suite-only.
 
 ARG GODOT_VERSION=4.7.1
 ARG GODOT_ZIP=Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
 ARG GODOT_BIN=Godot_v${GODOT_VERSION}-stable_linux.x86_64
 ARG GODOT_URL=https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${GODOT_ZIP}
+# Official GitHub release asset Godot_v4.7.1-stable_linux.x86_64.zip (76056717 bytes).
+ARG GODOT_SHA256=c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba
 
 FROM debian:bookworm-slim AS builder
 
@@ -13,6 +16,7 @@ ARG GODOT_VERSION
 ARG GODOT_ZIP
 ARG GODOT_BIN
 ARG GODOT_URL
+ARG GODOT_SHA256
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends ca-certificates curl unzip \
@@ -20,6 +24,7 @@ RUN apt-get update \
 
 WORKDIR /opt/godot
 RUN curl -fsSL -o /tmp/godot.zip "${GODOT_URL}" \
+	&& echo "${GODOT_SHA256}  /tmp/godot.zip" | sha256sum -c - \
 	&& unzip -q /tmp/godot.zip -d /opt/godot \
 	&& mv "/opt/godot/${GODOT_BIN}" /opt/godot/godot \
 	&& chmod +x /opt/godot/godot \
@@ -29,12 +34,16 @@ RUN curl -fsSL -o /tmp/godot.zip "${GODOT_URL}" \
 FROM debian:bookworm-slim AS runtime
 
 ARG GODOT_VERSION=4.7.1
+ARG GODOT_SHA256=c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba
 
 LABEL org.opencontainers.image.title="horror-game-suite" \
 	org.opencontainers.image.description="Headless Godot 4.7.1 suite image for ROOM 407: THE LAST SHIFT" \
 	org.opencontainers.image.source="https://github.com/JasonTM17/Horror_Game_Funny" \
 	org.opencontainers.image.licenses="MIT" \
-	org.opencontainers.image.version="${GODOT_VERSION}"
+	org.opencontainers.image.version="${GODOT_VERSION}" \
+	org.opencontainers.image.vendor="JasonTM17" \
+	org.opencontainers.image.base.name="debian:bookworm-slim" \
+	org.opencontainers.image.ref.name="nguyenson1710/horror-game-suite"
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \

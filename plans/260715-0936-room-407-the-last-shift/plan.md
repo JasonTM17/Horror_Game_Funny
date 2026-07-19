@@ -198,3 +198,12 @@ Implementation is sequential. Each coherent slice ends with disk check, headless
 - Reconciled stale references: 1 placeholder report path replaced with the exact plan-scoped path.
 - Unresolved contradictions: 0.
 - Recommendation: proceed with `ck:cook` sequential implementation.
+
+## Current authority handoff — 2026-07-19
+
+The newer [final horror release candidate plan](../260718-1319-final-horror-release-candidate/plan.md)
+is the authority for release-candidate status. The
+[repository evidence closure child plan](../260719-0746-repository-evidence-closure/plan.md)
+contains the current source-completable audit, tester, review, and operator-handoff
+reports. This historical plan remains an implementation record: its unchecked manual
+route/perception items are intentionally not backfilled from headless or export smoke.

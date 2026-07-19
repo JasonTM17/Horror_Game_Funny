@@ -4,6 +4,10 @@
 
 The delivery roadmap preserves one continuous gameplay scene. Automated packaging can finish independently while the user-controlled physical review remains open.
 
+The parent release-candidate plan calls the same human-only gate **Phase 5** (PDR-07);
+the older roadmap numbering below calls it Phase 4. They are one open gate, not two
+separate delivery requirements.
+
 | Phase | Scope | Evidence | Status |
 |---|---|---|---|
 | 1 | Terminal ending and capture-recovery race | `30199b7`, `5aea891`, focused progression | Complete |
@@ -24,6 +28,31 @@ The delivery roadmap preserves one continuous gameplay scene. Automated packagin
 
 The current source-level route/timing audit is recorded in [`phase-04-pacing-audit-20260716.md`](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-04-pacing-audit-20260716.md). It is planning evidence only; it does not replace the physical capture gate.
 
+## Current verification snapshot — 2026-07-19
+
+The current repository-evidence-closure run is green for the available, source-completable
+checks. The Windows host runner exited 0 with all twelve canonical checks passing; the
+focused physical-evidence regression and Windows adversarial harness also passed. Docker
+packaging contracts passed in both PowerShell and Bash, but the local Docker daemon was
+unavailable, so no live image build/run or registry publication is claimed.
+
+The current Windows export identities are intentionally role-labeled:
+
+| Artifact | Role | SHA-256 |
+|---|---|---|
+| `ROOM_407_THE_LAST_SHIFT.exe` | active executable (`117920024` bytes) | `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| `room407-windows-x86_64` | active verified bundle | `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d` |
+| `room407-windows-x86_64.previous` | rollback bundle | `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701` |
+
+The documentation-only cover is `1280×640` with SHA-256
+`58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
+The tester and cycle-2 reviewer reports are the current evidence index:
+[`tester-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
+[`tester-review-fix-cycle-1-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
+and [`code-review-cycle-2-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md).
+PDR-07/parent Phase 5 remains **open** until a human records a fresh physical F5 run,
+same-run pacing payload, capture, and perception review.
+
 ## Completed Scare Lifecycle Slice
 
 The focused [horror scare and spatial-audio plan](../plans/260717-2152-horror-scare-and-spatial-audio-polish/plan.md) is complete. The fixed floor-arrival, photograph, cassette turn-away, and rabbit buildup beats now lead into a separate Room 407 climax with authored anticipation, reveal, and aftermath; low/moderate procedural spatial layers; local light response where available; and non-colliding temporary actors. Shared sequence/factory ownership handles unique cue IDs, pause-safe waits, exact light restoration, actor/audio teardown, cassette cleanup at `memory_cassette_recalled`, and scene-exit cleanup without replacing voice-over.
@@ -33,7 +62,9 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 ## Completed packaging and public-repo hygiene (source-level)
 
 - Docker multi-stage suite image and compose service; POSIX twelve-check runner; packaging verify scripts; `docker-suite` CI (including Linux `physical-route` frame-budget fix).
+- Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; Hub image namespace is `nguyenson1710/horror-game-suite` with `latest` + git-SHA tags on successful main publish.
 - `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
+- Repository cover (`docs/media/room-407-cover.png`), staged stills, and visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
 - These items improve professional maintainability. They **do not** close Phase 4 or PDR-07.
 
 ## Completed Windows Export Track
@@ -42,7 +73,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 - The repository tracks a credential-free `Windows Desktop x86_64` preset with embedded PCK, unsigned release output, project icon/metadata, and ignored build paths.
 - `tests/verify-windows-export.ps1` verifies the official Godot 4.7.1 archive/member/installed-template hashes, selected-preset security contracts, fresh staged export logs, PE x86_64 architecture, and direct headless startup; it publishes under an exclusive lock and stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored build.
 - The official 4.7.1 standard export-template archive used for this work has SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` and is installed outside the repository. Templates and generated executables are not committed.
-- The current verified 2026-07-18 artifact is `117914600` bytes with SHA-256 `e783cfa076d1bf4c9bbf7da7301b233fcded9235fa52ba6bbe595018688ff30e`; later handoffs must record their own verifier output.
+- A historical 2026-07-18 artifact was `117914600` bytes with SHA-256 `e783cfa076d1bf4c9bbf7da7301b233fcded9235fa52ba6bbe595018688ff30e`. That identity is **superseded** for handoff by the role-labeled 2026-07-19 active executable `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` (`117920024` bytes) in the snapshot table above; later handoffs must record their own verifier output.
 - This completes the automated export path only. A rendered normal-window launch, physical menu/input check, audible-output review, signing, and installer/store packaging remain outside this evidence.
 
 ## Guardrails
@@ -65,3 +96,5 @@ The parent goal can close only after Phase 4 has real same-run physical evidence
 - [Testing matrix](./testing.md)
 - [Staged visual-capture tour](./testing.md#reproducible-visual-capture-tour)
 - [Phase 4 plan](../plans/260716-2113-chase-reliability-and-climax-polish/phase-04-qa-review-and-delivery.md)
+- [Current tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md)
+- [Cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)

@@ -107,3 +107,13 @@ policy. Phase 6 (Windows export/docs/completion audit) is now **Completed**. Det
 [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md),
 [windows-export-verified-2026-07-18.md](./reports/windows-export-verified-2026-07-18.md),
 [final-automated-audit-2026-07-18.md](./reports/final-automated-audit-2026-07-18.md).
+
+## Repository evidence closure — 2026-07-19
+
+The source-completable evidence slice is tracked by the
+[repository evidence closure child plan](../260719-0746-repository-evidence-closure/plan.md).
+Its fresh tester and cycle-2 review reports supersede older dirty-tree snapshots for
+current automated claims. The child plan closes its repository-side work after delivery,
+but it cannot close this plan's Phase 5/PDR-07 human gate. Docker packaging contracts are
+green; the live Docker daemon and registry publication remain unverified in the current
+environment and are not represented as a pass.
