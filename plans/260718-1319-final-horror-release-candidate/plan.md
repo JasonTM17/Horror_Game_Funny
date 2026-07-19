@@ -158,3 +158,13 @@ and fullscreen behavior. The optional runner and review matrix remain available 
 future confidence-building, but they no longer block project closure. The
 [final owner-waiver closure review](./reports/260720-owner-waiver-closure-review.md)
 records the three-stage verdict and automated evidence boundary.
+
+## Post-closure Docker Hub publication evidence — 2026-07-20
+
+The public CI/test-suite image publication was verified after project closure. Both
+`latest` and SHA-named tag `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` resolve to
+the recorded shared digest, and a local compose run passed the canonical 12/12 suite.
+This follow-up does not revise the owner-waived human QA boundary or make player-release,
+Git-tag, GitHub-release, signing, or installer claims. It also does not pre-claim a
+future SHA-named CI publication. See the
+[Docker Hub publication evidence](./reports/260720-docker-hub-publication-evidence.md).

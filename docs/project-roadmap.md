@@ -62,6 +62,25 @@ identity is the `117920376`-byte / `74ef9d12…` artifact above. This closes sou
 hardening only; it does not substitute for human evidence. See the
 [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md).
 
+## Public test-image publication — 2026-07-20
+
+The CI/test image is publicly available as
+[`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite).
+Docker Hub's public API returned both `latest` and SHA-named tag
+`001068f6defa1a7d5bd2e68c43b26fcfe732cf63`; both map to digest
+`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
+Their reported UTC update times are `2026-07-19T22:27:08.669248Z` and
+`2026-07-19T22:27:17.684309Z`, respectively. The GitHub Actions secret names
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured; their values are not recorded.
+
+A local `docker compose run --rm suite` verification exited 0, printed all twelve named
+`OK` lines, and ended with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The public API responses
+verify registry availability and tag-to-digest mappings; the local run separately
+verifies the twelve-check suite contract. Neither result claims that a future SHA-named
+image has already been published or establishes a player build, Git tag, GitHub release,
+signed binary, or installer. See the
+[Docker Hub publication evidence](../plans/260718-1319-final-horror-release-candidate/reports/260720-docker-hub-publication-evidence.md).
+
 ## Completed Scare Lifecycle Slice
 
 The focused [horror scare and spatial-audio plan](../plans/260717-2152-horror-scare-and-spatial-audio-polish/plan.md) is complete. The fixed floor-arrival, photograph, cassette turn-away, and rabbit buildup beats now lead into a separate Room 407 climax with authored anticipation, reveal, and aftermath; low/moderate procedural spatial layers; local light response where available; and non-colliding temporary actors. Shared sequence/factory ownership handles unique cue IDs, pause-safe waits, exact light restoration, actor/audio teardown, cassette cleanup at `memory_cassette_recalled`, and scene-exit cleanup without replacing voice-over.
@@ -71,7 +90,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 ## Completed packaging and public-repo hygiene (source-level)
 
 - Docker multi-stage suite image and compose service; POSIX twelve-check runner; packaging verify scripts; `docker-suite` CI (including Linux `physical-route` frame-budget fix).
-- Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; Hub image namespace is `nguyenson1710/horror-game-suite` with `latest` + git-SHA tags. A passing `main` push auto-publishes when both secrets are configured; there is no separate workflow approval, and no digest means publication is unverified.
+- Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; the public Hub image `nguyenson1710/horror-game-suite` has verified `latest` and SHA-named tags at the digest recorded above. A passing `main` push auto-publishes when both configured secrets are available; each future tag/digest still requires its own verification.
 - `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
 - Repository cover (`docs/media/room-407-cover.png`), staged stills, and visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
 - These items improve professional maintainability. Phase 4/PDR-07 closed only through the owner's waiver, not through packaging or media evidence.
@@ -96,7 +115,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 
 ## Project Exit
 
-The owner approved project closure on 2026-07-19 after the automated/source gates passed and explicitly waived the remaining Phase 4/PDR-07 human observations. No human playthrough or pacing/chase/audio/visual/input/Settings/fullscreen perceptual pass is claimed. The physical runner, matrix, and handoff remain optional recommended future QA. Project closure is not a Git tag, GitHub release, Docker Hub publication, signed binary, or installer claim.
+The owner approved project closure on 2026-07-19 after the automated/source gates passed and explicitly waived the remaining Phase 4/PDR-07 human observations. No human playthrough or pacing/chase/audio/visual/input/Settings/fullscreen perceptual pass is claimed. The physical runner, matrix, and handoff remain optional recommended future QA. Project closure is not a Git tag, GitHub release, player release, signed binary, or installer claim. The separately verified 2026-07-20 Docker Hub publication is the CI/test-suite image only.
 
 ## References
 
@@ -106,4 +125,5 @@ The owner approved project closure on 2026-07-19 after the automated/source gate
 - [Staged visual-capture tour](./testing.md#reproducible-visual-capture-tour)
 - [Phase 4 plan](../plans/260716-2113-chase-reliability-and-climax-polish/phase-04-qa-review-and-delivery.md)
 - [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+- [Docker Hub publication evidence](../plans/260718-1319-final-horror-release-candidate/reports/260720-docker-hub-publication-evidence.md)
 - [Optional physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)

@@ -6,21 +6,38 @@
 - A credential-free `export_presets.cfg` is tracked for an unsigned Windows Desktop x86_64 release executable with an embedded PCK. Its `0.9.0.0` file/product version is unreleased release-candidate metadata, not a Git tag, GitHub release, or shipped-version claim. Exported binaries, logs, installed templates, and the Godot editor remain outside Git.
 - `tests/verify-windows-export.ps1` validates the selected preset, exact official Godot 4.7.1 archive/template hashes, fresh staged export logs, PE x86_64 architecture, and a direct headless startup smoke; it also copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored output. Its lock, unique staging, path preflight, rollback, and configured-root checks protect the maintainer-run workflow from ordinary stale/partial state; they are not a hostile same-host guarantee against a concurrent reparse swap after preflight. This does not prove a rendered menu, physical input, audible output, display behavior, signing, or installer/store packaging.
 - F5 follows the configured boot-to-gameplay flow. F6 runs the editor's current scene and can bypass the boot menu.
-- Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). A passing `main` push auto-publishes only when both Hub secrets are configured; the workflow has no separate publish approval, and no registry digest means publication is unverified. The image does not ship a player-facing game build or provide human evidence for PDR-07.
+- Docker packaging (`Dockerfile`, `docker-compose.yml`, `tests/run-headless-tests.sh`) is a **CI/test surface** that fetches Godot 4.7.1 into an image (`nguyenson1710/horror-game-suite`). A passing `main` push auto-publishes only when secrets named `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured; both names were configured as of 2026-07-20, but their values must remain undisclosed. The workflow has no separate publish approval. The image does not ship a player-facing game build or provide human evidence for PDR-07.
 - Public-repo hygiene files (`SECURITY.md`, `CONTRIBUTING.md`, Dependabot, packaging CI) document process only; they are not a release certification.
 - An automated Windows export is in scope; signed installers, commercial platform packaging, and platform-specific compliance remain out of scope. The verifier stages the project's current notices, but a distributor must still review all requirements for the exact engine build and destination.
 
+## Registry Artifact Identity — 2026-07-20
+
+The public Docker Hub API verified `latest` and
+`001068f6defa1a7d5bd2e68c43b26fcfe732cf63` at digest
+`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
+Their recorded UTC update times were `2026-07-19T22:27:08.669248Z` and
+`2026-07-19T22:27:17.684309Z`, respectively. `latest` remains mutable; only the digest
+is an immutable artifact identity.
+
+A local Docker build/run on 2026-07-20 emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`. Neither
+the registry identity nor that local headless result proves a future CI run, human
+physical/perceptual QA, a player-facing release, a Git tag, a GitHub release, a signed
+binary, or an installer.
+
 ## Current Verification Snapshot — 2026-07-19
 
-The current source-completable evidence is green: the Windows Godot runner exited 0 with
+This section is the historical 2026-07-19 source-closure snapshot; its publication
+statement predates the registry artifact verified above. At that time, the
+source-completable evidence was green: the Windows Godot runner exited 0 with
 all twelve checks passing, the focused physical-evidence regression passed, and the
 Windows export/adversarial checks preserved the verified bundle identities. PowerShell
 and Bash packaging contracts passed; Docker compose config, local image build, and the
 Linux-container suite also passed 12/12. Docker Hub publication was not attempted and is
-**not** implied by the local image result.
+**not** implied by that local image result.
 
 | Artifact | Role | Stable recorded identity |
 |---|---|---|
+| Docker Hub OCI manifest (`latest` and `001068f6defa1a7d5bd2e68c43b26fcfe732cf63`, verified 2026-07-20) | published CI/headless suite | Digest `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
 | `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | reproducible active payload | SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 | Official export-template archive | local export input | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | local export input | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |

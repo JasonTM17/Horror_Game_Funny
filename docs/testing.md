@@ -53,11 +53,26 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 
 On Linux: `bash tests/verify-docker-packaging.sh`.
 
-After the suite passes on a `main` push, configured `DOCKERHUB_USERNAME=nguyenson1710`
-and `DOCKERHUB_TOKEN` secrets cause the workflow to publish `latest` and the full
-`GITHUB_SHA` automatically. There is no separate publish-approval step. Missing secrets
-skip publication without failing the build. The name/tags are a contract, not proof of
-registry presence; only a successful publish run and corresponding digest verify it.
+After the suite passes on a `main` push, configured secrets named
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` cause the workflow to publish `latest` and the
+full `GITHUB_SHA` automatically. Both secret names were configured as of 2026-07-20;
+their values must not appear in documentation or logs. There is no separate
+publish-approval step. Missing secrets skip publication without failing the build.
+
+## Registry Artifact Identity — 2026-07-20
+
+The public registry API verified both published tags. `latest` is mutable; the digest is
+the immutable identity to use for a reproducible pull or rollback.
+
+| Tag | Registry update time (UTC) | Digest |
+|---|---|---|
+| `latest` | `2026-07-19T22:27:08.669248Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+| `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` | `2026-07-19T22:27:17.684309Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+
+A local Docker build/run on 2026-07-20 emitted
+`ALL_TWELVE_HEADLESS_CHECKS_OK`. This verifies the local headless suite contract only;
+it does not claim that the next GitHub Actions run passed, that a human playthrough
+occurred, or that the image is a player-facing build.
 
 The host PowerShell runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. The shell runner isolates under `.tmp/godot-user-*` with XDG paths. Both combine engine log with captured console output and tear the profile down after success or failure so they do not overwrite the normal `user://room407.cfg`.
 
@@ -161,7 +176,11 @@ The Windows adversarial harness requires the normal Godot/template inputs plus v
 
 ## Current Verification Snapshot — 2026-07-19
 
-The latest repository-evidence-closure run recorded the following available gates:
+This section preserves the repository-evidence-closure state as recorded on 2026-07-19;
+its “publication was not performed” boundary is historical and predates the registry
+artifact verified above.
+
+The repository-evidence-closure run recorded the following available gates:
 
 | Gate | Result | Boundary |
 |---|---|---|
@@ -178,6 +197,7 @@ For handoff, retain only stable recorded identities in evergreen docs:
 
 | Artifact | Stable recorded identity |
 |---|---|
+| Docker Hub OCI manifest (`latest` and `001068f6defa1a7d5bd2e68c43b26fcfe732cf63`, verified 2026-07-20) | Digest `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
 | `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 | Official export-template archive | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |

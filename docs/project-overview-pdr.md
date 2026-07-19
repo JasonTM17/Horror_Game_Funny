@@ -31,7 +31,7 @@ The player should understand each immediate goal through an objective, a readabl
 - World: one gameplay scene; no level-loading split for the main route.
 - Audio: project-authored procedural SFX plus Piper-generated English OGG voice; voice streams use an internal pause-aware Voice bus, mirror the SFX user level, and sidechain-duck SFX.
 - State: `GameState` is process-local; restored inventory, flags and completed-event collections are copied so live state cannot mutate a saved checkpoint.
-- Delivery: Windows headless test runner, Linux/Docker twelve-check suite image, packaging/docs CI, and a credential-free unsigned Windows x86_64 release preset whose ignored output is verified for PE architecture and headless startup. Its `0.9.0.0` version fields are unreleased release-candidate metadata, not a tag or release claim. Export templates and binaries are not committed.
+- Delivery: Windows headless test runner, public Linux/Docker twelve-check suite image, packaging/docs CI, and a credential-free unsigned Windows x86_64 release preset whose ignored output is verified for PE architecture and headless startup. The public container is test infrastructure, not the player game. The export preset's `0.9.0.0` version fields are unreleased release-candidate metadata, not a tag or release claim. Export templates and binaries are not committed.
 
 ## Acceptance Criteria
 
@@ -67,13 +67,30 @@ Current command-level evidence is indexed by the
 and [final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md).
 This is automated/repository evidence only.
 
+## Public Docker Hub Verification — 2026-07-20
+
+The CI/test image is publicly available at
+[`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite).
+Public API responses verified that `latest` and
+`001068f6defa1a7d5bd2e68c43b26fcfe732cf63` both resolve to
+`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`, with UTC
+update times `2026-07-19T22:27:08.669248Z` and `2026-07-19T22:27:17.684309Z`.
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured GitHub secret names; no secret
+value is documented. Local `docker compose run --rm suite` also exited 0 with all twelve
+named `OK` lines and `ALL_TWELVE_HEADLESS_CHECKS_OK`.
+
+This is verified publication of the test-suite image at those two tags, not a claim
+about a future SHA-named CI publication, playable release, Git tag, GitHub release,
+signed executable, or installer. Full command and response-category evidence is in the
+[Docker Hub publication report](../plans/260718-1319-final-horror-release-candidate/reports/260720-docker-hub-publication-evidence.md).
+
 ## Current Release Decision
 
-Recorded source implementation and automated contracts are green for the available gates. Both the current Windows host suite and local Linux-container suite passed 12/12. The Windows x86_64 export path has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. These verify source lifecycle and packaging/startup contracts, not registry publication, audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
+Recorded source implementation and automated contracts are green for the available gates. Both the current Windows host suite and local Linux-container suite passed 12/12. The Windows x86_64 export path has a tracked credential-free preset, redistribution notices, and an automated export/headless-startup verifier. Docker Hub publication is verified separately for the CI/test-suite image and recorded tags. These verify source lifecycle, test-container publication, and packaging/startup contracts, not a playable release, audible mix, rendered scare timing/quality, normal-window behavior, or physical play.
 
 PDR-08's documentation-media requirement is complete through a reviewed staged Godot capture and curated PNG/GIF deliverables. **PDR-07 is owner-waived / accepted risk:** no reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), same-run telemetry, player-driven chase-fairness review, live audio/visual review, physical input review, or Settings/fullscreen check is recorded. The staged tour is not a gameplay recording or substitute evidence.
 
-PDR-10's automated export requirement is complete. Project closure rests on the owner's explicit waiver of the remaining human observations, not on manufactured physical or perceptual evidence. The physical runner and review matrix remain optional recommended future QA. This closure does not create a Git tag, GitHub release, signed binary, installer, store package, or Docker Hub publication claim.
+PDR-10's automated export requirement is complete. Project closure rests on the owner's explicit waiver of the remaining human observations, not on manufactured physical or perceptual evidence. The physical runner and review matrix remain optional recommended future QA. This closure does not create a Git tag, GitHub release, signed binary, installer, or store package. The later Docker Hub publication verifies only the CI/test-suite image at the recorded tags and digest.
 
 ## References
 
@@ -90,5 +107,6 @@ PDR-10's automated export requirement is complete. Project closure rests on the 
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)
 - [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
+- [Docker Hub publication evidence](../plans/260718-1319-final-horror-release-candidate/reports/260720-docker-hub-publication-evidence.md)
 - [Optional physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 - [Phase 3 evidence](../plans/260716-2113-chase-reliability-and-climax-polish/reports/phase-03-voiced-interactive-epilogue-20260716.md)

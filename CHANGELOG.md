@@ -6,6 +6,13 @@ All notable changes to this project are documented here.
 
 ### Changed
 
+#### Public Docker Hub artifact — 2026-07-20
+
+- The public Docker Hub API verified [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite) tags `latest` and `001068f6defa1a7d5bd2e68c43b26fcfe732cf63`. Both resolved to digest `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`; their recorded UTC update times were `2026-07-19T22:27:08.669248Z` and `2026-07-19T22:27:17.684309Z`, respectively.
+- A local Docker build/run passed the canonical twelve-check suite and emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`. This local result does not claim that a subsequent GitHub Actions run passed.
+- GitHub repository secrets named `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured; their values remain undisclosed. The 2026-07-19 skipped-publish record below remains accurate for that historical workflow run.
+- `latest` is mutable. The digest is the immutable pull/pin/rollback identity. This publication is a CI/headless test artifact only and does not change the owner-waived human-QA boundary or establish a player-facing build, Git tag, GitHub release, signed binary, or installer.
+
 #### Owner-approved project closure — 2026-07-19
 
 - The owner closed the project and disposed PDR-07/parent Phase 5 as **owner-waived / accepted risk**; the [final closure review](plans/260718-1319-final-horror-release-candidate/reports/260720-owner-waiver-closure-review.md) records the three-stage verdict.
@@ -49,7 +56,7 @@ All notable changes to this project are documented here.
 
 - The hardening slice landed on `main` as `ad514cba881270d43fa532d324224618dd48d364` followed by report-containing closure commit `c28beeed7a4bafd871e09225152f329beac09e9a`; real-index media/link validation, remote parity, `ci`, and `docker-suite` passed. The Hub step skipped because Actions secrets are absent, so no registry tag or digest is claimed.
 - Fresh Windows host verification passed all 12 canonical Godot checks (exit 0); the focused physical-evidence regression and Windows export adversarial harness also passed.
-- PowerShell/Bash packaging contracts and a local Docker compose image build plus 12/12 container run passed. Docker Hub publication was not performed; the absence of a digest remains the authoritative unverified boundary.
+- PowerShell/Bash packaging contracts and a local Docker compose image build plus 12/12 container run passed. Docker Hub publication was not performed in that 2026-07-19 snapshot; the absence of a digest was its authoritative unverified boundary at the time.
 - A fresh Windows export reproduced the executable at `117920376` bytes with SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190`.
 - V1 bundle IDs are intentionally per-run because their manifests bind a fresh `RUN_ID`; current active/rollback IDs live in the ignored `VERIFY_COMPLETE.txt` files and prior IDs are dated evidence, not durable release constants.
 - The documentation-only cover contract is `1280×640`, SHA-256 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.

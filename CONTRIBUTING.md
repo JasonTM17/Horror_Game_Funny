@@ -49,9 +49,10 @@ rollback bundles, also run:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\windows-export-adversarial.ps1
 ```
 
-These focused harnesses do not add a thirteenth Godot check or replace the
-manual physical playthrough gate. See [Testing](docs/testing.md) for their
-prerequisites and evidence boundaries.
+These focused harnesses do not add a thirteenth Godot check or create human
+physical-playthrough evidence. That QA was owner-waived for project closure and remains
+optional recommended future work. See [Testing](docs/testing.md) for prerequisites and
+evidence boundaries.
 
 ### Docker suite
 
@@ -61,10 +62,19 @@ docker compose run --rm suite
 ```
 
 Public image: [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite).
+As verified through the public registry API on 2026-07-20, `latest` and
+`001068f6defa1a7d5bd2e68c43b26fcfe732cf63` resolve to
+`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
+Treat `latest` as mutable and use the digest when reproducibility matters. This image is
+for CI/headless testing only, not gameplay distribution.
+
 CI (`.github/workflows/docker-suite.yml`) builds and runs the suite on every PR/push to
-`main`. Hub publish happens only on main when repository secrets
-`DOCKERHUB_USERNAME` (`nguyenson1710`) and `DOCKERHUB_TOKEN` are configured. The
-Dockerfile pins the Godot 4.7.1 Linux download SHA-256.
+`main`. Hub publish happens only on main when repository secrets named
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured; both names were configured as
+of 2026-07-20. Never place their values in source, documentation, logs, or pull requests.
+The Dockerfile pins the Godot 4.7.1 Linux download SHA-256. A local Docker build/run on
+2026-07-20 emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`; this does not claim that the next CI
+run passed.
 
 The suite must stay at **exactly twelve** Godot headless checks. Do not add a
 thirteenth runner entry without an explicit project decision.

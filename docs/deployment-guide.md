@@ -120,14 +120,37 @@ Both workflows run on pull requests and pushes to `main`:
 - `.github/workflows/ci.yml` checks packaging, docs/media/links, and secret patterns.
 - `.github/workflows/docker-suite.yml` builds the image and runs all twelve checks.
 
-After the Docker suite passes on a `main` push, repository secrets
-`DOCKERHUB_USERNAME=nguyenson1710` and `DOCKERHUB_TOKEN` cause automatic publication of
-`nguyenson1710/horror-game-suite:latest` and the full `GITHUB_SHA` tag. No separate
-workflow approval exists. Missing secrets skip publication without failing the suite.
+After the Docker suite passes on a `main` push, repository secrets named
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` cause automatic publication of
+`nguyenson1710/horror-game-suite:latest` and the full `GITHUB_SHA` tag. Both secret names
+were configured as of 2026-07-20; never record their values. No separate workflow
+approval exists. Missing secrets skip publication without failing the suite.
 
-The repository name and tags are only a publish contract. Treat Hub publication as
-unverified until the workflow succeeds and a registry digest is recorded. The image is
-for CI/headless QA and is never a player-facing Windows build.
+The public registry API was verified on 2026-07-20:
+
+| Tag | Registry update time (UTC) | Digest |
+|---|---|---|
+| `latest` | `2026-07-19T22:27:08.669248Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+| `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` | `2026-07-19T22:27:17.684309Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+
+Pull, inspect, and run the published headless suite:
+
+```powershell
+docker pull nguyenson1710/horror-game-suite:latest
+docker image inspect --format '{{json .RepoDigests}}' nguyenson1710/horror-game-suite:latest
+docker run --rm nguyenson1710/horror-game-suite:latest
+```
+
+`latest` is mutable. Pin the immutable digest for repeatable use:
+
+```powershell
+docker pull nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
+docker run --rm nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
+```
+
+A local Docker build/run on 2026-07-20 emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`. That is
+local automated evidence, not a claim that the next GitHub Actions run passed. The
+published image is for CI/headless QA and is never a player-facing Windows build.
 
 ## Windows x86_64 Export
 
@@ -206,9 +229,14 @@ already disposed as owner-waived; the waiver does not make these observations pa
 The export verifier publishes transactionally and retains a verified `.previous` bundle.
 If activation fails, it attempts automatic restoration. Do not hand-edit a manifest or
 promote a partial staging directory; preserve logs, investigate, and rerun the verifier.
-For a verified Hub publication, roll back by selecting a previously reviewed full-SHA
-tag/digest rather than mutable `latest`. Without a recorded digest, registry rollback is
-unverified.
+For a registry rollback, select a previously reviewed immutable digest rather than
+mutable `latest`. The 2026-07-20 verified artifact can be selected directly:
+
+```powershell
+docker pull nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
+docker image inspect --format '{{json .RepoDigests}}' nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
+docker run --rm nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
+```
 
 | Symptom | Action |
 |---|---|
@@ -216,7 +244,7 @@ unverified.
 | Export template/hash mismatch | Reinstall the official 4.7.1 standard templates and compare the archive/template hashes above. |
 | Docs verifier reports `not indexed` | Stage the new local target and rerun; existence alone is insufficient. |
 | ObjectDB warning appears in a canonical log | Check exit, markers, and error/assert scans; treat a separate zero-line audit as extra evidence only. |
-| Hub has no digest | Confirm the main-push workflow ran and both repository secrets were configured; do not claim publication. |
+| A future tag has no recorded digest | Confirm its main-push workflow ran and both repository secret names were configured; do not claim that future tag was published. |
 | Physical runner times out or exceeds output | Investigate the process/log flood first; any override must stay inside the documented validation ranges. |
 | Physical runner exits 2 | Read `summary.md`; incomplete or review-required evidence must not be described as a completed human pass. |
 

@@ -6,7 +6,7 @@
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** project closure was approved by the owner on 2026-07-19. Fresh local closure QA passed the real-index docs/media gate, Windows-host **12/12** suite, focused evidence/export adversarial regressions, Docker packaging contracts, Compose configuration, and secret scans. The current source-hardening evidence separately records a fresh Windows x86_64 export and exported-process startup smoke. The linked [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242) runs are historical green evidence for delivered commit `c28beeed`, not validation of the later closure commit; the current pushed tip must earn its own workflow result. [PDR-07](docs/project-overview-pdr.md) and the human Phase 5 gate are closed as **owner-waived / accepted risk**. No human physical playthrough occurred, and no pacing, chase, audio, visual, input, Settings, fullscreen, or other perceptual pass is claimed. Docker Hub publish was skipped in the historical run because repository secrets were absent; no current registry digest, release, tag, signed binary, or installer is claimed.
+**Project status:** project closure was approved by the owner on 2026-07-19. Fresh local closure QA passed the real-index docs/media gate, Windows-host **12/12** suite, focused evidence/export adversarial regressions, Docker packaging contracts, Compose configuration, and secret scans. The current source-hardening evidence separately records a fresh Windows x86_64 export and exported-process startup smoke. The linked [`ci`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458245) and [`docker-suite`](https://github.com/JasonTM17/Horror_Game_Funny/actions/runs/29688458242) runs are historical green evidence for delivered commit `c28beeed`, not validation of a later pushed tip; no next CI run is claimed here. Docker Hub publication was skipped in that 2026-07-19 run because repository secrets were absent. On 2026-07-20, the public registry API verified that `latest` and `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` exist and resolve to immutable digest `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`; the GitHub secret names `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured, but their values are not documented. [PDR-07](docs/project-overview-pdr.md) and the human Phase 5 gate remain closed as **owner-waived / accepted risk**. The public image is CI/headless-only: no human physical playthrough, pacing, chase, audio, visual, input, Settings, fullscreen, player-facing build, GitHub release, signed binary, or installer is claimed.
 
 | Doc | Purpose |
 |---|---|
@@ -165,18 +165,20 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 | Item | Value |
 |---|---|
 | Registry target | [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite) |
-| Tags | `latest` + full `GITHUB_SHA` on successful main publish |
+| Verified tags (2026-07-20) | `latest`; `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` |
+| Immutable digest | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+| Registry timestamps (UTC) | `latest`: `2026-07-19T22:27:08.669248Z`; SHA tag: `2026-07-19T22:27:17.684309Z` |
 | Godot zip SHA-256 | `c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba` |
 | Runtime user | `65532:65532` |
 | CI | `.github/workflows/docker-suite.yml` (build + suite on PR/main; Hub on main only) |
 
-After the suite passes on a `main` push, configured repository secrets
-`DOCKERHUB_USERNAME=nguyenson1710` and `DOCKERHUB_TOKEN` cause automatic publication;
-there is no separate workflow approval. Missing secrets skip publish without failing CI.
+After the suite passes on a `main` push, configured repository secrets named
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` cause automatic publication; there is no
+separate workflow approval. Secret values must never be committed or documented.
 
 This image is a **headless suite**, not a player-facing game build.
-The repository records the target name and publish contract; only a successful publish
-run and its registry digest verify that either tag exists on Hub.
+The dated registry lookup above verifies the published artifact, not a future CI run.
+`latest` is mutable; use the digest for an immutable pin or rollback target.
 The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
 The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import, canonical `project.godot` serialization, and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam, the 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; the chase entity's parented SFX cue at start/recovery plus teardown; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
@@ -185,7 +187,7 @@ The existing `physical-route` check also covers the optional drawer and painted 
 
 The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a human physical production-window run, 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
-Recent automated contract evidence (not physical proof): a 2026-07-18 Windows host run passed all 12 checks in about 77.5 seconds with clean logs, and a Linux container run passed the same 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The 2026-07-19 evidence-closure re-verify again recorded host 12/12, focused physical-evidence and export-adversarial harnesses, packaging contracts, and secret scan green. Physical and perceptual checks were not performed; the owner accepted that risk for project closure.
+Recent automated contract evidence (not physical proof): a 2026-07-18 Windows host run passed all 12 checks in about 77.5 seconds with clean logs, and a Linux container run passed the same 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The 2026-07-19 evidence-closure re-verify again recorded host 12/12, focused physical-evidence and export-adversarial harnesses, packaging contracts, and secret scan green. A local Docker build/run on 2026-07-20 also emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`; this local result does not claim that the next GitHub Actions run passed. Physical and perceptual checks were not performed; the owner accepted that risk for project closure.
 
 ## Capture a Pacing Payload
 
