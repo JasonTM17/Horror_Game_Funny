@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Harden evidence and export contracts
-status: in-progress
+status: completed
 effort: medium
 ---
 
@@ -52,8 +52,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests/windows-export-adversa
 
 ## Result
 
-Completed against the Phase 1 blockers. Fresh focused markers, the 12/12 host suite,
-packaging/export evidence, and cycle-2 review are recorded in the child reports.
+Completed after all accepted technical findings were fixed and rerun:
+
+- physical launch and Godot `--version` probe now use bounded Job/process/output controls;
+- C# output writes no longer hold the accounting lock; `Dispose`/pump teardown is bounded;
+  `CreatePipe` failure cleanup starts with known-zero handles;
+- verified side channels reject zero or duplicate canonical payloads; strict schema/types,
+  recomputed verdicts, quarantine, containment, snapshot/hash, and 1 MiB caps fail closed;
+- fake timeout helpers cannot return exit 0; export adversarial fixtures self-seed when
+  canonical active/previous bundles are absent, preserve accepted identities, then clean;
+- PowerShell and Bash packaging checks enforce the same exact twelve names, order, and
+  case.
+
+The [final tester report](./reports/tester-final-2026-07-19.md) records all five physical
+regression markers, both packaging markers, Windows PE/process smoke, and the fresh-
+canonical-absent export delta. The
+[final reviewer report](./reports/code-review-final-2026-07-19.md) records 0 unresolved
+Critical/High/Medium findings.
 
 ## Non-goals and risks
 

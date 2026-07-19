@@ -1,4 +1,10 @@
-# Goal A-to-Z final verification — 2026-07-19
+# Goal A-to-Z verification snapshot — 2026-07-19
+
+> **Superseded follow-up:** this report records the earlier `b5df3d0`/`4ec7edd`
+> source-completable snapshot. A later adversarial pass reopened the child plan for
+> stricter pacing/quarantine, exact-check, media-link, and documentation verification.
+> Do not use the historical “goal complete” wording below as current release proof.
+> Use the [final source-closure report](./pm-260719-1501-source-closure.md) instead.
 
 ## Goal (user)
 
@@ -6,7 +12,7 @@ Use ck workflow to finish the project end-to-end for release readiness polish:
 professional Docker Hub packaging and professional repository documentation with
 images and GIF.
 
-## Scope completed (agent-achievable)
+## Historical source-completable snapshot (agent-achievable)
 
 | Requirement | Status | Proof |
 |---|---|---|
@@ -108,9 +114,10 @@ contract-verified but not claimed as present on Hub.
 - Staged screenshots/GIF are documentation media, not physical playthrough proof.
 - Hub registry presence is not claimed without secrets.
 
-## Verdict
+## Historical verdict
 
-**Goal complete for agent-achievable A-to-Z polish:** professional Docker packaging
-(with CI-proven build + twelve-check container suite), professional repository docs
-with cover/images/GIF, green host/CI gates, clean `main` tip. Remaining human/config
-actions are optional Hub secret configuration and the separate PDR-07 physical gate.
+The snapshot was complete for its then-defined source-completable slice: professional
+Docker packaging (with CI-proven build + twelve-check container suite), repository docs
+with cover/images/GIF, and green host/CI gates. The overall user goal remains active while
+the reopened child plan is re-verified; PDR-07/parent Phase 5 is still a required human
+physical F5/perception gate, not an optional certification detail.

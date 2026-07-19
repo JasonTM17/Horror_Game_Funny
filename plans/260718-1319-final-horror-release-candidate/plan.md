@@ -102,7 +102,8 @@ contracts), `129ae35` (room-drawing facing/fallback coverage), `3f9761a`
 and third-party notices). Multi-agent re-verify reports live under `reports/`
 (tester/reviewer/scout/docs/export-readiness/export-verified).
 
-Phases 1–4 stay **Completed**. Phase 5 (physical F5 / PDR-07) remains open by
+Phases 1–4 stay **Completed**. Phase 5 (human physical production-window run;
+ProjectRun preferred, EditorF5 optional / PDR-07) remains open by
 policy. Phase 6 (Windows export/docs/completion audit) is now **Completed**. Details:
 [source-polish-landing-2026-07-18.md](./reports/source-polish-landing-2026-07-18.md),
 [windows-export-verified-2026-07-18.md](./reports/windows-export-verified-2026-07-18.md),
@@ -110,10 +111,17 @@ policy. Phase 6 (Windows export/docs/completion audit) is now **Completed**. Det
 
 ## Repository evidence closure — 2026-07-19
 
-The source-completable evidence slice is tracked by the
-[repository evidence closure child plan](../260719-0746-repository-evidence-closure/plan.md).
-Its fresh tester and cycle-2 review reports supersede older dirty-tree snapshots for
-current automated claims. The child plan closes its repository-side work after delivery,
-but it cannot close this plan's Phase 5/PDR-07 human gate. Docker packaging contracts are
-green; the live Docker daemon and registry publication remain unverified in the current
-environment and are not represented as a pass.
+The [repository evidence closure child plan](../260719-0746-repository-evidence-closure/plan.md)
+is source-complete: 4/4 phases and 21/21 criteria. Current authority:
+[PM reconciliation](../260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md),
+[final tester](../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md),
+and [final reviewer](../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
+Reviewer verdict is **Pass for staging** with 0 Critical/High/Medium and one informational
+Low. The 30-path slice is not landed: real-index verification, report-containing commit,
+push, remote parity, and CI remain delivery work. Record their exact results only after
+that commit exists.
+
+This parent stays **in progress**: 5/6 phases completed; Phase 5 checklist 4/10 and human
+success criteria 0/5. Only a human production-window run can close Phase 5/PDR-07;
+`ProjectRun` preferred. Docker build/container 12/12 are green. No Actions secrets are
+listed, so Docker Hub publication/digest is not claimed.

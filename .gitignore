@@ -6,6 +6,8 @@ docs/screenshots/*.import
 # Local verification artifacts and temporary files
 .artifacts/
 .tmp/
+__pycache__/
+*.py[cod]
 exports/
 builds/
 *.tmp

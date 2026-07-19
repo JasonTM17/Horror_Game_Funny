@@ -1,11 +1,11 @@
 ---
 phase: 4
-title: "Prepare physical F5 operator handoff"
+title: "Prepare human physical production-window operator handoff"
 status: completed
 effort: "small"
 ---
 
-# Phase 4: Prepare physical F5 operator handoff
+# Phase 4: Prepare Human Physical Production-Window Operator Handoff
 
 ## Overview
 
@@ -34,8 +34,9 @@ clean, auditable run without confusing wrapper integrity with perceptual review.
    readability, voice/SFX balance, scare comfort, display, focus, and input judgments.
 6. Record the remaining owner/action plainly. Do not mark parent Phase 5, PDR-07, or the
    overall release complete until the evidence package and human matrix are reviewed.
-7. At the delivery boundary, ask for Git commit/push authorization. Docker Hub may follow
-   the Phase 3 conditional rule; never publish an image as a substitute for the game gate.
+7. At the delivery boundary, require recorded Git commit/push authorization. A `main`
+   push may trigger the conditional Docker Hub workflow only when its secrets exist;
+   never represent that suite-image result as the game gate.
 
 ## Success criteria
 
@@ -43,15 +44,23 @@ clean, auditable run without confusing wrapper integrity with perceptual review.
 - [x] Operator matrix covers the full main route, chase recovery, settings, and perception.
 - [x] Parent plan/PDR/README still state physical review is open before valid evidence.
 - [x] No automation, staged media, export smoke, or Docker result is called human proof.
-- [x] Commit/Git push and any Docker Hub result have explicit, recorded authorization/evidence.
+- [x] The handoff records the authorization/evidence rule for Git and any conditional
+  Docker Hub result.
 
 ## Result so far
 
-Delivery commit `c14d7bb8ec7313abf0c4954c496ede1df4e7800e` is on `main` and matches
-`origin/main` after an authorized push of the evidence-closure + Docker Hub / media polish
-slice. Live Docker daemon build/run remained unavailable on the authoring host; Hub
-publication is delegated to CI (`docker-suite.yml`) when `DOCKERHUB_USERNAME` /
-`DOCKERHUB_TOKEN` are configured. Parent Phase 5 / PDR-07 remains human-only and open.
+The [operator handoff](../260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
+rejects a dirty or unpushed worktree, records the exact clean `main` SHA at run time,
+passes the exact Godot 4.7.1 executable, and provides primary `ProjectRun` plus optional
+`EditorF5` commands. It lists bounded process controls, expected files, route/perception
+matrix, and rejection cases. Git commit/push was authorized on 2026-07-19, but the real
+index, report-containing commit, push, remote parity, and CI remain delivery work. Record
+those outcomes only after landing. No Docker Hub secrets are listed; no publication or
+digest is claimed. Parent Phase 5/PDR-07 remains human-only and open.
+
+Next owner: delivery lead stages the exact 30-path slice and lands only after the real-
+index gate passes. Human reviewer then runs the handoff with `ProjectRun` preferred and
+closes the phase only after same-run capture/payload plus the signed perception matrix.
 
 ## Non-goals and risks
 

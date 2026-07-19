@@ -1,22 +1,25 @@
 # ROOM 407: THE LAST SHIFT
 
+[![CI](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/ci.yml) [![Docker suite](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/docker-suite.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/docker-suite.yml)
+
 [![ROOM 407: THE LAST SHIFT repository cover](docs/media/room-407-cover.png)](docs/screenshots/room-407-gameplay-tour.gif)
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
-**Project status:** source-complete automated surface with a green Windows host **12/12** suite, focused evidence/export regressions, Docker packaging contracts, a tracked Windows x86_64 export preset, and automated exported-build startup smoke. Live Docker image build/run is environment-dependent; Docker Hub publish is CI-gated on main when secrets are present. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) (physical F5 boot-to-credits, 15–20 minute pacing, human perceptual review) remains **open**. Staged screenshots, the visual-reference GIF, and headless export startup are **not** physical-playthrough evidence.
+**Project status:** the recorded source-closure evidence includes Windows-host and local Linux-container **12/12** suites, focused evidence/export regressions, Docker packaging contracts, a tracked Windows x86_64 export preset, and exported-process startup smoke. A push to `main` automatically publishes the suite image only when both Docker Hub secrets are configured; the workflow has no separate publish-approval step. Without a resulting registry digest, publication remains unverified. **Not release-certified:** [PDR-07](docs/project-overview-pdr.md) remains open for a human physical production-window run; `ProjectRun` preferred, `EditorF5` optional. Staged media and headless export startup are not human or perceptual proof.
 
 | Doc | Purpose |
 |---|---|
 | [Contributing](CONTRIBUTING.md) | Local play, suite, Docker, commit style |
 | [Security](SECURITY.md) | Vulnerability reporting |
 | [Changelog](CHANGELOG.md) | Notable changes |
+| [Deployment guide](docs/deployment-guide.md) | Source, QA, export, CI/Hub, and physical handoff |
 | [Testing](docs/testing.md) | Twelve-check matrix and Docker suite |
 | [Limitations](docs/limitations.md) | Open gates and evidence boundaries |
 | [Roadmap](docs/project-roadmap.md) | Phase status (physical review still open) |
 | [Asset credits](docs/asset-credits.md) | Cover, stills, voice-over provenance |
 
-Authoritative automated evidence tip (2026-07-19): [tester re-verify](plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md) and [cycle-2 code review](plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md) (9/10, zero critical). Role-labeled export hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). PDR-07 stays open until a human completes the physical F5 package.
+Authoritative source-closure evidence (2026-07-19): [final verification and review](plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md). Stable export input/payload hashes live in [Testing](docs/testing.md#current-verification-snapshot--2026-07-19). PDR-07 stays open until the human production-window package is reviewed.
 
 The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 407, chase, reveal, and credits inside one continuous gameplay scene. The intended first-run duration is 15–20 minutes. Scene-local telemetry now measures that route, but the pacing target still requires a recorded physical playthrough and its same-run payload.
 
@@ -43,10 +46,10 @@ The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 4
 | Asset | Role | Boundary |
 |---|---|---|
 | `docs/media/room-407-cover.png` | 1280×640 repository cover | Docs-only; excluded from Godot export |
-| `docs/screenshots/*.png` + tour GIF | Staged visual reference | Not a physical F5 recording |
+| `docs/screenshots/*.png` + tour GIF | Staged visual reference | Not production-window evidence |
 | `assets/images/*` | Menu / story prop textures | Runtime art, not release evidence |
 
-The in-engine screenshots and GIF come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The four source stills above and the repository cover are separately generated project artwork with their prompts and provenance recorded in [Asset credits and provenance](docs/asset-credits.md). The GIF is a derived visual-reference montage, not a gameplay recording. None of this media proves physical F5 traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
+The in-engine screenshots and GIF come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The four source stills above and the repository cover are separately generated project artwork with their prompts and provenance recorded in [Asset credits and provenance](docs/asset-credits.md). The GIF is a derived visual-reference montage, not a gameplay recording. None of this media proves physical traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
 
 ### Reproduce the staged capture
 
@@ -72,18 +75,18 @@ The harness writes eight PNG frames under the ignored `.artifacts/visual-capture
 
 The repository tracks a credential-free `export_presets.cfg` for a Windows Desktop x86_64 release build. Generated executables, export templates, and the Godot editor remain outside Git. A multi-stage Docker image packages Godot 4.7.1 for the headless suite only; it is not a player-facing game build.
 
-## Run
+## Quick Start
 
-1. Import `project.godot` in Godot 4.7.1.
-2. Press **F5** to run the project from the configured boot scene.
-
-Use F5 for the intended flow. **F6 runs the currently open scene and may bypass the boot menu.**
-
-Command-line import check:
+Clone, import, and launch with Godot 4.7.1 on `PATH`:
 
 ```powershell
+git clone https://github.com/JasonTM17/Horror_Game_Funny.git
+Set-Location .\Horror_Game_Funny
 godot --headless --path . --editor --quit
+godot --path .
 ```
+
+For the GUI path, import `project.godot` in the Godot Project Manager and press **F5**. F5 follows the configured boot scene; **F6** runs the currently open scene and may bypass the boot menu. See the [deployment guide](docs/deployment-guide.md) for explicit `-Godot`, host/container QA, export, and handoff commands.
 
 ## Controls
 
@@ -161,36 +164,32 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 
 | Item | Value |
 |---|---|
-| Public image | [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite) |
+| Registry target | [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite) |
 | Tags | `latest` + full `GITHUB_SHA` on successful main publish |
 | Godot zip SHA-256 | `c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba` |
 | Runtime user | `65532:65532` |
 | CI | `.github/workflows/docker-suite.yml` (build + suite on PR/main; Hub on main only) |
 
-Hub publish is conditional: main push + repository secrets `DOCKERHUB_USERNAME=nguyenson1710`
-and `DOCKERHUB_TOKEN`. If secrets are missing, CI still builds/runs the suite and skips
-publish without failing. Manual push after a local build:
-
-```powershell
-docker tag nguyenson1710/horror-game-suite:latest nguyenson1710/horror-game-suite:<git-sha>
-docker push nguyenson1710/horror-game-suite:latest
-docker push nguyenson1710/horror-game-suite:<git-sha>
-```
+After the suite passes on a `main` push, configured repository secrets
+`DOCKERHUB_USERNAME=nguyenson1710` and `DOCKERHUB_TOKEN` cause automatic publication;
+there is no separate workflow approval. Missing secrets skip publish without failing CI.
 
 This image is a **headless suite**, not a player-facing game build.
+The repository records the target name and publish contract; only a successful publish
+run and its registry digest verify that either tag exists on Hub.
 The exact checks are `editor-import`, `menu`, `gameplay`, `game-state`, `progression`, `checkpoint-layout`, `physical-route`, `player-input`, `visual-effects`, `settings-audio`, `settings-persistence-write`, and `settings-persistence-read`.
 
 The runner writes one log per check to `.artifacts/test-<name>.log`, isolates Godot user data under `.tmp/`, and removes its unique profile in guaranteed teardown, so it does not overwrite the normal `user://room407.cfg`. Coverage includes import, canonical `project.godot` serialization, and scene construction; state/checkpoint and guarded progression; pacing eligibility, pause accounting, milestone order, finalization, and invalid-run rejection inside the existing progression and checkpoint checks; layout, navigation, chase, and capsule/door invariants; the physical E binding plus the mapped interact action through the production 2.5-unit ray; locked-door spam, the 1.5 m sweep rejection, reason-scoped movement-only lock/release, and close/reopen; objective review; flashlight and pause locks; note and radio modal close/unlock behavior; the chase entity's parented SFX cue at start/recovery plus teardown; visual-effect uniforms and chase fear transitions; first-run audio-bus defaults; settings controls/teardown; and settings persistence across two Godot processes.
 
 The existing `physical-route` check also covers the optional drawer and painted door: structural visibility/alignment, production-ray acquisition, mapped feedback, cooldown/spam behavior, drawer sweep rejection and movement-only locking, open/close animation, unchanged story state, and spatial-tone/lock cleanup on teardown. These remain headless contract assertions, not rendered-visual, audible-mix, or physical-input evidence.
 
-The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove a full physical F5 boot-to-credits traversal, 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
+The suite also covers progression/scare/chase invariants, including unique scare cue IDs, pause-safe waits, repeated-trigger rejection, sequence-owned audio/light/actor cleanup, cassette cleanup at `memory_cassette_recalled`, and director-exit cleanup. It also covers the two-step interactive epilogue, restored-checkpoint isolation, audio cache variants/LRU/live-player teardown, all 76 voice resources, cue replacement and subtitle fallback, queue ordering, pause/resume, voice-duration holds, modal focus return, and visible save failures; the voice and Settings regression helpers run inside `settings-audio` and do not add a thirteenth check. These checks do not prove the required human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), 15–20 minute pacing, rendered scare timing or quality, visual balance, audible voice/effects quality or mix balance, live chase fairness, or the physical Settings UI workflow. See [Testing](docs/testing.md) for the assertion-level matrix.
 
 Recent automated contract evidence (not physical proof): a 2026-07-18 Windows host run passed all 12 checks in about 77.5 seconds with clean logs, and a Linux container run passed the same 12 with `ALL_TWELVE_HEADLESS_CHECKS_OK`. The 2026-07-19 evidence-closure re-verify again recorded host 12/12, focused physical-evidence and export-adversarial harnesses, packaging contracts, and secret scan green. Physical and perceptual gates remain open.
 
 ## Capture a Pacing Payload
 
-Start a fresh shift with **F5**, not Continue, and complete it with physical keyboard and mouse input while recording the run. When the credits become visible, preserve the single console line beginning with:
+For the human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), choose **START SHIFT**, not Continue, and complete the route with physical keyboard and mouse input while recording. When credits become visible, preserve the single console line beginning with:
 
 ```text
 PLAYTHROUGH_PACING: {JSON payload}
@@ -198,7 +197,7 @@ PLAYTHROUGH_PACING: {JSON payload}
 
 Keep that exact payload with the same-run boot-to-credits capture. The runtime also overwrites one last-run evidence line to `user://playthrough_pacing_last.txt` so the physical harness can harvest a payload when process logs miss it. There is no UI for the report. A headless runner artifact can contain two identical lines because it concatenates the engine log and captured console output; the runtime still emitted once. Even an eligible, complete, in-target payload is instrumentation, not proof of physical traversal, capture behavior, chase feel, presentation, audio, or Settings behavior.
 
-### Record the physical run
+### Record the production-window run
 
 The repository includes a separate evidence runner. Default `ProjectRun` launches the main scene with `--log-file` on the game process. Choose **START SHIFT** (not Continue), play to visible credits with keyboard/mouse, keep a same-run capture, then quit:
 
@@ -209,7 +208,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-physical-playthrou
   -CaptureReference "D:\Captures\room407-full-run.mp4"
 ```
 
-Use `-LaunchMode EditorF5` only when you need the editor; that mode does not attach `--log-file` to the F5 game process, so harvest depends on the `user://playthrough_pacing_last.txt` side-channel after credits. Before launch, the wrapper snapshots and archives any existing side-channel, clears it fail-closed, and later accepts only a changed regular file written strictly after the launch boundary. Harvest copies through one open stream and verifies pre/open/post source identity plus the copied size/hash; stale, exact-boundary, baseline-identical, source-swapped, or reparse-path candidates are rejected. Raw engine/console logs, accepted/rejected side-channel records, plus `summary.json` and `summary.md` are written below `.artifacts/manual-playthrough/<timestamp>/`. The command marks the evidence package ready only when the repository stays clean on one unchanged branch/commit, side-channel integrity passes, the launched process exits normally, logs contain no engine/script/parse/leak failure, one unique same-run payload is eligible, complete, exact-order-valid, 900–1200 seconds active, within every chapter target, paired with the physical-input confirmation, and paired with a non-empty capture reference. `-AnalyzeLog <path>` can inspect an existing log but can never make an evidence package ready.
+Use `-LaunchMode EditorF5` only when the editor is needed; it cannot attach `--log-file` to the separate F5 game process, so payload harvest depends on `user://playthrough_pacing_last.txt`. Every hash-verified side-channel must contain exactly one payload. The launcher defaults to `-LaunchTimeoutSeconds 7200` (allowed 60–14400) and `-MaxCombinedOutputBytes 16777216` / 16 MiB (allowed 1–64 MiB). A Windows Job Object terminates the full process tree on timeout or output overflow; the Godot `--version` preflight uses the same boundary with a fixed 30-second/65536-byte budget. Each evidence directory keeps raw `godot-version-stdout.log`, `godot-version-stderr.log`, `console-stdout.log`, and `console-stderr.log`, plus combined `console.log` and `engine.log`.
+
+The wrapper quarantines stale side-channels, caps each at 1 MiB, verifies source/destination identity and hashes, rejects stale/mixed/malformed/escaped evidence, and keeps output below `.artifacts/manual-playthrough/<timestamp>/`. The parser recomputes pacing verdicts from strict JSON. Read [Testing](docs/testing.md#physical-playthrough-evidence-runner) for the full contract. `-AnalyzeLog` can diagnose an existing artifact but can never make a package ready.
 
 The generated Markdown includes an unchecked human-review matrix. The capture path is a reference, not automated video verification. A reviewer must still watch the recording, complete that matrix, and evaluate traversal, chase fairness, visual/audio balance, Settings, fullscreen, and input behavior before closing the release gate.
 
@@ -221,7 +222,7 @@ Four reviewed staged in-engine stills and one derived visual-reference GIF are c
 
 ## Known Limitations
 
-- No recorded manual F5 boot-to-credits pass with its same-run telemetry payload currently verifies the complete physical route.
+- No reviewed human physical production-window run (`ProjectRun` preferred, `EditorF5` optional) with same-run telemetry currently verifies the complete route.
 - The 15–20 minute duration is an instrumented authored target, not a recorded physical-playthrough result.
 - Audible audio/mix balance, live chase navigation and fairness, and target-display visual balance remain manually unverified.
 - Checkpoints last only for the current application process; only settings persist to disk.
@@ -237,7 +238,7 @@ Install the official Godot 4.7.1 standard export templates beside the portable e
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1
 ```
 
-The script binds validation to the selected preset, verifies the official Godot archive and installed x86_64 release-template hashes, rejects signing/remote-deploy credentials, and exports through a unique staging directory protected by an exclusive lock. It publishes a fresh embedded-PCK PE x86_64 executable under ignored `.artifacts/builds/`; copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt`; scans export/startup logs; and prints the current executable size and SHA-256. Its direct headless startup smoke proves process startup only. It does not certify a rendered menu, physical input, audible output, signing, installer behavior, or PDR-07.
+The script binds validation to the selected preset, verifies the official Godot archive and installed x86_64 release-template hashes, rejects signing/remote-deploy credentials, and exports through a unique staging directory protected by an exclusive lock. It publishes a fresh embedded-PCK PE x86_64 executable under ignored `.artifacts/builds/`; copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the tag-pinned `GODOT_COPYRIGHT.txt`; scans export/startup logs; and prints the current executable size and SHA-256. Preset version `0.9.0.0` is unreleased release-candidate metadata, not a Git tag, GitHub release, or distribution claim. Headless startup proves process startup only; it does not certify a rendered menu, physical input, audible output, signing, installer behavior, or PDR-07.
 
 ## Contributing
 
@@ -249,33 +250,14 @@ Keep changes focused. Do not commit `.godot/`, `.artifacts/`, local tools, expor
 
 | Path | Contents |
 |---|---|
-| `project.godot` | Main scene, autoloads, input map, display, and Compatibility renderer configuration |
-| `export_presets.cfg` | Credential-free Windows Desktop x86_64 release preset; generated output stays ignored |
-| `scenes/boot/` | Boot scene |
-| `scenes/gameplay/` | Continuous gameplay scene root |
-| `scenes/player/` | Player scene and configured movement values |
-| `scenes/ui/` | HUD, pause/settings, fail, and ending overlays |
-| `scripts/autoload/` | Game state, scene routing, audio, and settings services |
-| `scripts/audio/` | Manifest-backed story voice playback and fallback |
-| `scripts/interaction/` | Door, pickup, and story interaction contracts |
-| `scripts/player/` | Movement, flashlight, and interaction ray logic |
-| `scripts/puzzles/` | Radio puzzle UI and validation |
-| `scripts/ui/` | Runtime UI, transitions, and visual effects |
-| `scripts/world/` | World construction, progression, horror events, navigation, chase, and ending logic |
-| `assets/audio/voice-over/` | Generated English OGG cues, Godot import sidecars, and cue manifest |
-| `assets/images/` | Project-authored still textures for boot menu and selected story props |
-| `docs/media/` | Documentation-only repository cover artwork excluded from the game export |
-| `shaders/` | Project-authored Compatibility canvas shader |
-| `tests/` | Native GDScript checks, PowerShell/POSIX runners, Docker contracts, and Windows export verifier |
-| `tools/` | Reproducible offline voice generation script; local Piper/model files stay ignored |
-| `docs/` | PDR, roadmap, design, architecture, standards, testing, provenance, and limitations |
-| `plans/` | Project planning and historical verification artifacts |
+| `scenes/` + `scripts/` | Boot/gameplay/UI scenes and autoload/world/player/interaction controllers |
+| `assets/` + `shaders/` | Voice, story stills, and the Compatibility post-process shader |
+| `tests/` | Godot checks, host/container runners, docs/packaging contracts, export and evidence tools |
+| `docs/` | Evergreen architecture, PDR, deployment, testing, limitations, and provenance |
+| `plans/` | Historical plans and dated verification reports |
 | `Dockerfile` / `docker-compose.yml` | Multi-stage Godot 4.7.1 suite image (`nguyenson1710/horror-game-suite`) |
-| `.github/` | `ci.yml` packaging/secret-pattern jobs, `docker-suite.yml`, Dependabot |
-| `THIRD_PARTY_NOTICES.md` | Godot and bundled-component redistribution notice entry point copied beside verified exports |
-| `GODOT_COPYRIGHT.txt` | Full tag-pinned Godot 4.7.1 component copyright/license inventory copied beside verified exports |
 
-Geometry and most effects are generated at runtime. Committed media assets are the manifest-backed English voice cues under `assets/audio/voice-over/`, four project-authored runtime stills under `assets/images/`, the documentation-only repository cover under `docs/media/`, and the project-authored icon `icon.svg` at the repository root.
+See [Codebase summary](docs/codebase-summary.md) for the full verified map.
 
 ## References
 
@@ -285,6 +267,7 @@ Geometry and most effects are generated at runtime. Committed media assets are t
 - [Architecture](docs/architecture.md)
 - [Code standards](docs/code-standards.md)
 - [Testing](docs/testing.md)
+- [Deployment guide](docs/deployment-guide.md)
 - [Asset credits and provenance](docs/asset-credits.md)
 - [Known limitations](docs/limitations.md)
 - [Project configuration](project.godot)

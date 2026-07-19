@@ -13,13 +13,13 @@ separate delivery requirements.
 | 1 | Terminal ending and capture-recovery race | `30199b7`, `5aea891`, focused progression | Complete |
 | 2 | Navigation-safe right-left-right chase route | `0a1ba94`, layout/physical-route checks | Complete |
 | 3 | Voiced two-step interactive epilogue and checkpoint isolation | `a4a3173`, `aaae49a`, 12-check suite | Complete |
-| 4 | Physical release evidence, media capture and final handoff | Fresh F5 run, telemetry, screenshots, GIF | In progress |
+| 4 | Physical release evidence, media capture and final handoff | Human physical production-window run (`ProjectRun` preferred, `EditorF5` optional), telemetry, reviewed media | In progress |
 | 5 | Windows x86_64 export automation and redistribution notices | Tracked preset, export verifier, PE/headless-startup contracts | Complete at automated level |
 
 ## Phase 4 Worklist
 
 - [ ] Receive a same-run physical gameplay recording and telemetry from the user or a human reviewer. Per the current instruction, automation must not control the user's desktop or substitute synthetic input for this evidence.
-- [ ] Run a fresh boot-to-credits session with physical keyboard/mouse input; fail and recover once during the chase.
+- [ ] Run a fresh `START SHIFT`-to-credits production-window session with physical keyboard/mouse input; use `ProjectRun` preferably (`EditorF5` is optional), then fail and recover once during the chase.
 - [ ] Preserve the session's single `PLAYTHROUGH_PACING` payload and inspect chapter/total timing against the 900–1200 second target.
 - [ ] Review chase clearance/fairness, red-guide readability, darkness/flicker/grain comfort, six ending voice lines, audio balance, pause/Settings, fullscreen, and relaunch behavior during the live run.
 - [x] Run the reproducible staged Godot capture tour; visually review and commit four optimized PNGs plus a derived visual-reference GIF under `docs/screenshots/`. This media subtask does not satisfy the physical-run or perceptual gates.
@@ -30,28 +30,31 @@ The current source-level route/timing audit is recorded in [`phase-04-pacing-aud
 
 ## Current verification snapshot — 2026-07-19
 
-The current repository-evidence-closure run is green for the available, source-completable
-checks. The Windows host runner exited 0 with all twelve canonical checks passing; the
-focused physical-evidence regression and Windows adversarial harness also passed. Docker
-packaging contracts passed in both PowerShell and Bash, but the local Docker daemon was
-unavailable, so no live image build/run or registry publication is claimed.
+The repository-evidence-closure child plan is complete for all source-completable checks.
+The Windows host runner exited 0 with all twelve canonical checks passing; the focused
+physical-evidence regression and Windows adversarial harness also passed. Docker
+packaging contracts, compose config, local image build, and the Linux-container 12/12
+suite passed. Registry publication was not performed and is not claimed.
 
-The current Windows export identities are intentionally role-labeled:
+Stable recorded Windows export identities are:
 
-| Artifact | Role | SHA-256 |
+| Artifact | Role | Identity |
 |---|---|---|
-| `ROOM_407_THE_LAST_SHIFT.exe` | active executable (`117920024` bytes) | `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
-| `room407-windows-x86_64` | active verified bundle | `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d` |
-| `room407-windows-x86_64.previous` | rollback bundle | `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701` |
+| `ROOM_407_THE_LAST_SHIFT.exe` | reproducible active payload (`117920024` bytes) | SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| Official export-template archive | local export input | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
+| Installed `windows_release_x86_64.exe` template | local export input | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
+
+Per-run bundle identities rotate because their manifests bind fresh `RUN_ID` values.
+Read the ignored manifests and dated operator handoff instead of copying those values into
+evergreen docs.
 
 The documentation-only cover is `1280×640` with SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
-The tester and cycle-2 reviewer reports are the current evidence index:
-[`tester-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
-[`tester-review-fix-cycle-1-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
-and [`code-review-cycle-2-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md).
-PDR-07/parent Phase 5 remains **open** until a human records a fresh physical F5 run,
-same-run pacing payload, capture, and perception review.
+The current evidence index is the
+[`final source-closure verification and review`](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md).
+PDR-07/parent Phase 5 remains **open** until a human physical production-window run
+(`ProjectRun` preferred, `EditorF5` optional) records the same-run pacing payload,
+capture, and perception review.
 
 ## Completed Scare Lifecycle Slice
 
@@ -62,7 +65,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 ## Completed packaging and public-repo hygiene (source-level)
 
 - Docker multi-stage suite image and compose service; POSIX twelve-check runner; packaging verify scripts; `docker-suite` CI (including Linux `physical-route` frame-budget fix).
-- Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; Hub image namespace is `nguyenson1710/horror-game-suite` with `latest` + git-SHA tags on successful main publish.
+- Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; Hub image namespace is `nguyenson1710/horror-game-suite` with `latest` + git-SHA tags. A passing `main` push auto-publishes when both secrets are configured; there is no separate workflow approval, and no digest means publication is unverified.
 - `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
 - Repository cover (`docs/media/room-407-cover.png`), staged stills, and visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
 - These items improve professional maintainability. They **do not** close Phase 4 or PDR-07.
@@ -70,10 +73,9 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 ## Completed Windows Export Track
 
 - The Dependabot `actions/checkout@v7` branch is merged into `main`; both host and container twelve-check suites passed after that integration and again after export-path finalization.
-- The repository tracks a credential-free `Windows Desktop x86_64` preset with embedded PCK, unsigned release output, project icon/metadata, and ignored build paths.
+- The repository tracks a credential-free `Windows Desktop x86_64` preset with embedded PCK, unsigned release output, project icon/metadata, and ignored build paths. Version `0.9.0.0` is unreleased release-candidate metadata, not a tag or shipped release.
 - `tests/verify-windows-export.ps1` verifies the official Godot 4.7.1 archive/member/installed-template hashes, selected-preset security contracts, fresh staged export logs, PE x86_64 architecture, and direct headless startup; it publishes under an exclusive lock and stages `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` beside the ignored build.
-- The official 4.7.1 standard export-template archive used for this work has SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` and is installed outside the repository. Templates and generated executables are not committed.
-- A historical 2026-07-18 artifact was `117914600` bytes with SHA-256 `e783cfa076d1bf4c9bbf7da7301b233fcded9235fa52ba6bbe595018688ff30e`. That identity is **superseded** for handoff by the role-labeled 2026-07-19 active executable `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` (`117920024` bytes) in the snapshot table above; later handoffs must record their own verifier output.
+- The official archive, installed template, and reproducible executable hashes are retained in the snapshot table above. Templates and generated executables are not committed; later handoffs must record their own verifier output.
 - This completes the automated export path only. A rendered normal-window launch, physical menu/input check, audible-output review, signing, and installer/store packaging remain outside this evidence.
 
 ## Guardrails
@@ -94,7 +96,8 @@ The parent goal can close only after Phase 4 has real same-run physical evidence
 
 - [Project overview and PDR](./project-overview-pdr.md)
 - [Testing matrix](./testing.md)
+- [Deployment guide](./deployment-guide.md)
 - [Staged visual-capture tour](./testing.md#reproducible-visual-capture-tour)
 - [Phase 4 plan](../plans/260716-2113-chase-reliability-and-climax-polish/phase-04-qa-review-and-delivery.md)
-- [Current tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md)
-- [Cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)
+- [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)

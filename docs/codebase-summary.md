@@ -1,10 +1,15 @@
 # Codebase Summary
 
-Generated from a Repomix repository compaction on 2026-07-19 (the transient XML snapshot
-is intentionally not retained in the working tree). This is an orientation document,
-not a substitute for the source,
-test logs, or dated evidence reports. The evergreen documentation links below are the
-maintained entry points.
+Snapshot provenance: Repomix 1.14.0 was run from the repository root on 2026-07-19 with
+its default XML output (`repomix-output.xml`): 4,129 files were packed and Repomix's
+security scan reported no suspicious files. The snapshot reflects files visible to that
+workspace run, including repository-local tooling; it is orientation input, not a
+substitute for source, test logs, or dated evidence reports.
+
+Refresh this summary and its Repomix snapshot whenever `project.godot`, runtime
+scenes/controllers, test runners, delivery workflows, export contracts, or documentation
+navigation materially changes. Verify claims against the named source files after every
+refresh; do not treat the compaction as an executable specification.
 
 ## Product and runtime
 
@@ -79,16 +84,24 @@ The player implementation is split across `player-controller.gd`,
 
 ## Configuration and delivery contracts
 
-- `project.godot` defines the `LOBBY`-through-`CREDITS` stage flow, physical and logical
-  keyboard bindings, layer names, 960×540 viewport with 1280×720 override, and
-  Compatibility rendering.
+- `scripts/autoload/game-state.gd` defines the monotonic `GameState.Stage` enum:
+  `LOBBY`, `FLOOR4_DARK`, `FLOOR4_POWERED`, `MEMORY_LOOP`, `ROOM_407`, `CHASE`, and
+  terminal `ENDING`. `credits` is not a game-state enum value; it is the final pacing
+  telemetry boundary emitted after the visible credits overlay opens.
+- `project.godot` registers the four autoloads, boot scene, physical/logical keyboard
+  bindings, layer names, 960×540 viewport with 1280×720 override, and Compatibility
+  rendering.
 - `export_presets.cfg` contains one credential-free unsigned Windows Desktop x86_64
   preset with an embedded PCK. `tests/verify-windows-export.ps1` validates the selected
   preset, official 4.7.1 template/archive hashes, PE architecture, notices, fresh logs,
   direct headless startup, exclusive locking, staging, and active/rollback publication.
+  Its `0.9.0.0` file/product version is unreleased release-candidate metadata, not a tag
+  or published release claim.
 - `Dockerfile` and `docker-compose.yml` package a non-root Godot 4.7.1 headless suite
   image named `nguyenson1710/horror-game-suite`. This is a CI/test image, not the player
-  game. `tests/verify-docker-packaging.ps1` and `.sh` are structural contract checks.
+  game. A passing `main` push auto-publishes only when both Hub secrets are configured;
+  there is no separate workflow approval, and no digest means publication is unverified.
+  `tests/verify-docker-packaging.ps1` and `.sh` are structural contract checks.
 - `docs/.gdignore` keeps documentation-only media out of Godot import; the Windows
   export preset also excludes `docs/`, tests, plans, and local output paths.
 
@@ -110,48 +123,62 @@ The host and POSIX runners intentionally expose exactly twelve named Godot check
 12. `settings-persistence-read`
 
 `run-headless-tests.ps1` and `run-headless-tests.sh` require their success markers,
-non-zero failure checks, and engine/script/assert/leak scans. The focused PowerShell
-harnesses are separate gates:
+non-zero failure checks, and engine/script/parse/assert scans. They intentionally ignore
+known ObjectDB warning noise at process exit; any dated zero-line ObjectDB scan is an
+additional closure audit, not runner failure policy. The focused PowerShell harnesses are
+separate gates:
 
 - `physical-playthrough-evidence-regression.ps1` exercises stale/baseline/fresh
-  side-channel, timestamp, single-stream snapshot, source-swap, cleanup, and reparse
-  rejection cases in an isolated temporary profile. It does not launch Godot or create
-  release evidence.
+  side-channel, strict pacing schema, atomic quarantine, size ceiling, timestamp,
+  single-stream snapshot, source-swap, containment, cleanup, and reparse rejection cases
+  in an isolated temporary profile. It does not launch Godot or create release evidence.
 - `windows-export-adversarial.ps1` exercises export transaction recovery, manifest/hash
   tampering, parser rejection, descendant teardown, output containment, timeout, and
   lock preservation against verified active/rollback bundles.
-- `run-physical-playthrough.ps1` is the human-evidence wrapper. It binds logs and the
-  pacing side-channel to one run but cannot inspect a capture, prove physical input, or
-  judge presentation.
+- `run-physical-playthrough.ps1` supports a human physical production-window run;
+  `ProjectRun` preferred, `EditorF5` optional. It binds bounded Job Object logs and an
+  exact-one-payload verified side-channel to one run but cannot inspect a capture, prove
+  physical input, or judge presentation.
 - `visual-capture-tour.tscn` is a staged documentation harness. It freezes simulation
   and selects states directly; its PNG/GIF outputs are visual references only.
+- `verify-repository-docs.py` validates required public docs, committed media hashes and
+  structure, malformed-cover negative cases, and inline/explicit/collapsed local
+  Markdown links using only the Python standard library. It reads stage-0 regular blobs
+  by indexed object ID, rejects unapproved media extensions and staged mode/blob drift,
+  and requires local targets in the Git index; anchors and external URL reachability are
+  outside its scope. See
+  [Testing](./testing.md#verify-repository-documentation-and-media) for caps and markers.
 
 ## Current evidence boundary — 2026-07-19
 
-The current tester report records a fresh Windows host exit 0 with 12/12 checks, focused
-side-channel markers, both Docker packaging contract markers, export verification, export
-adversarial preservation, secret scan, YAML/link/media checks, and clean diff hygiene.
-The Docker daemon was unavailable, so live image build/run and registry publication are
-not verified. The cycle-2 review scored 9/10 with zero critical findings.
+The final source-closure report records a fresh Windows host exit 0 with 12/12 checks,
+focused side-channel markers, both Docker packaging contract markers, export adversarial
+preservation, secret scan, YAML/link/media checks, and clean diff hygiene. Docker compose
+config, image build, and the local Linux-container suite passed 12/12; runtime identity
+confirmed Godot 4.7.1 under UID/GID 65532. Registry publication was not performed. The
+fresh three-stage current-diff review found zero Critical or Medium defects.
 
-Role-labeled local export identities are:
+Stable recorded export identities are:
 
-| Artifact | Role | SHA-256 |
+| Artifact | Role | Identity |
 |---|---|---|
-| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | active executable | `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
-| `room407-windows-x86_64` | active bundle | `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d` |
-| `room407-windows-x86_64.previous` | rollback bundle | `3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701` |
+| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | reproducible active payload | SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| Official export-template archive | local export input | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
+| Installed `windows_release_x86_64.exe` template | local export input | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
+
+Per-run active/rollback transaction identities rotate because `BUNDLE_SHA256` binds a
+fresh `RUN_ID`; read the ignored manifests and dated
+[operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md) instead of copying them into evergreen docs.
 
 The cover contract is `1280×640`, SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
-See the [tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
-[tester re-verification](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
-and [cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)
-for command-level evidence.
+See the [final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+for command-level evidence. Earlier tester/reviewer reports remain historical traces.
 
-PDR-07 and parent release-candidate Phase 5 remain open. A human must provide a fresh
-physical F5 `START SHIFT`-to-credits run, same-run eligible pacing payload, capture, and
-completed traversal/perception review. The maintainer-run side-channel checks retain the
+PDR-07 and parent release-candidate Phase 5 remain open. A human physical
+production-window run (`ProjectRun` preferred, `EditorF5` optional) must provide a fresh
+`START SHIFT`-to-credits capture, same-run eligible pacing payload, and completed
+traversal/perception review. The maintainer-run side-channel checks retain the
 hostile same-profile reparse/TOCTOU limitation; they are not a hostile-filesystem proof.
 
 ## Documentation map
@@ -160,6 +187,7 @@ hostile same-profile reparse/TOCTOU limitation; they are not a hostile-filesyste
 - [System architecture](./architecture.md) — controller boundaries and data flow.
 - [Code standards](./code-standards.md) — naming, ownership, testing, and evidence rules.
 - [Testing matrix](./testing.md) — commands, checks, and manual review matrix.
+- [Deployment guide](./deployment-guide.md) — source launch, QA, export, CI/Hub, handoff, and rollback.
 - [Known limitations](./limitations.md) — distribution, persistence, and evidence boundaries.
 - [Asset credits and provenance](./asset-credits.md) — media origins and license scope.
 - [Project roadmap](./project-roadmap.md) — phase status and remaining human gate.

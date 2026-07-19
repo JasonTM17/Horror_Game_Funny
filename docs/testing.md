@@ -9,30 +9,29 @@ The repository has two equivalent twelve-check Godot 4.7.1 headless runners:
 | `tests/run-headless-tests.ps1` | Windows + installed Godot 4.7.1 | PowerShell |
 | `tests/run-headless-tests.sh` | Linux / Docker | bash + `godot` on `PATH` or `$GODOT` |
 
-Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/leak/assert failures. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. Windows export verification and the focused PowerShell hardening regressions are separate gates; they do not add a thirteenth Godot check. None of these replace a manual F5 boot-to-credits playthrough.
+Both drive the same twelve checks and fail on non-zero exit, missing success markers, or scanned engine/script/parse/assert failures. They intentionally ignore known Godot ObjectDB warning noise at process exit while retaining the stronger error/assert scanners. They prove resource loading, selected logic/layout invariants, targeted production-player movement/collision and input-handler behavior, pacing-telemetry contracts, visual-effects contracts, and settings persistence across two separate processes. Windows export verification and the focused PowerShell hardening regressions are separate gates; they do not add a thirteenth Godot check. None replace the required human physical production-window run; `ProjectRun` preferred, `EditorF5` optional.
 
 ## Run the Suite
 
 ### Windows host
 
-From the repository root:
+From the repository root, resolve a portable `godot` command from `PATH` and pass it
+explicitly:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1
+$godot = (Get-Command godot -ErrorAction Stop).Source
+powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 -Godot $godot
 ```
 
-The default executable is:
-
-```text
-D:\Tools\Godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe
-```
-
-Override it with the runner's `-Godot` parameter:
+An explicit installation path works the same way:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 `
   -Godot "C:\path\to\Godot_v4.7.1-stable_win64_console.exe"
 ```
+
+If `-Godot` is omitted, the script's `D:\Tools\Godot-4.7.1\...` default is a
+maintainer-local convenience, not a required repository layout.
 
 ### Docker
 
@@ -43,7 +42,7 @@ docker compose run --rm suite
 
 The image is multi-stage, pins Godot **4.7.1** standard (not .NET) with a fixed download
 SHA-256 (`c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba`), runs as
-non-root UID **65532**, and uses `HEALTHCHECK` via `godot --version`. Public image:
+non-root UID **65532**, and uses `HEALTHCHECK` via `godot --version`. Registry target:
 [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite)
 (`:latest` and `:<git-sha>` on successful main-branch CI publish). Structural packaging
 contracts (no Docker Engine required):
@@ -54,7 +53,45 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 
 On Linux: `bash tests/verify-docker-packaging.sh`.
 
+After the suite passes on a `main` push, configured `DOCKERHUB_USERNAME=nguyenson1710`
+and `DOCKERHUB_TOKEN` secrets cause the workflow to publish `latest` and the full
+`GITHUB_SHA` automatically. There is no separate publish-approval step. Missing secrets
+skip publication without failing the build. The name/tags are a contract, not proof of
+registry presence; only a successful publish run and corresponding digest verify it.
+
 The host PowerShell runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. The shell runner isolates under `.tmp/godot-user-*` with XDG paths. Both combine engine log with captured console output and tear the profile down after success or failure so they do not overwrite the normal `user://room407.cfg`.
+
+## Verify Repository Documentation and Media
+
+Run the standard-library-only landing verifier from the repository root:
+
+```powershell
+python tests/verify-repository-docs.py
+```
+
+A pass emits these markers in order:
+
+```text
+REPOSITORY_MEDIA_OK
+MARKDOWN_LOCAL_LINKS_OK
+MARKDOWN_INDEXED_LOCAL_LINKS_OK
+PRO_DOCS_OK
+```
+
+The verifier enumerates stage-0 Git-index entries, rejects non-regular modes, and reads
+Markdown/config/media bytes by their indexed object IDs rather than from the working
+tree. A valid unstaged copy therefore cannot hide a bad staged blob or symlink mode.
+Every local link target must be present in that index; new landing targets must be staged
+before this check can pass. It parses inline links plus explicit and collapsed
+reference-link forms, rejects undefined references, and ignores fenced examples.
+Same-document anchors and external/protocol-relative URLs are excluded;
+for a local link with a fragment, the file path is checked but the anchor is not.
+
+Size caps are 1 MiB per Markdown/config file, 2 MiB per PNG, and 8 MiB for the GIF. The
+media allowlist rejects every unapproved path or extension and also binds hashes,
+dimensions, encoding structure, and GIF frame count. Negative self-checks reject staged
+object-ID aliasing, symlink mode, an unexpected media extension, a truncated cover,
+trailing bytes, and a bad PNG CRC.
 
 ## Verify the Windows x86_64 Export
 
@@ -65,27 +102,33 @@ Prerequisites:
 - Godot 4.7.1 standard (not .NET) at the verifier's `-Godot` path;
 - the matching `windows_release_x86_64.exe` template installed under the portable editor's `editor_data/export_templates/4.7.1.stable/` directory.
 
-The official 4.7.1 standard export-template archive used on the recorded Windows host has SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72`. The archive and installed templates are required local build inputs but are not committed.
+The recorded official inputs are stable and remain outside Git:
+
+| Input | SHA-256 |
+|---|---|
+| Godot 4.7.1 standard export-template archive | `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
+| Installed `windows_release_x86_64.exe` template | `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
 
 Run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1
+$godot = (Get-Command godot -ErrorAction Stop).Source
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1 `
+  -Godot $godot `
+  -TemplateArchive "C:\path\to\Godot_v4.7.1-stable_export_templates.tpz"
 ```
+
+Omitting those parameters selects `D:\Tools\Godot-4.7.1\...` defaults that are
+maintainer-local conveniences only.
 
 The verifier parses and binds checks to the selected preset, verifies the exact Godot version and official template-archive/member/installed-template hashes, rejects credentials/signing/remote deployment/resource encryption/unexpected filters, rejects reparse-point output/profile ancestors, and takes an exclusive export lock. It exports through a unique staging tree and isolated profile, scans the fresh export logs, copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt`, runs the staged executable directly in headless mode, scans startup logs, verifies PE machine `0x8664`, and only then replaces the published files in the same directory with the executable last. Temporary profiles, staging trees, publish files, and the lock are removed in `finally`.
 
-**Historical note (2026-07-18 only — not the current handoff identity):** that day's
-Windows gate produced a `117914600`-byte executable with SHA-256
-`e783cfa076d1bf4c9bbf7da7301b233fcded9235fa52ba6bbe595018688ff30e`. Do **not** use those
-values for a current release handoff. Prefer the role-labeled 2026-07-19 active/rollback
-identities in [Current Verification Snapshot](#current-verification-snapshot--2026-07-19)
-below. The official template archive hash remains
-`86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` (template inputs are
-local, not committed). Export verification proves exportability, architecture, notice
-staging, and headless process startup only. It does not prove a rendered menu,
-operating-system input, audible output, fullscreen transitions, target-GPU performance,
-code signing, or installer/store behavior.
+Preset `application/file_version` and `application/product_version` are `0.9.0.0`.
+This is unreleased release-candidate metadata, not a Git tag, GitHub release, published
+installer, or distribution claim. Export verification proves exportability,
+architecture, notice staging, and headless process startup only; it does not prove a
+rendered menu, operating-system input, audible output, fullscreen transitions,
+target-GPU performance, code signing, or installer/store behavior.
 
 ## Focused PowerShell Hardening Regressions
 
@@ -96,7 +139,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\physical-playthrough
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\windows-export-adversarial.ps1
 ```
 
-The physical-evidence regression uses an isolated temporary `APPDATA` tree and verifies stale side-channel archival/removal, strictly-post-launch and baseline-hash rejection, exact-boundary rejection, stable single-stream snapshot/copy verification, deterministic source-swap rejection, and fail-closed reparse-point handling. It succeeds with `PHYSICAL_EVIDENCE_SIDECHANNEL_REGRESSION_OK` and does not launch Godot or create release evidence.
+The physical-evidence regression uses an isolated temporary `APPDATA` tree. It covers
+bounded Job Object launch/argument handling, process-start freshness, descendant teardown
+on timeout/output overflow, strict pacing schema and recomputed verdicts, destination
+containment, stale/baseline/exact-boundary rejection, atomic quarantine, 1 MiB
+side-channel limits, verified single-stream copies, exact-one payload enforcement, source
+swaps, and supported reparse-point cases. Its four primary completion markers are:
+
+```text
+PHYSICAL_EVIDENCE_PROCESS_BOUNDARY_REGRESSION_OK
+PHYSICAL_EVIDENCE_PACING_SCHEMA_REGRESSION_OK
+PHYSICAL_EVIDENCE_DESTINATION_CONTAINMENT_REGRESSION_OK
+PHYSICAL_EVIDENCE_SIDECHANNEL_REGRESSION_OK
+```
+
+When junction creation is supported, the harness additionally emits
+`PHYSICAL_EVIDENCE_REPARSE_REGRESSION_OK`; unsupported junction probes emit explicit
+`..._SKIPPED` diagnostics. The harness does not launch Godot or create release evidence.
 
 The Windows adversarial harness requires the normal Godot/template inputs plus verified active and rollback bundles produced by the export verifier. It exercises Job Object descendant teardown, canonical manifest and hash tamper rejection, rollback recovery, duplicate section/key and custom-template rejection, configured output-root containment, timeout preservation, and exclusive locking. It succeeds with `WINDOWS_EXPORT_ADVERSARIAL_OK`, must leave the active/rollback bundle identities unchanged, and is not a rendered-launch test. It does not simulate a hostile concurrent junction/reparse swap after path preflight.
 
@@ -107,25 +166,34 @@ The latest repository-evidence-closure run recorded the following available gate
 | Gate | Result | Boundary |
 |---|---|---|
 | Windows Godot runner | Exit 0; canonical 12/12 checks passed and the latest twelve logs were clean | Headless contracts only; no physical or perceptual proof |
-| Physical-evidence regression | Exit 0; `PHYSICAL_EVIDENCE_REPARSE_REGRESSION_OK` and `PHYSICAL_EVIDENCE_SIDECHANNEL_REGRESSION_OK` | Isolated synthetic fixtures; does not create release evidence |
-| Docker packaging contracts | PowerShell and Bash verifiers passed with `DOCKER_PACKAGING_VERIFY_OK` | Docker daemon was unavailable; live image build/run and registry publication are unverified |
+| Physical-evidence regression | Recorded exit 0; current harness contract and markers are listed above | Isolated synthetic fixtures; rerun after landing changes; never creates release evidence |
+| Docker packaging + live suite | PowerShell/Bash verifiers passed; compose config/build passed; local container emitted `ALL_TWELVE_HEADLESS_CHECKS_OK` | CI/test image only; registry publication was not performed and no player-facing build is implied |
 | Windows export + adversarial harness | Export and startup markers passed; active/rollback identities were preserved | Headless startup/export contracts; normal-window review remains open |
 
-For handoff, keep the Windows identities role-labeled: active executable
-`ROOM_407_THE_LAST_SHIFT.exe` is `117920024` bytes with SHA-256
-`420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771`; active bundle
-`room407-windows-x86_64` is `2111b6f55d318ec257bc6baa4a43117f5ee4d27ccc7c48452a57e6bfc7dcec4d`;
-rollback bundle `room407-windows-x86_64.previous` is
-`3c4890f2b1d6f99329727d0bd008a043d60a462d807e1c811e337b965f2e7701`.
+The canonical headless runners deliberately do not fail on ObjectDB warning noise. A
+dated report that separately scanned the retained logs and found zero ObjectDB lines is
+an additional closure audit, not the runner's failure policy.
+
+For handoff, retain only stable recorded identities in evergreen docs:
+
+| Artifact | Stable recorded identity |
+|---|---|
+| `ROOM_407_THE_LAST_SHIFT.exe` (`117920024` bytes) | SHA-256 `420c085640d54e49765362e830b5f6a4ee8b70d18dc1303079485e59e034c771` |
+| Official export-template archive | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
+| Installed `windows_release_x86_64.exe` template | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
+
+Current active/rollback transaction IDs belong in each ignored `VERIFY_COMPLETE.txt` and
+the dated [operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md), not in evergreen docs: V1 identities bind a
+fresh `RUN_ID` and rotate even when payload bytes reproduce.
 The documentation-only cover is `1280×640` with SHA-256
 `58d5893ef611bfa8b5657c40483073c0ba67c086c0fd2577d4538502d2283980`.
 
-The dated evidence reports are [`tester-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md),
-[`tester-review-fix-cycle-1-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/tester-review-fix-cycle-1-2026-07-19.md),
-and [`code-review-cycle-2-2026-07-19.md`](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md).
-Cycle 2 scored 9/10 with zero critical findings. These reports do not close the human
-gate: PDR-07/parent Phase 5 still requires a fresh physical F5 run, same-run telemetry,
-capture, and completed perception matrix. The runner's covered same-profile reparse/TOCTOU
+The current evidence report is [`pm-260719-1501-source-closure.md`](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md).
+Earlier tester/reviewer reports remain historical traces. The dated review found zero
+Critical or Medium defects. These reports do not close the human
+gate: PDR-07/parent Phase 5 still requires a human physical production-window run;
+`ProjectRun` preferred, `EditorF5` optional, with same-run telemetry, capture, and a
+completed perception matrix. The runner's covered same-profile reparse/TOCTOU
 limitation remains in force; it is not a hostile-filesystem guarantee.
 
 ## Recorded Environment
@@ -174,7 +242,7 @@ SETTINGS_PERSISTENCE_WRITE_OK
 SETTINGS_PERSISTENCE_READ_OK
 ```
 
-The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors, ObjectDB leak warnings, and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. Menu and gameplay smoke have no success marker; editor import runs the project-settings post-script and requires its marker.
+The runner fails on a non-zero Godot exit, a missing expected marker, or matching log text for engine/script/parse errors and the progression, layout, physical-route, player-input, visual-effects, or settings assertion prefixes. It intentionally ignores known ObjectDB warning noise at process exit. Menu and gameplay smoke have no success marker; editor import runs the project-settings post-script and requires its marker.
 
 The runner passes finite frame/iteration watchdogs through `--quit-after`. In particular, progression uses 60000, checkpoint-layout and physical-route use 120000, player-input uses 30000, visual-effects uses 3000, settings-audio uses 60000, and settings persistence uses 1200. Reaching a watchdog is not a pass: every marker-based check must print its expected marker before exit. These values are test safety caps, not gameplay durations.
 
@@ -392,19 +460,33 @@ Use the console summary for quick status and the matching log for diagnosis. A p
 
 ## Physical Playthrough Evidence Runner
 
-`tests/run-physical-playthrough.ps1` is a manual evidence wrapper, not a thirteenth automated check. Its default `ProjectRun` mode launches the configured main scene with `--log-file` bound to that game process. `EditorF5` opens the Godot Editor and waits for a physical F5, but the editor host log does not capture the separate F5 game process; after credits the harness also harvests `user://playthrough_pacing_last.txt` (copied into the evidence folder) so a completed Editor run can still yield one payload. Prefer `ProjectRun` for direct game logging. Both modes preserve same-session engine/console logs under `.artifacts/manual-playthrough/<timestamp>/`.
+`tests/run-physical-playthrough.ps1` supports the human physical production-window run;
+`ProjectRun` preferred, `EditorF5` optional. Default `ProjectRun` launches the configured
+main scene with `--log-file` bound to that game process. `EditorF5` opens the editor, but
+its host log cannot capture the separate F5 game process, so completed editor runs depend
+on the post-credits side-channel. Neither mode is a thirteenth automated check.
+
+The bounded launcher defaults to `-LaunchTimeoutSeconds 7200` with an allowed range of
+60–14400 seconds. `-MaxCombinedOutputBytes` defaults to `16777216` (16 MiB) with an
+allowed range of 1048576–67108864 bytes (1–64 MiB). The Windows Job Object kills the
+entire descendant tree on timeout or combined-output overflow. The preliminary Godot
+`--version` probe uses that same bounded Job path with a fixed 30-second timeout and
+65536-byte combined-output cap; it never invokes the supplied executable directly.
+Every run directory below `.artifacts/manual-playthrough/<timestamp>/` retains raw
+`godot-version-stdout.log`, `godot-version-stderr.log`, `console-stdout.log`, and
+`console-stderr.log`, plus combined `console.log` and `engine.log`.
 
 Runtime finalization still prints one `PLAYTHROUGH_PACING: ` JSON line and overwrites the same line to `user://playthrough_pacing_last.txt` as a last-run evidence side-channel only. The progression suite asserts that side-channel matches the finalized report. Gameplay never reads the file.
 
-Before launch, the wrapper takes a verified snapshot of any existing last-run side-channel into the evidence directory, clears the source fail-closed, and records the launch boundary. Harvest accepts only a regular non-reparse file written strictly after that boundary whose hash differs from the archived baseline. It copies from one open source stream, verifies pre/open/post source identity and the destination size/SHA-256, and rejects a deterministic path swap or source change. Rejected candidates and reasons remain in the summary. This blocks the covered stale, linked-path, and check-then-copy cases without claiming protection from a hostile process that already controls the same user profile.
+Before launch, the wrapper takes a verified snapshot of any existing last-run side-channel, atomically renames the exact source to a unique non-runtime quarantine filename, and records the launch boundary. It retains the quarantine rather than deleting by path, so a same-size/same-timestamp replacement cannot be removed after the check. Each candidate is limited to 1 MiB. Harvest accepts only a regular non-reparse file written strictly after the boundary whose hash differs from the archived baseline. It copies from one open source stream, verifies pre/open/post source identity and destination size/SHA-256, and rejects deterministic path swaps, oversize files, or source changes. Every hash-verified side-channel must exist unchanged at parse time and contain exactly one `PLAYTHROUGH_PACING` payload; zero or duplicate payload lines fail even if another log contains valid JSON. Evidence output is constrained below repository `.artifacts`; linked output/log ancestors are rejected. Rejected candidates, diagnostic archives, and reasons remain in the summary. These controls cover the tested stale, linked-path, resource-bound, and check-then-copy cases without claiming protection from a hostile process that already controls the same user profile.
 
-The parser deduplicates identical engine/console/side-channel copies of one payload and refuses two distinct payloads, preventing evidence from separate runs being merged. It rejects engine/script/parse/ObjectDB-leak failure lines and verifies fresh-Lobby eligibility, completion, exact boundary order, no missing milestones, the fixed 900–1200-second target metadata, active total, every chapter verdict, and the final total verdict. The generated summary records the unchanged clean branch/commit before and after the run, Godot path/version, UTC start/end, launch mode, engine exit, log failures, side-channel baseline/harvest/rejection records and integrity verdict, physical-input declaration, capture reference, log paths, pacing checks, C:/D: free space, and an unchecked human-review matrix.
+The parser deduplicates identical engine/console/side-channel copies of one payload and refuses two distinct payloads, preventing evidence from separate runs being merged. It requires native JSON boolean/number/array types; exact boundary, chapter-duration, chapter-verdict, and target-key sets; the fixed target ranges; sane active/wall/paused totals; and a chapter-duration sum consistent with the active total. It recomputes chapter and total verdicts instead of trusting payload booleans. The generated summary records the unchanged clean branch/commit before and after the run, Godot path/version, bounded version-probe controls/logs, UTC start/end, launch mode, engine exit, log failures, side-channel baseline/harvest/rejection records and integrity verdict, physical-input declaration, capture reference, log paths, pacing checks, C:/D: free space, and an unchecked human-review matrix.
 
 `evidence_package_ready` requires an unchanged clean branch/commit, all pacing checks, verified side-channel integrity, zero scanned log failures, a normal launched-process exit, `-ConfirmPhysicalInput`, and a non-empty `-CaptureReference`. The script always records `review_required: true`: it does not inspect video contents, prove operating-system input, or judge the manual matrix. `-AnalyzeLog` intentionally cannot make an evidence package ready.
 
-Parser verification on 2026-07-16 covered six adversarial cases: the canonical 6.58-second compressed log was rejected; a synthetic 1000-second structurally valid payload passed pacing but remained package-ineligible in analysis mode; a log with two distinct payloads was rejected rather than mixed; a structurally valid payload beside a synthetic `ERROR:` line recorded the failure; a dirty worktree was marked unstable; and a clean post-commit analysis preserved identical before/after SHAs while remaining package-ineligible. Synthetic fixtures were deleted and are not release evidence.
+Parser verification on 2026-07-16 covered six adversarial cases: the canonical 6.58-second compressed log was rejected; a synthetic 1000-second structurally valid payload passed pacing but remained package-ineligible in analysis mode; a log with two distinct payloads was rejected rather than mixed; a structurally valid payload beside a synthetic `ERROR:` line recorded the failure; a synthetic unstable-repository state was rejected; and a stable post-commit analysis preserved identical before/after SHAs while remaining package-ineligible. Synthetic fixtures were deleted and are not release evidence.
 
-The focused regression covers stale archive/clear, absent-file, same-baseline-hash, former-tolerance and exact-boundary timestamps, fresh changed payload, stable byte/hash snapshot, deterministic source swap, rejected-copy cleanup, and supported junction rejection cases. Its synthetic temporary tree is removed and is not release evidence. Record a dated fresh result with the final tree rather than treating this coverage list as a pass claim.
+The focused regression covers strict pacing types/schema/recomputed verdicts, stale archive/quarantine, same-metadata pre-clear replacement preservation, the 1 MiB ceiling, absent-file, same-baseline-hash, former-tolerance and exact-boundary timestamps, fresh changed payload, stable byte/hash snapshot, deterministic source swap, rejected-copy cleanup, containment, and supported junction rejection cases. Its synthetic temporary tree is removed and is not release evidence. Record a dated fresh result with the final tree rather than treating this coverage list as a pass claim.
 
 ## Required Manual Matrix
 
@@ -412,7 +494,7 @@ No current automated check fully verifies the following. Record each result, env
 
 | Area | Manual procedure | Evidence required |
 |---|---|---|
-| Intended flow | Start a fresh shift with F5, use physical keyboard/mouse, reach credits without method calls | complete capture or timestamped trace |
+| Intended flow | Human physical production-window run; `ProjectRun` preferred, `EditorF5` optional; choose START SHIFT, use physical keyboard/mouse, and reach credits without method calls | complete capture or timestamped trace |
 | Pacing | Record a fresh blind/new-player run and preserve the `PLAYTHROUGH_PACING: ` payload emitted at the same run's credits | capture plus eligible/complete/order-valid payload; compare chapter durations and active total with the 900–1200 second target |
 | Physical traversal | Walk/sprint through every closed/open door, loop return, Room 407, and chase route | no snag/bypass report and capture |
 | Chase fairness | Complete, fail once, recover, and complete again | distance/readability/collision observations |
@@ -429,6 +511,7 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
 - [`physical-playthrough-evidence-regression.ps1`](../tests/physical-playthrough-evidence-regression.ps1)
+- [`verify-repository-docs.py`](../tests/verify-repository-docs.py)
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`windows-export-adversarial.ps1`](../tests/windows-export-adversarial.ps1)
 - [`export_presets.cfg`](../export_presets.cfg)
@@ -436,8 +519,8 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`GODOT_COPYRIGHT.txt`](../GODOT_COPYRIGHT.txt)
 - [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [`visual-capture-tour.tscn`](../tests/visual-capture-tour.tscn)
-- [Current tester report](../plans/260719-0746-repository-evidence-closure/reports/tester-2026-07-19.md)
-- [Cycle-2 reviewer report](../plans/260719-0746-repository-evidence-closure/reports/code-review-cycle-2-2026-07-19.md)
+- [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
+- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
 - [`game-state-test.gd`](../tests/game-state-test.gd)
 - [`progression-test.gd`](../tests/progression-test.gd)
 - [`horror-event-director.gd`](../scripts/world/horror-event-director.gd)
@@ -468,4 +551,5 @@ Do not mark 15-20 minute pacing, visual/audio balance, audible output, full phys
 - [`audio-manager.gd`](../scripts/autoload/audio-manager.gd)
 - [`visual-effects-layer.gd`](../scripts/ui/visual-effects-layer.gd)
 - [`retro-screen-overlay.gdshader`](../shaders/retro-screen-overlay.gdshader)
+- [Deployment guide](deployment-guide.md)
 - [Known limitations](limitations.md)

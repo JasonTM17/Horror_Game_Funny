@@ -1,11 +1,11 @@
 ---
 phase: 5
-title: "Physical F5 review and pacing validation"
+title: "Human physical production-window review and pacing validation"
 status: in-progress
 effort: large
 ---
 
-# Phase 5: Physical F5 review and pacing validation
+# Phase 5: Human Physical Production-Window Review and Pacing Validation
 
 ## Goal
 
@@ -14,17 +14,15 @@ retain same-run artifacts without overstating agent-driven evidence.
 
 ## Current execution constraint
 
-The user explicitly requested background/headless self-testing without desktop,
-mouse, or keyboard control. No agent-driven computer-control run is authorized under
-that instruction. Automated route, input, audio, export, host, and container checks
-are complete, but they do not replace this physical/perceptual gate. Leave the phase
-open until the user later chooses to perform or explicitly authorize a real-window
-review.
+No eligible report-containing delivery commit exists yet: the 30-path slice still needs
+its real-index gate, commit, push, remote-parity check, and CI result. Automated route,
+input, audio, export, host, and container checks do not replace this physical/perceptual
+gate. Leave the phase open until a human runs the clean pushed commit, watches its same-
+run capture, and signs the review matrix.
 
 ## Steps
 
-1. Do not invoke computer control unless the user explicitly reverses the current
-   no-desktop-control instruction.
+1. Do not treat agent-driven computer control as the authorized human review.
 2. Prefer the evidence runner in **ProjectRun** mode so `--log-file` binds to the game
    process. Use `-LaunchMode EditorF5` only when the editor is required; that path
    does not attach `--log-file` to the F5 game process and depends on the
@@ -32,7 +30,8 @@ review.
    `-ConfirmPhysicalInput` unless a human actually used keyboard/mouse.
 3. Start fresh with **START SHIFT** (not Continue), traverse every action, fail/recover
    once during chase, test pause/settings/fullscreen/comfort, and reach credits.
-4. Preserve same-run capture, raw log, and unique pacing payload.
+4. Preserve the same-run capture, bounded raw/combined logs, and unique pacing payload;
+   every verified side-channel must contain exactly one canonical payload.
 5. Review objective clarity, scare timing/readability, chase fairness, audio balance,
    focus/relaunch/fullscreen, and comfort row by row.
 6. Route any defect back to its source phase, repeat automated regressions, then
@@ -55,3 +54,17 @@ review.
 - [x] Defects found by source review were fixed and reverified.
 - [ ] Rendered readability, audible balance, physical controls, full-duration pacing,
   chase feel, comfort, and visible credits remain human/physical observations.
+
+Current automated authority:
+[final tester](../260719-0746-repository-evidence-closure/reports/tester-final-2026-07-19.md)
+and [final reviewer](../260719-0746-repository-evidence-closure/reports/code-review-final-2026-07-19.md).
+The reviewer verdict is Pass for staging, not human approval or landing proof.
+
+## Next owner and done definition
+
+- Main agent/delivery lead: finish real-index gate, report-containing commit, authorized
+  non-force push, remote parity, and CI.
+- Human release reviewer: use the
+  [operator handoff](./reports/phase-05-operator-handoff-2026-07-18.md), with `ProjectRun`
+  preferred. Done only when all five human success criteria and the perception matrix are
+  evidence-backed; any defect routes to its source phase and forces a rerun.

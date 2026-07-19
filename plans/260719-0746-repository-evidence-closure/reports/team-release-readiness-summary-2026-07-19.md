@@ -1,9 +1,13 @@
 # Team release-readiness summary — 2026-07-19
 
-**Mode:** Grok-equivalent Agent Team (native Claude `TeamCreate` unavailable)  
-**Mission:** Strike team on Room 407 evidence-closure + release readiness  
-**HEAD at run:** `3b02b51d` on `main` (dirty worktree)  
-**Lead:** synthesize only — no product edits, no commit/push
+> Historical audit snapshot at `3b02b51d`. It is retained for traceability and is not
+> current release evidence; later fixes and verification reports supersede its findings.
+
+**Mode:** Parallel specialist review lanes
+
+**Mission:** Room 407 evidence-closure and release-readiness audit
+**HEAD at run:** `3b02b51d` on `main` (dirty worktree)
+**Scope:** Read-only synthesis; no product edits or Git delivery
 
 ## Team roster
 

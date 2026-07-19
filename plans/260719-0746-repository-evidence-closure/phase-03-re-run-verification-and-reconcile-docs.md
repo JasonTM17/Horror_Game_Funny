@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: Re-run verification and reconcile docs
-status: in-progress
+status: completed
 effort: medium
 ---
 
@@ -9,8 +9,8 @@ effort: medium
 
 ## Overview
 
-Delegate a clean verification matrix and adversarial review, then sync documentation and
-plan status to the evidence actually produced.
+Run a clean verification matrix and adversarial review, then sync documentation and plan
+status to the evidence actually produced.
 
 ## Prerequisites and inventory
 
@@ -20,18 +20,19 @@ plan status to the evidence actually produced.
 
 ## Steps
 
-1. Spawn the mandatory CK tester to run the canonical host suite, focused regressions,
+1. Require the final tester to run the canonical host suite, focused regressions,
    packaging, Docker suite when the daemon is available, export verification/adversarial
    checks, secret scan, YAML parse, link/media validation, and diff checks.
 2. Require 12/12 canonical success, unique focused markers, zero scanned bad lines,
-   zero leaked profiles/processes, and explicit environment notes for unavailable Docker.
-3. Spawn the mandatory code reviewer with acceptance criteria, scout blast radius, and
-   stable contracts; require zero critical findings and resolve approved defects through
-   the CK review cycle.
+   zero leaked profiles/processes, and Docker runtime UID/GID/version evidence. A missing
+   daemon is an explicit exception, never a pass.
+3. Require final code review against acceptance criteria, scout blast radius, and
+   stable contracts; require zero unresolved Critical/High/Medium findings and resolve
+   approved defects through the CK review cycle.
 4. Activate CK project-management during finalize and reconcile all phase files, the
    child plan table, parent Phase 5, and older-plan cross-links from actual evidence.
-5. Delegate docs review. Keep README, changelog, testing, limitations, credits, CI text,
-   and audit report mutually consistent and free of overclaims or stale commit IDs.
+5. Reconcile docs review findings. Keep README, changelog, testing, limitations, credits,
+   CI text, and audit report mutually consistent and free of overclaims or stale commit IDs.
 6. Decide Docker Hub publication from evidence: publish `latest` plus immutable Git-SHA
    only if the image surface changed, credentials work, the tree has a stable commit, and
    the built suite passes; otherwise record why no push is needed or possible.
@@ -52,18 +53,42 @@ git diff --check
 
 - [x] Mandatory tester reports every applicable gate passing; exceptions are explicit.
 - [x] Canonical suite is exactly 12/12 with clean logs and cleanup.
-- [x] Mandatory reviewer reports zero critical findings and no contract regression.
+- [x] Final reviewer reports zero unresolved Critical/High/Medium findings and no contract regression.
 - [x] Child, parent, and older plan status/cross-links have one truthful authority.
 - [x] Docs and audit report cite only current, reproducible evidence.
 - [x] Docker Hub decision and, if published, both verified tags/digests are recorded.
 
 ## Result
 
-Completed with fresh tester and cycle-2 review evidence. Docker packaging contracts pass,
-but the live Docker daemon is unavailable, so no local image push is claimed; CI remains
-the conditional Docker Hub publisher after a successful authorized Git push.
+Completed as source verification against the live 30-path worktree on 2026-07-19. The
+[final tester report](./reports/tester-final-2026-07-19.md), including its post-review
+delta, records:
+
+- host Godot exactly 12/12, twelve exact logs, zero bad canonical logs, clean processes;
+- Docker build/run 12/12 as UID/GID 65532 with Godot 4.7.1;
+- real Windows PE x86_64 export and exported-process smoke;
+- export adversarial success, including self-seeding with canonical bundles absent;
+- all five physical-evidence markers and both exact-order packaging markers;
+- secret, PyYAML workflow parse, strict UTF-8, diff, and generated-cleanup gates green.
+
+The earlier failed-clone bundle note is explicitly superseded by the passing isolated
+fresh-canonical-absent delta. The
+[final reviewer report](./reports/code-review-final-2026-07-19.md) gives **Pass for
+staging**: 0 unresolved Critical/High/Medium and one informational Low for per-blob
+`git cat-file` process startup. Accepted Git-index filesystem/path/blob/mode confusion,
+media-extension bypass, authorization drift, and report-authority drift were fixed and
+rechecked.
+
+Delivery is not yet Pass. The real index intentionally fails closed on the unindexed
+`docs/deployment-guide.md`; temporary landing-index/OID/mode probes pass but are not the
+authoritative pre-commit gate. Git commit/push is authorized and `gh` authentication is
+operational. Stage all 30 intended paths, rerun the real-index verifier, then record the
+commit, remote parity, and CI only after the report-containing commit exists. No Docker
+Hub Actions secrets are listed, so no publication, tag, or registry digest is claimed.
 
 ## Non-goals and risks
 
-- An unavailable Docker daemon is an environmental limitation, not permission to claim pass.
-- Do not rewrite historical evidence; append or clearly supersede stale status statements.
+- Real-index verification remains the delivery blocker; isolated-index proof cannot close it.
+- The informational `git cat-file` N+1 pattern is accepted at current scale, not erased.
+- No Docker Hub secret means no publication claim; local Docker is test evidence only.
+- Do not rewrite historical evidence; explicitly supersede stale results.

@@ -1,4 +1,4 @@
-# Lightweight non-Docker CI: packaging contracts without the full container suite.
+# Lightweight non-Docker CI: packaging, documentation, media, and secret contracts.
 # Full twelve-check container run remains in docker-suite.yml.
 name: ci
 
@@ -21,34 +21,8 @@ jobs:
       - name: Verify Docker packaging contracts
         run: bash tests/verify-docker-packaging.sh
 
-      - name: Assert professional root docs exist
-        run: |
-          set -euo pipefail
-          for f in SECURITY.md CONTRIBUTING.md .editorconfig LICENSE README.md CHANGELOG.md docs/asset-credits.md docs/media/room-407-cover.png; do
-            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
-            echo "OK $f"
-          done
-          grep -q 'SECURITY.md' README.md
-          grep -q 'CONTRIBUTING.md' README.md
-          grep -q 'docs/media/room-407-cover.png' README.md
-          grep -q 'docs/media/room-407-cover.png' docs/asset-credits.md
-          grep -Eiq 'PDR-07|physical|15.?20' README.md
-          python3 - <<'PY'
-          import struct
-          from pathlib import Path
-
-          cover = Path("docs/media/room-407-cover.png").read_bytes()
-          if len(cover) < 24 or cover[:8] != b"\x89PNG\r\n\x1a\n":
-              raise SystemExit("repository cover is not a canonical PNG")
-          ihdr_length = struct.unpack(">I", cover[8:12])[0]
-          if ihdr_length != 13 or cover[12:16] != b"IHDR":
-              raise SystemExit("repository cover must have a 13-byte IHDR chunk")
-          width, height = struct.unpack(">II", cover[16:24])
-          if (width, height) != (1280, 640):
-              raise SystemExit(f"repository cover must be 1280x640, got {width}x{height}")
-          print("REPOSITORY_COVER_OK")
-          PY
-          echo "PRO_DOCS_OK"
+      - name: Verify repository docs and media
+        run: python3 tests/verify-repository-docs.py
 
   secret-patterns:
     runs-on: ubuntu-latest
