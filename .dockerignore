@@ -21,6 +21,7 @@ plans
 
 # Docs media not required for headless suite execution
 docs/screenshots
+docs/media
 docs/journals
 
 # Secrets and local credentials

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/ci.yml) [![Docker suite](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/docker-suite.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Horror_Game_Funny/actions/workflows/docker-suite.yml)
 
-[![ROOM 407: THE LAST SHIFT repository cover](docs/media/room-407-cover.png)](docs/screenshots/room-407-gameplay-tour.gif)
+[![ROOM 407: THE LAST SHIFT repository cover (opens full-size PNG)](docs/media/room-407-cover.png)](docs/media/room-407-cover.png)
 
 A short first-person psychological horror game built with Godot 4.7.1 and GDScript. A student covering a night shift enters a condemned apartment block after a call points to a floor that should have been sealed for years.
 
@@ -25,31 +25,44 @@ The implemented path keeps the lobby, fourth-floor corridor, memory loop, Room 4
 
 ## Visual Reference Tour
 
-[![Derived ROOM 407 visual-reference tour](docs/screenshots/room-407-gameplay-tour.gif)](docs/screenshots/room-407-gameplay-tour.gif)
+The visual material below is a reproducible, staged documentation tour rather than a player-driven recording. It demonstrates selected rendered states only and is not evidence of physical traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
+
+[Open the 7.38-second visual-reference tour (GIF; plays once)](docs/screenshots/room-407-gameplay-tour.gif)
 
 ### In-engine stills (staged documentation tour)
 
-| Lobby | Room 407 bedroom |
-|---|---|
-| [![Lobby](docs/screenshots/room-407-lobby.png)](docs/screenshots/room-407-lobby.png) | [![Bedroom](docs/screenshots/room-407-bedroom.png)](docs/screenshots/room-407-bedroom.png) |
+#### Lobby
 
-| Chase entity | Ending reveal |
-|---|---|
-| [![Chase entity](docs/screenshots/room-407-chase-entity.png)](docs/screenshots/room-407-chase-entity.png) | [![Ending reveal](docs/screenshots/room-407-ending-reveal.png)](docs/screenshots/room-407-ending-reveal.png) |
+[![Staged documentation capture: lobby view (opens full size)](docs/screenshots/room-407-lobby.png)](docs/screenshots/room-407-lobby.png)
 
-### Project-authored prop / menu stills
+#### Room 407 approach
 
-| Menu corridor | Memory photo | Room 407 drawing | Family table |
-|---|---|---|---|
-| ![Menu corridor still](assets/images/menu-hotel-corridor.png) | ![Memory photo still](assets/images/memory-photo-rabbit.png) | ![Room 407 drawing still](assets/images/room-drawing-rabbit.png) | ![Family table still](assets/images/family-table-memory.png) |
+[![Staged documentation capture: Room 407 interior approach (opens full size)](docs/screenshots/room-407-bedroom.png)](docs/screenshots/room-407-bedroom.png)
+
+#### Chase entity
+
+[![Staged documentation capture: chase entity view (opens full size)](docs/screenshots/room-407-chase-entity.png)](docs/screenshots/room-407-chase-entity.png)
+
+#### Ending reveal
+
+[![Staged documentation capture: ending reveal view (opens full size)](docs/screenshots/room-407-ending-reveal.png)](docs/screenshots/room-407-ending-reveal.png)
+
+### Project-authored runtime art
+
+The original runtime textures are opt-in source links rather than inline previews, keeping the README lightweight and avoiding any suggestion that they are in-engine captures:
+
+- [Menu corridor runtime source PNG](assets/images/menu-hotel-corridor.png)
+- [Memory photo runtime source PNG](assets/images/memory-photo-rabbit.png)
+- [Room 407 drawing runtime source PNG](assets/images/room-drawing-rabbit.png)
+- [Family table runtime source PNG](assets/images/family-table-memory.png)
 
 | Asset | Role | Boundary |
 |---|---|---|
 | `docs/media/room-407-cover.png` | 1280×640 repository cover | Docs-only; excluded from Godot export |
-| `docs/screenshots/*.png` + tour GIF | Staged visual reference | Not production-window evidence |
-| `assets/images/*` | Menu / story prop textures | Runtime art, not release evidence |
+| Four `docs/screenshots/*.png` files + linked tour GIF | Staged visual reference | Display-grade documentation derivatives; not production-window evidence |
+| `assets/images/*` | Menu / story prop textures | Runtime art, linked on demand; not release evidence |
 
-The in-engine screenshots and GIF come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The four source stills above and the repository cover are separately generated project artwork with their prompts and provenance recorded in [Asset credits and provenance](docs/asset-credits.md). The GIF is a derived visual-reference montage, not a gameplay recording. None of this media proves physical traversal, pacing, progression, chase fairness, audio, Settings, fullscreen, pixel determinism, or behavior on other hardware.
+The in-engine screenshots and GIF come from a reproducible staged QA/documentation tour. The tour instantiates production gameplay and ending scenes, then freezes gameplay/player simulation, disables voice, teleports the player, selects authored hallway/chase/epilogue states directly, and creates the credits overlay. The four 960x540 PNGs are deterministic display derivatives of reviewed staged captures: ImageMagick lifts RGB midtones/shadows with `-channel RGB -evaluate Pow 0.55 +channel -strip`, adding or removing no scene content. The four runtime still sources and the repository cover are separately generated project artwork with prompts and provenance in [Asset credits and provenance](docs/asset-credits.md). The GIF is a finite, derived visual-reference montage, not a gameplay recording.
 
 ### Reproduce the staged capture
 
@@ -65,7 +78,7 @@ godot --path . `
   --output-root=res://.artifacts/visual-capture-current
 ```
 
-The harness writes eight PNG frames under the ignored `.artifacts/visual-capture-current/` directory while Godot Movie Maker writes the 1280×720, 12 fps AVI. It requires a rendered window and intentionally exits with code 2 under a headless display, preventing empty frames from being reported as successful evidence. The four linked PNGs were reviewed, resized/optimized with ImageMagick, and copied to `docs/screenshots/`; the GIF was derived separately with FFmpeg. See [Testing](docs/testing.md) for the capture contract and [Asset credits and provenance](docs/asset-credits.md) for the curation settings.
+The harness writes eight PNG frames under the ignored `.artifacts/visual-capture-current/` directory while Godot Movie Maker writes the 1280×720, 12 fps AVI. It requires a rendered window and intentionally exits with code 2 under a headless display, preventing empty frames from being reported as successful evidence. The four linked PNGs were reviewed and processed as deterministic 960x540 display derivatives with ImageMagick; the tour originated from a separate FFmpeg-derived montage and its current finite GIF packaging was optimized with ImageMagick. The README embeds 3,617,474 bytes / 3.45 MiB of local project media (the cover and four staged PNGs); the GIF and 9.17 MiB of runtime source art are opt-in links. See [Testing](docs/testing.md) for the capture contract and [Asset credits and provenance](docs/asset-credits.md) for the curation settings.
 
 ## Requirements
 
@@ -220,7 +233,7 @@ The generated Markdown includes an unchecked human-review matrix. The capture pa
 
 There is no third-party art or recorded-sound pack. Corridor geometry, most props, materials, labels, and procedural 16-bit mono PCM effects are generated at runtime; `assets/audio/voice-over/` contains 76 compact, generated English story cues with a reviewed manifest and provenance, while Piper binaries/model weights remain local build inputs and are not committed. Four project-authored still textures under `assets/images/` dress the boot menu and selected story props. A separate 1280x640 project-authored cover under `docs/media/` gives the repository an immediate visual identity without entering the game export. `icon.svg` is project-authored. The project-authored Compatibility shader adds 2x2 dithering, VHS tracking/jitter, grain, scanlines, a cold grade, and an edge vignette that intensifies and warms during the chase. The **Film Grain** setting controls the entire overlay, including the chase fear vignette.
 
-Four reviewed staged in-engine stills and one derived visual-reference GIF are committed under `docs/screenshots/`. They are documentation media, not evidence of a physical gameplay run. Add only verified in-engine captures after a visual pass; do not present concept art or staged media as physical-playthrough evidence. See [Asset credits and provenance](docs/asset-credits.md).
+Four reviewed staged in-engine display derivatives and one finite visual-reference GIF are committed under `docs/screenshots/`. They are documentation media, not evidence of a physical gameplay run. Add only verified in-engine captures after a visual pass; do not present concept art or staged media as physical-playthrough evidence. See [Asset credits and provenance](docs/asset-credits.md).
 
 ## Known Limitations
 

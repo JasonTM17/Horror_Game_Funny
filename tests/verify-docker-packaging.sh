@@ -67,6 +67,7 @@ require_grep "Dockerfile" "nguyenson1710/horror-game-suite|horror-game-suite" "D
 require_grep "Dockerfile" "GODOT_SHA256|sha256sum" "Dockerfile pins Godot download checksum"
 require_grep "docker-compose.yml" "nguyenson1710/horror-game-suite" "compose image name"
 require_grep ".dockerignore" "\\.env" "dockerignore excludes dotenv"
+require_grep ".dockerignore" "docs/media" "dockerignore excludes docs-only cover media"
 require_grep ".gitignore" "\\.env" "gitignore excludes dotenv"
 require_no_grep ".github/workflows/docker-suite.yml" "^[[:space:]]*if:.*secrets\." "workflow condition does not reference secrets directly"
 require_grep ".github/workflows/docker-suite.yml" "^[[:space:]]*if: github\.ref == 'refs/heads/main' && github\.event_name == 'push'$" "publish step remains main-push only"

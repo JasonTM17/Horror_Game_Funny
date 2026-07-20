@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import html
 import hashlib
 import posixpath
 import re
@@ -21,6 +22,8 @@ MAX_CONFIG_BYTES = MIB
 MAX_PNG_BYTES = 2 * MIB
 MAX_GIF_BYTES = 8 * MIB
 HASH_CHUNK_BYTES = 64 * 1024
+GIF_EXPECTED_DELAY_COUNTS = {12: 29, 13: 30}
+GIF_EXPECTED_DURATION_CS = 738
 MEDIA = {
     "docs/media/room-407-cover.png": (
         (1280, 640),
@@ -30,26 +33,26 @@ MEDIA = {
     "docs/screenshots/room-407-lobby.png": (
         (960, 540),
         6,
-        "b9535170b827b551e2f0656ac8a1f924d57f56c7c9569152b6cbd213db12d55b",
+        "5e2b94ab74e8964036cab12f1eca7ac77759e2ca08f294eea0711658257ffed2",
     ),
     "docs/screenshots/room-407-bedroom.png": (
         (960, 540),
         6,
-        "10da0fc383e357bbccad83389565afd6acce254ae07ccd1562867087062b8bc7",
+        "0d728fda807963afc35396713f0bc1993a7571ad189a8d00ff3a6a8e588292f4",
     ),
     "docs/screenshots/room-407-chase-entity.png": (
         (960, 540),
         6,
-        "826aee57128e9b26660e4902407cf9b88fcef901c7de2b6396ea8a1f365969e5",
+        "f62493b5c96e8853b1e474106dc99a1bb1fde5138ca0a7f68eed452e8d88312b",
     ),
     "docs/screenshots/room-407-ending-reveal.png": (
         (960, 540),
         6,
-        "0c2556ba0475ebbcfda00bd7c56931cce0b7dc2dca63ebc2d0a54cd2e472d9ac",
+        "fdbc2f037e2990e2cdcce15390ed96b1a471fb7e4d75149177efa9dcb2aaae24",
     ),
 }
 GIF_PATH = "docs/screenshots/room-407-gameplay-tour.gif"
-GIF_SHA256 = "8bcbe98c1c42d9013e985ac15a501140065cd2286dd0ab1c6a6fefbc67b6fb4b"
+GIF_SHA256 = "04f0e5cf355280f4a62d19632803e9e368def752984e0ab4ab987bf2bfe8ac07"
 REQUIRED_FILES = (
     ".editorconfig",
     ".github/workflows/ci.yml",
@@ -72,9 +75,13 @@ REFERENCE_DEFINITION_RE = re.compile(
     r"^\s{0,3}\[(?P<label>[^\]\n]+)\]:\s*(?P<body>.*)$"
 )
 REFERENCE_LINK_RE = re.compile(
-    r"(?<!\\)!?\[(?P<text>(?:\\.|[^\]\n])+)\]"
+    r"(?<!\\)!?\[(?P<text>(?:\\.|[^\]\n])*)\]"
     r"\[(?P<label>(?:\\.|[^\]\n])*)\]"
 )
+INLINE_IMAGE_LINK_RE = re.compile(
+    r"(?<!\\)!\[[^\]\n]*\]\((?P<body>[^)\n]+)\)"
+)
+HTML_IMG_TAG_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 REGULAR_INDEX_MODES = {"100644", "100755"}
 
@@ -231,12 +238,12 @@ def verify_gif_bytes(
     width, height = struct.unpack("<HH", blob[6:10])
     if (width, height) != expected_size:
         raise VerificationError(f"{context}: expected {expected_size}, got {(width, height)}")
-
     packed = blob[10]
     offset = 13
     if packed & 0x80:
         offset += 3 * (2 ** ((packed & 0x07) + 1))
     frames = 0
+    delays: list[int] = []
     while offset < len(blob):
         marker = blob[offset]
         offset += 1
@@ -247,11 +254,41 @@ def verify_gif_bytes(
                 raise VerificationError(
                     f"{context}: expected {expected_frames} frames, got {frames}"
                 )
+            if len(delays) != expected_frames:
+                raise VerificationError(
+                    f"{context}: expected a graphics-control delay for every frame"
+                )
+            delay_counts = {delay: delays.count(delay) for delay in set(delays)}
+            if delay_counts != GIF_EXPECTED_DELAY_COUNTS:
+                raise VerificationError(
+                    f"{context}: unexpected GIF delay distribution {delay_counts}"
+                )
+            if sum(delays) != GIF_EXPECTED_DURATION_CS:
+                raise VerificationError(
+                    f"{context}: unexpected GIF duration {sum(delays)} centiseconds"
+                )
             return
         if marker == 0x21:
             if offset >= len(blob):
                 raise VerificationError(f"{context}: truncated GIF extension")
-            offset += 1  # extension label
+            extension_label = blob[offset]
+            offset += 1
+            if extension_label == 0xFF:
+                raise VerificationError(
+                    f"{context}: must not contain a GIF application extension"
+                )
+            if extension_label == 0xF9:
+                if offset + 6 > len(blob):
+                    raise VerificationError(
+                        f"{context}: truncated graphics-control extension"
+                    )
+                if blob[offset] != 4 or blob[offset + 5] != 0:
+                    raise VerificationError(
+                        f"{context}: invalid graphics-control extension"
+                    )
+                delays.append(struct.unpack("<H", blob[offset + 2 : offset + 4])[0])
+                offset += 6
+                continue
             offset = _read_subblocks(blob, offset, context)
             continue
         if marker != 0x2C or offset + 9 > len(blob):
@@ -463,6 +500,18 @@ def _extract_link_target(body: str) -> str:
     return target.replace("\\ ", " ")
 
 
+def _is_readme_gif_target(body: str) -> bool:
+    target = html.unescape(_extract_link_target(body)).replace("\\", "/")
+    parsed = urllib.parse.urlsplit(target)
+    if parsed.scheme or parsed.netloc:
+        return False
+    decoded_path = urllib.parse.unquote(parsed.path).replace("\\", "/")
+    normalized = posixpath.normpath(decoded_path)
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized == GIF_PATH
+
+
 def _normalize_reference_label(label: str) -> str:
     return " ".join(label.split()).casefold()
 
@@ -622,6 +671,52 @@ def verify_document_contracts(entries: dict[str, tuple[str, str]]) -> None:
     ):
         if required_reference not in readme:
             raise VerificationError(f"README is missing required reference: {required_reference}")
+    for screenshot_path in (
+        path for path in MEDIA if path.startswith("docs/screenshots/")
+    ):
+        if screenshot_path not in readme:
+            raise VerificationError(
+                f"README is missing staged screenshot reference: {screenshot_path}"
+            )
+    required_gif_link = (
+        "[Open the 7.38-second visual-reference tour (GIF; plays once)]"
+        f"({GIF_PATH})"
+    )
+    if required_gif_link not in readme:
+        raise VerificationError("README is missing the finite visual-reference GIF link")
+    readme_lines = list(_non_fenced_lines(readme, "README.md"))
+    readme_body = "\n".join(line for _, line in readme_lines)
+    reference_targets = {
+        _normalize_reference_label(definition.group("label")): _extract_link_target(
+            definition.group("body")
+        )
+        for _, line in readme_lines
+        if (definition := REFERENCE_DEFINITION_RE.match(line))
+        and not definition.group("label").lstrip().startswith("^")
+    }
+    for _, line in readme_lines:
+        if any(
+            _is_readme_gif_target(match.group("body"))
+            for match in INLINE_IMAGE_LINK_RE.finditer(line)
+        ):
+            raise VerificationError(
+                "README must link to, not autoplay-embed, the visual-reference GIF"
+            )
+        for reference in REFERENCE_LINK_RE.finditer(line):
+            if not reference.group(0).startswith("!"):
+                continue
+            raw_label = reference.group("label") or reference.group("text")
+            target = reference_targets.get(_normalize_reference_label(raw_label))
+            if target and _is_readme_gif_target(target):
+                raise VerificationError(
+                    "README must not reference-style embed the visual-reference GIF"
+                )
+    if HTML_IMG_TAG_RE.search(readme_body):
+        raise VerificationError(
+            "README must use Markdown images rather than HTML image tags"
+        )
+    if "plays once" not in readme:
+        raise VerificationError("README does not disclose finite visual-reference GIF playback")
     cover_hash = MEDIA["docs/media/room-407-cover.png"][2]
     if "docs/media/room-407-cover.png" not in credits or cover_hash not in credits:
         raise VerificationError("asset credits do not bind the repository cover path and hash")

@@ -22,7 +22,7 @@ two separate delivery requirements.
 - [ ] Optional future QA: record a fresh `START SHIFT`-to-credits production-window session with physical keyboard/mouse input; use `ProjectRun` preferably (`EditorF5` is optional), then fail and recover once during the chase.
 - [ ] Optional future QA: preserve the session's single `PLAYTHROUGH_PACING` payload and inspect chapter/total timing against the 900–1200 second target.
 - [ ] Optional future QA: review chase clearance/fairness, red-guide readability, darkness/flicker/grain comfort, six ending voice lines, audio balance, pause/Settings, fullscreen, and relaunch behavior during the live run.
-- [x] Run the reproducible staged Godot capture tour; visually review and commit four optimized PNGs plus a derived visual-reference GIF under `docs/screenshots/`. This media subtask does not satisfy the physical-run or perceptual gates.
+- [x] Run the reproducible staged Godot capture tour; visually review and commit four deterministic display-grade PNG derivatives plus a finite visual-reference GIF under `docs/screenshots/`. This media subtask does not satisfy the physical-run or perceptual gates.
 - [x] Add repository-relative gallery links, capture instructions, evidence limits, and media provenance to project documentation.
 - [x] Close the human phase by owner waiver without claiming a playthrough, perception pass, release/tag, registry publication, signing, or installer.
 
@@ -92,7 +92,7 @@ Focused `progression` and `settings-audio` passed. Host and container twelve-che
 - Docker multi-stage suite image and compose service; POSIX twelve-check runner; packaging verify scripts; `docker-suite` CI (including Linux `physical-route` frame-budget fix).
 - Godot 4.7.1 Linux zip download is SHA-256-pinned in the Dockerfile; the public Hub image `nguyenson1710/horror-game-suite` has verified `latest` and SHA-named tags at the digest recorded above. A passing `main` push auto-publishes when both configured secrets are available; each future tag/digest still requires its own verification.
 - `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, Dependabot, lightweight `ci.yml` packaging/secret-pattern jobs, and CODEOWNERS.
-- Repository cover (`docs/media/room-407-cover.png`), staged stills, and visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
+- Repository cover (`docs/media/room-407-cover.png`), staged display-grade stills, and finite visual-reference GIF under `docs/screenshots/` with provenance in `docs/asset-credits.md`.
 - These items improve professional maintainability. Phase 4/PDR-07 closed only through the owner's waiver, not through packaging or media evidence.
 
 ## Completed Windows Export Track
