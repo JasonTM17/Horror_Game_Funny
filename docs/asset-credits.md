@@ -50,6 +50,13 @@ The root `LICENSE` applies to this project's code and project-authored assets, i
 
 This repository tracks source, a credential-free Windows x86_64 export preset, and redistribution notices; it does not commit the generated executable or Godot export templates. The local verifier copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the exact tag-pinned `GODOT_COPYRIGHT.txt` inventory beside its ignored build output. Any redistributed binary must retain the notices required for the bundled Godot Engine copy and applicable engine third-party components. The official Godot license guidance states that a distributed engine binary remains a copy of Godot Engine even when the game content uses a different license.
 
+For the public `v0.9.0` portable Windows ZIP, retain those notice files beside
+`ROOM_407_THE_LAST_SHIFT.exe` and publish the ZIP's SHA-256 in the named release checksum
+record. The package is unsigned and becomes available only when its two assets appear on
+the [GitHub Release page](https://github.com/JasonTM17/Horror_Game_Funny/releases/tag/v0.9.0).
+The GHCR image is a headless test package, not a redistribution of the playable Windows
+archive. See [Release v0.9.0](release-v0.9.0.md).
+
 ## Future Asset Intake
 
 Before committing any external or commissioned asset, add a row recording:
@@ -87,3 +94,5 @@ Do not commit an asset with unknown provenance or terms.
 - [Piper build tool](https://github.com/OHF-Voice/piper1-gpl)
 - [Godot Engine license](https://godotengine.org/license/)
 - [Known limitations](limitations.md)
+- [Release v0.9.0](release-v0.9.0.md)
+- [Vietnamese guide](vi/README.md)

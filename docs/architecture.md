@@ -42,6 +42,13 @@ This separation keeps raw capture outputs and logs outside source control while 
 
 `tests/verify-windows-export.ps1` is an out-of-band packaging gate, not part of the twelve-check gameplay suite. It binds checks to the selected preset; verifies the exact official Godot archive, archive member, and installed x86_64 release-template hashes; rejects signing, remote deployment, credentials, resource encryption, and unexpected filters; then exports through an isolated profile and unique staging tree under an exclusive lock. Only a fresh, log-clean, process-smoked PE `0x8664` build is published. The gate copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt` and reports the artifact size/hash. Its executable smoke runs headless, so this path establishes packaging and process startup but not rendered menu behavior, physical input, audible output, display transitions, performance, signing, or installer compliance.
 
+The player-facing `v0.9.0` contract packages the verified output as an unsigned Windows
+x64 portable ZIP plus a SHA-256 record; it is available only when both assets are listed
+on the [GitHub Release page](https://github.com/JasonTM17/Horror_Game_Funny/releases/tag/v0.9.0).
+`ghcr.io/jasontm17/horror-game-suite` is a separate headless CI/test package and never a
+runtime/player distribution. See [Release v0.9.0](release-v0.9.0.md) for launch and trust
+guidance.
+
 ## Gameplay Controller Split
 
 | Component | Current responsibility |

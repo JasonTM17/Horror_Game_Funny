@@ -142,6 +142,13 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - Verify every code path, class name, node path, setting, command, and test claim against current source before documenting it.
 - Add references to the source or test that supports non-obvious claims.
 - Normalize documentation as UTF-8 and reject mojibake.
+- Treat [Release v0.9.0](release-v0.9.0.md) as the player-package contract. Archive
+  names, checksum format, signing status, launch instructions, and release limits must
+  change together; never claim an asset exists before the GitHub Release page lists it.
+- Keep [the Vietnamese guide](vi/README.md) as a curated user/release localization. English
+  remains canonical for code contracts, test evidence, hashes, and technical decisions.
+- Describe `ghcr.io/jasontm17/horror-game-suite` only as a headless CI/test package. Do
+  not present it, Docker Hub `latest`, or any container as a playable distribution.
 - Keep commits focused and use Conventional Commit messages without AI attribution.
 - Never commit `.godot/`, `.tmp/`, `.artifacts/`, credentials, exported binaries, or a local Godot executable.
 - Never force-push `main`.
@@ -160,4 +167,6 @@ Boot/pause Settings is a modal focus boundary: background controls become non-fo
 - [`run-headless-tests.ps1`](../tests/run-headless-tests.ps1)
 - [`visual-capture-tour.gd`](../tests/visual-capture-tour.gd)
 - [Architecture](architecture.md)
+- [Release v0.9.0](release-v0.9.0.md)
+- [Vietnamese guide](vi/README.md)
 - [Testing matrix](testing.md)

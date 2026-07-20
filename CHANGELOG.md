@@ -4,6 +4,33 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-20
+
+### Added
+
+- Public Windows x86_64 portable-ZIP release contract: the release uses
+  `room-407-the-last-shift-windows-x86_64-v0.9.0.zip` and its adjacent
+  `room-407-the-last-shift-windows-x86_64-v0.9.0-SHA256SUMS.txt` checksum record.
+- [Release v0.9.0](docs/release-v0.9.0.md), a checksum-first download and launch guide,
+  and a curated [Vietnamese player/release guide](docs/vi/README.md). English technical
+  evidence remains canonical; this does not localize the game UI, subtitles, or voice.
+- Documentation navigation hub at `docs/README.md` and GHCR guidance for the public
+  `ghcr.io/jasontm17/horror-game-suite` headless CI/test package.
+
+### Changed
+
+- Release documentation now distinguishes the playable Windows ZIP from the headless
+  container package. Docker Hub is retained only as a dated legacy CI mirror; mutable
+  `latest` is no longer presented as durable release evidence.
+- The public release guidance explicitly covers checksum validation, extract-first use,
+  notice retention, the unsigned-build SmartScreen warning, controls, and the automated
+  versus human-QA boundary.
+
+### Security
+
+- Windows artifacts are intentionally unsigned. Users should verify the published
+  SHA-256 record and official GitHub Release source before choosing to run a download.
+
 ### Changed
 
 #### Public Docker Hub artifact — 2026-07-20

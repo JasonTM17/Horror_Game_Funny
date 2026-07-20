@@ -62,12 +62,17 @@ REQUIRED_FILES = (
     "README.md",
     "SECURITY.md",
     "docs/.gdignore",
+    "docs/README.md",
     "docs/asset-credits.md",
     "docs/codebase-summary.md",
     "docs/deployment-guide.md",
     "docs/limitations.md",
     "docs/project-overview-pdr.md",
+    "docs/release-v0.9.0.md",
     "docs/testing.md",
+    "docs/vi/README.md",
+    "tests/prepare-windows-release.ps1",
+    "tests/verify-windows-release-packaging.ps1",
     "tests/verify-repository-docs.py",
 )
 LINK_RE = re.compile(r"\]\((?P<body>[^)\n]+)\)")
@@ -663,10 +668,28 @@ def verify_document_contracts(entries: dict[str, tuple[str, str]]) -> None:
         MAX_CONFIG_BYTES,
         "export_presets.cfg",
     )
+    docs_hub = _read_index_text_capped(
+        entries, "docs/README.md", MAX_MARKDOWN_BYTES, "docs/README.md"
+    )
+    release_guide = _read_index_text_capped(
+        entries,
+        "docs/release-v0.9.0.md",
+        MAX_MARKDOWN_BYTES,
+        "docs/release-v0.9.0.md",
+    )
+    vietnamese_guide = _read_index_text_capped(
+        entries,
+        "docs/vi/README.md",
+        MAX_MARKDOWN_BYTES,
+        "docs/vi/README.md",
+    )
     for required_reference in (
         "SECURITY.md",
         "CONTRIBUTING.md",
         "docs/media/room-407-cover.png",
+        "docs/README.md",
+        "docs/release-v0.9.0.md",
+        "docs/vi/README.md",
         "PDR-07",
     ):
         if required_reference not in readme:
@@ -722,6 +745,39 @@ def verify_document_contracts(entries: dict[str, tuple[str, str]]) -> None:
         raise VerificationError("asset credits do not bind the repository cover path and hash")
     if "docs/*" not in presets:
         raise VerificationError("export preset no longer excludes documentation media")
+    for required_reference in (
+        "release-v0.9.0.md",
+        "vi/README.md",
+        "Treat English technical documents",
+    ):
+        if required_reference not in docs_hub:
+            raise VerificationError(
+                f"documentation hub is missing required release/i18n reference: {required_reference}"
+            )
+    for required_release_detail in (
+        "room-407-the-last-shift-windows-x86_64-v0.9.0.zip",
+        "room-407-the-last-shift-windows-x86_64-v0.9.0-SHA256SUMS.txt",
+        "Get-FileHash",
+        "SmartScreen",
+        "unsigned",
+        "pre-release",
+        "ROOM-407-THE-LAST-SHIFT-v0.9.0",
+    ):
+        if required_release_detail not in release_guide:
+            raise VerificationError(
+                f"release guide is missing required distribution detail: {required_release_detail}"
+            )
+    for required_vietnamese_detail in (
+        "Hướng dẫn tiếng Việt",
+        "GitHub Release v0.9.0",
+        "Get-FileHash",
+        "SmartScreen",
+        "human physical/perceptual playtest",
+    ):
+        if required_vietnamese_detail not in vietnamese_guide:
+            raise VerificationError(
+                f"Vietnamese guide is missing required player-facing detail: {required_vietnamese_detail}"
+            )
 
 
 def main() -> int:

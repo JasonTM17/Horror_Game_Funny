@@ -1,26 +1,29 @@
 # Deployment Guide
 
-Use this guide to launch source, run host/container QA, verify repository documentation,
-produce the unsigned Windows export, understand CI/Docker Hub behavior, and optionally
-hand the build to a human reviewer. The Docker image is a headless test image, not the
-game. The owner closed PDR-07 on 2026-07-19 by waiver/accepted risk; no human physical or
-perceptual review occurred.
+This guide separates four different delivery paths:
+
+1. source launch with Godot;
+2. automated host/container verification;
+3. the playable unsigned Windows x64 ZIP release; and
+4. the GHCR headless CI/test package.
+
+They are not interchangeable. In particular, the container does not contain a player
+distribution, and automated checks do not replace a human physical/perceptual playtest.
 
 ## Prerequisites
 
 - Git and Python 3.
-- Godot 4.7.1 standard (not .NET) using the Compatibility renderer.
-- PowerShell 5.1+ for Windows QA, export, and physical evidence tooling.
-- Docker Engine/Desktop only for the Linux-container suite.
-- For export, the official Godot 4.7.1 standard export-template archive and installed
+- Godot 4.7.1 **standard** build, not .NET, for source launch and Windows export.
+- PowerShell 5.1+ for the Windows suite and export tooling.
+- Docker Engine/Desktop only for the Linux container suite.
+- For an export: the official Godot 4.7.1 standard export-template archive and installed
   `windows_release_x86_64.exe` template.
 
-Generated profiles, logs, exports, and captures stay below ignored `.tmp/` and
-`.artifacts/` paths. Do not commit credentials, templates, or binaries.
+Generated profiles, logs, exports, and captures belong under ignored `.tmp/` and
+`.artifacts/` paths. Do not commit credentials, templates, generated binaries, or capture
+material.
 
-## Source Launch
-
-Clone and perform a command-line import with `godot` on `PATH`:
+## Run from Source
 
 ```powershell
 git clone https://github.com/JasonTM17/Horror_Game_Funny.git
@@ -29,168 +32,150 @@ godot --headless --path . --editor --quit
 godot --path .
 ```
 
-For the GUI path, import `project.godot` in the Godot Project Manager and press **F5**.
-F5 follows the configured boot scene; F6 runs the current editor scene and may bypass
-the boot menu.
+For the GUI path, import `project.godot` in Godot 4.7.1 and press **F5**. F6 runs the
+editor's current scene and can skip the boot menu.
 
-## Release Candidate Verification
+## Automated Verification
 
-Run host and container QA before any export or physical handoff.
-
-Resolve a portable Godot command from `PATH`, then pass it to the Windows runner:
+### Windows host suite
 
 ```powershell
 $godot = (Get-Command godot -ErrorAction Stop).Source
 powershell -ExecutionPolicy Bypass -File .\tests\run-headless-tests.ps1 -Godot $godot
 ```
 
-The runner's omitted `-Godot` default under `D:\Tools\Godot-4.7.1\...` is a
-maintainer-local convenience, not a required installation layout.
+The suite has exactly twelve Godot checks. It fails on non-zero exits, missing markers,
+and scanned engine/script/parse/assert failures. Known ObjectDB shutdown-warning noise is
+intentionally outside the runner failure policy; it is not a general warning exemption.
 
-Run the equivalent Linux suite in the non-root container:
+### Container suite
 
 ```powershell
 docker compose build suite
 docker compose run --rm suite
 ```
 
-Without a Docker daemon, validate structural packaging contracts:
+The image uses Godot 4.7.1 standard, a pinned upstream download hash, non-root UID
+`65532`, and the same twelve checks. Validate packaging without a Docker daemon:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
+python tests/verify-repository-docs.py
 ```
 
-On Linux, use `bash tests/verify-docker-packaging.sh`. The canonical runners require the
-same twelve checks and intentionally ignore known ObjectDB warning noise at process exit.
-They still fail on non-zero exits, missing markers, and engine/script/parse/assert scans.
-A dated zero-line ObjectDB scan is an additional closure audit, not runner failure policy.
+The documentation verifier reads staged Git-index blobs, so stage any new Markdown or
+local media links before expecting it to pass.
 
-Run the focused Windows regressions separately:
+### Focused Windows harnesses
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\physical-playthrough-evidence-regression.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\windows-export-adversarial.ps1
 ```
 
-The physical regression's four primary markers are:
+These are separate hardening checks. They do not add a thirteenth Godot check and do not
+create human-playthrough evidence.
 
-```text
-PHYSICAL_EVIDENCE_PROCESS_BOUNDARY_REGRESSION_OK
-PHYSICAL_EVIDENCE_PACING_SCHEMA_REGRESSION_OK
-PHYSICAL_EVIDENCE_DESTINATION_CONTAINMENT_REGRESSION_OK
-PHYSICAL_EVIDENCE_SIDECHANNEL_REGRESSION_OK
-```
+## Build the Windows x64 Archive
 
-Supported junction probes additionally emit `PHYSICAL_EVIDENCE_REPARSE_REGRESSION_OK`;
-unsupported probes emit explicit skip diagnostics. Synthetic regression output is not
-human play evidence.
-
-## Repository Documentation Gate
-
-Run:
-
-```powershell
-python tests/verify-repository-docs.py
-```
-
-A pass prints, in order:
-
-```text
-REPOSITORY_MEDIA_OK
-MARKDOWN_LOCAL_LINKS_OK
-MARKDOWN_INDEXED_LOCAL_LINKS_OK
-PRO_DOCS_OK
-```
-
-The verifier reads stage-0 regular-file blobs directly by Git-index object ID; working-tree
-bytes cannot mask a bad staged blob or symlink mode. Every local link target must be
-indexed, so stage new landing targets before expecting a pass. It handles inline links
-plus explicit and collapsed reference links, rejects undefined references, and ignores
-fenced examples. Same-document anchors and external or protocol-relative URLs are
-excluded; a local path before a fragment is still checked.
-
-Caps are 1 MiB per Markdown/config file, 2 MiB per PNG, and 8 MiB for the GIF. Media
-validation rejects every unapproved public-media path or extension and binds the exact
-indexed hashes, dimensions, PNG/GIF structure, and GIF frame count.
-
-## CI and Docker Hub
-
-Both workflows run on pull requests and pushes to `main`:
-
-- `.github/workflows/ci.yml` checks packaging, docs/media/links, and secret patterns.
-- `.github/workflows/docker-suite.yml` builds the image and runs all twelve checks.
-
-After the Docker suite passes on a `main` push, repository secrets named
-`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` cause automatic publication of
-`nguyenson1710/horror-game-suite:latest` and the full `GITHUB_SHA` tag. Both secret names
-were configured as of 2026-07-20; never record their values. No separate workflow
-approval exists. Missing secrets skip publication without failing the suite.
-
-The public registry API was verified on 2026-07-20:
-
-| Tag | Registry update time (UTC) | Digest |
-|---|---|---|
-| `latest` | `2026-07-19T22:27:08.669248Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
-| `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` | `2026-07-19T22:27:17.684309Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
-
-Pull, inspect, and run the published headless suite:
-
-```powershell
-docker pull nguyenson1710/horror-game-suite:latest
-docker image inspect --format '{{json .RepoDigests}}' nguyenson1710/horror-game-suite:latest
-docker run --rm nguyenson1710/horror-game-suite:latest
-```
-
-`latest` is mutable. Pin the immutable digest for repeatable use:
-
-```powershell
-docker pull nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
-docker run --rm nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
-```
-
-A local Docker build/run on 2026-07-20 emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`. That is
-local automated evidence, not a claim that the next GitHub Actions run passed. The
-published image is for CI/headless QA and is never a player-facing Windows build.
-
-## Windows x86_64 Export
-
-Use portable paths explicitly:
+Run the existing export verifier with explicit portable paths:
 
 ```powershell
 $godot = (Get-Command godot -ErrorAction Stop).Source
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-export.ps1 `
   -Godot $godot `
-  -TemplateArchive "C:\path\to\Godot_v4.7.1-stable_export_templates.tpz"
+  -TemplateArchive 'C:\path\to\Godot_v4.7.1-stable_export_templates.tpz'
 ```
 
-If those parameters are omitted, the script's `D:\Tools\Godot-4.7.1\...` paths are
-maintainer-local defaults only. The verifier checks the preset, credentials/signing,
-template/archive identities, PE x86_64 architecture, notices, export/startup logs, and
-headless process startup before publishing below `.artifacts/builds/`.
+It validates the selected credential-free unsigned preset, Godot/template hashes, PE x64
+architecture, staged notices, logs, and a headless startup before it publishes an ignored
+local build. That proof is deliberately limited: it does not inspect rendered pixels,
+exercise physical controls, hear audio, evaluate SmartScreen, or certify target hardware.
 
-Stable recorded identities from the dated handoff are:
+For `v0.9.0`, package the verified output as exactly:
 
-| Artifact | SHA-256 |
+| Release file | Purpose |
 |---|---|
-| Official Godot export-template archive | `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
-| Installed `windows_release_x86_64.exe` template | `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
-| `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
+| `room-407-the-last-shift-windows-x86_64-v0.9.0.zip` | Portable Windows x64 game archive |
+| `room-407-the-last-shift-windows-x86_64-v0.9.0-SHA256SUMS.txt` | SHA-256 record for that ZIP |
 
-Do not copy per-run active/rollback `BUNDLE_SHA256` values into evergreen docs. Each V1
-manifest binds a fresh `RUN_ID`; inspect the current ignored `VERIFY_COMPLETE.txt` and
-record transaction identities only in a dated handoff.
+The ZIP must contain exactly those four files under a
+`ROOM-407-THE-LAST-SHIFT-v0.9.0/` root. Generate its checksum only after the final ZIP
+bytes are fixed. Do not substitute a prior local export hash for the release ZIP checksum.
 
-The preset's `application/file_version` and `application/product_version` are `0.9.0.0`.
-That is unreleased release-candidate metadata, not a Git tag, GitHub release, installer,
-or shipping claim. Headless startup does not prove a rendered window, input, audio,
-fullscreen behavior, target-device performance, or PDR-07.
+Use the checked-in preparer immediately after a successful export verification; it rejects
+missing inputs and a non-empty output directory that could retain stale assets, writes the
+fixed archive layout and one exact SHA-256 record, then reopens the ZIP to verify its
+inventory:
 
-## Optional Physical Handoff
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\prepare-windows-release.ps1 `
+  -Version v0.9.0
+```
 
-Recommended future QA: human physical production-window run; `ProjectRun` preferred,
-`EditorF5` optional. From a clean, unchanged landing commit, choose **START SHIFT**, use
-physical keyboard/mouse input, retain a same-run capture, fail/recover once during the
-chase, exercise Settings/fullscreen/comfort controls, and reach visible credits.
+It writes the two uploadable assets under `.artifacts/release-v0.9.0/` and never modifies
+tracked source files. Do not handcraft a replacement archive or checksum record.
+
+Run the focused regression immediately before upload. It verifies the exact ZIP inventory
+and checksum, rejects reuse of a populated output directory, and proves that a payload
+change no longer bound by `VERIFY_COMPLETE.txt` is refused:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\verify-windows-release-packaging.ps1
+```
+
+## Publish the GitHub Release
+
+The public page is
+[GitHub Releases / v0.9.0](https://github.com/JasonTM17/Horror_Game_Funny/releases/tag/v0.9.0).
+Until it lists both assets, the names above are an intended release contract rather than
+evidence that a package exists.
+
+After validation and tag creation, a maintainer can publish the release notes and assets:
+
+```powershell
+gh release create v0.9.0 `
+  --repo JasonTM17/Horror_Game_Funny `
+  --title 'ROOM 407: THE LAST SHIFT v0.9.0' `
+  --verify-tag `
+  --prerelease `
+  --latest=false `
+  --notes-file .\docs\release-v0.9.0.md `
+  .\.artifacts\release-v0.9.0\room-407-the-last-shift-windows-x86_64-v0.9.0.zip `
+  .\.artifacts\release-v0.9.0\room-407-the-last-shift-windows-x86_64-v0.9.0-SHA256SUMS.txt
+```
+
+Publish only a tag whose source and artifacts have passed the intended checks. Verify the
+uploaded filenames and the released ZIP checksum from a clean download. The player-facing
+instructions, checksum command, and unsigned SmartScreen boundary are in
+[Release v0.9.0](release-v0.9.0.md).
+
+## GHCR Test Package
+
+The public GHCR package is the CI/headless suite, never the playable Windows game:
+
+```powershell
+docker pull ghcr.io/jasontm17/horror-game-suite:v0.9.0
+docker image inspect ghcr.io/jasontm17/horror-game-suite:v0.9.0
+docker run --rm ghcr.io/jasontm17/horror-game-suite:v0.9.0
+```
+
+Use a release tag or recorded immutable digest for reproducibility. `latest`, if offered,
+is mutable and unsuitable as durable evidence. A successful container run reports suite
+contracts only; it does not prove gameplay behavior or provide a game download.
+
+## Docker Hub Legacy Mirror
+
+`nguyenson1710/horror-game-suite` is retained as a dated CI/test mirror. Its public API
+snapshot from 2026-07-20 belongs to historical records, not the current release contract.
+Do not use its mutable `latest` tag as a release identity or player-distribution source.
+
+## Optional Human QA
+
+The owner waived PDR-07 as an accepted project-closure risk. No physical boot-to-credits
+recording, same-run eligible pacing payload, chase-fairness review, audio/visual review,
+input review, or Settings/fullscreen review is claimed. If a future reviewer performs
+that work, use the physical runner and the manual matrix in [Testing](testing.md):
 
 ```powershell
 $godot = (Get-Command godot -ErrorAction Stop).Source
@@ -198,64 +183,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\run-physical-playthr
   -Godot $godot `
   -LaunchMode ProjectRun `
   -ConfirmPhysicalInput `
-  -CaptureReference "D:\Captures\room407-full-run.mp4"
+  -CaptureReference 'D:\Captures\room407-full-run.mp4'
 ```
 
-`ProjectRun` binds `--log-file` to the game process. `EditorF5` is optional and relies on
-the post-credits `user://playthrough_pacing_last.txt` side-channel because the editor host
-cannot log the separate F5 game process.
+This runner preserves bounded logs and one verified pacing side channel, but its generated
+summary still requires human review of the recording. It cannot manufacture visual,
+audible, physical-input, or fairness evidence.
 
-The runner defaults `-LaunchTimeoutSeconds` to 7200 (allowed 60–14400) and
-`-MaxCombinedOutputBytes` to 16777216 / 16 MiB (allowed 1048576–67108864 / 1–64 MiB).
-Its Windows Job Object terminates the complete process tree on timeout or combined-output
-overflow. Its Godot `--version` preflight goes through the same Job path with a fixed
-30-second timeout and 65536-byte output cap. Each evidence directory retains raw
-`godot-version-stdout.log`, `godot-version-stderr.log`, `console-stdout.log`, and
-`console-stderr.log`, plus combined `console.log` and `engine.log`.
-
-Every hash-verified side-channel must remain unchanged and contain exactly one
-`PLAYTHROUGH_PACING` payload. The runner rejects zero/duplicate side-channel payloads,
-distinct mixed-run JSON, stale/baseline-identical data, malformed/coercible schema,
-invalid verdicts, linked/escaped paths, source swaps, and output over limits.
-
-An eligible payload and `evidence_package_ready: true` are instrumentation and provenance,
-not human proof. If this optional QA is performed, a reviewer should watch the capture and
-complete the generated traversal, pacing, chase, visual, audio, Settings, fullscreen,
-comfort, and input matrix before making any corresponding verification claim. PDR-07 is
-already disposed as owner-waived; the waiver does not make these observations pass.
-
-## Rollback and Troubleshooting
-
-The export verifier publishes transactionally and retains a verified `.previous` bundle.
-If activation fails, it attempts automatic restoration. Do not hand-edit a manifest or
-promote a partial staging directory; preserve logs, investigate, and rerun the verifier.
-For a registry rollback, select a previously reviewed immutable digest rather than
-mutable `latest`. The 2026-07-20 verified artifact can be selected directly:
-
-```powershell
-docker pull nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
-docker image inspect --format '{{json .RepoDigests}}' nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
-docker run --rm nguyenson1710/horror-game-suite@sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d
-```
+## Troubleshooting
 
 | Symptom | Action |
 |---|---|
-| Godot executable not found | Put Godot 4.7.1 standard on `PATH` or pass the absolute `-Godot` path. |
-| Export template/hash mismatch | Reinstall the official 4.7.1 standard templates and compare the archive/template hashes above. |
-| Docs verifier reports `not indexed` | Stage the new local target and rerun; existence alone is insufficient. |
-| ObjectDB warning appears in a canonical log | Check exit, markers, and error/assert scans; treat a separate zero-line audit as extra evidence only. |
-| A future tag has no recorded digest | Confirm its main-push workflow ran and both repository secret names were configured; do not claim that future tag was published. |
-| Physical runner times out or exceeds output | Investigate the process/log flood first; any override must stay inside the documented validation ranges. |
-| Physical runner exits 2 | Read `summary.md`; incomplete or review-required evidence must not be described as a completed human pass. |
+| Godot command is missing | Put Godot 4.7.1 standard on `PATH` or pass an absolute `-Godot` path. |
+| Export template/hash mismatch | Reinstall the official 4.7.1 standard templates and use the matching archive. |
+| Docs verifier reports an unindexed link | Stage the target file, then rerun the verifier. |
+| Download checksum differs | Delete the file and download both release assets again from the official release page. Do not extract or run it. |
+| SmartScreen warns | Confirm source and SHA-256 first; if either is uncertain, do not run the file. |
+| GHCR pull fails | Confirm the tag is published and the package is public; the GHCR image is not required to play the game. |
 
 ## References
 
-- [Testing matrix](./testing.md)
-- [Known limitations](./limitations.md)
-- [Project overview and PDR](./project-overview-pdr.md)
-- [Final source-closure verification and review](../plans/260719-0746-repository-evidence-closure/reports/pm-260719-1501-source-closure.md)
-- [Final source-consistency hardening report](../plans/260719-2235-final-source-consistency-hardening/reports/pm-260719-2338-source-consistency-final.md)
-- [Dated physical operator handoff](../plans/260718-1319-final-horror-release-candidate/reports/phase-05-operator-handoff-2026-07-18.md)
-- [`run-physical-playthrough.ps1`](../tests/run-physical-playthrough.ps1)
+- [Release v0.9.0](release-v0.9.0.md)
+- [Vietnamese guide](vi/README.md)
+- [Testing](testing.md)
+- [Limitations](limitations.md)
+- [Project overview and PDR](project-overview-pdr.md)
+- [Asset credits](asset-credits.md)
 - [`verify-windows-export.ps1`](../tests/verify-windows-export.ps1)
 - [`verify-repository-docs.py`](../tests/verify-repository-docs.py)

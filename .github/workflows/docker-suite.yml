@@ -3,6 +3,7 @@ name: docker-suite
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
@@ -48,3 +49,52 @@ jobs:
           docker push "${IMAGE}:latest"
           docker push "${IMAGE}:${GITHUB_SHA}"
           echo "Published ${IMAGE}:latest and ${IMAGE}:${GITHUB_SHA}"
+
+
+  # This separate trusted job is the only job that receives packages: write. Pull
+  # requests run the suite but never receive a registry-publishing token.
+  ghcr-publish:
+    if: >-
+      github.repository == 'JasonTM17/Horror_Game_Funny' && github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: packaging-and-suite
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build trusted GHCR suite image
+        env:
+          # OCI image references are lowercase; the GitHub owner has mixed case.
+          GHCR_IMAGE: ghcr.io/jasontm17/horror-game-suite
+        run: docker build --tag "${GHCR_IMAGE}:${GITHUB_SHA}" .
+
+      - name: Run twelve checks in the trusted GHCR image
+        env:
+          GHCR_IMAGE: ghcr.io/jasontm17/horror-game-suite
+        run: docker run --rm "${GHCR_IMAGE}:${GITHUB_SHA}"
+
+      - name: Sign in to GitHub Container Registry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Publish verified GHCR suite image
+        env:
+          GHCR_IMAGE: ghcr.io/jasontm17/horror-game-suite
+        run: |
+          set -euo pipefail
+          immutable="${GHCR_IMAGE}:${GITHUB_SHA}"
+          docker push "$immutable"
+          if [[ "$GITHUB_REF" == 'refs/heads/main' ]]; then
+            docker tag "$immutable" "${GHCR_IMAGE}:latest"
+            docker push "${GHCR_IMAGE}:latest"
+            echo "Published ${immutable} and ${GHCR_IMAGE}:latest"
+          else
+            docker tag "$immutable" "${GHCR_IMAGE}:${GITHUB_REF_NAME}"
+            docker push "${GHCR_IMAGE}:${GITHUB_REF_NAME}"
+            echo "Published ${immutable} and ${GHCR_IMAGE}:${GITHUB_REF_NAME}"
+          fi

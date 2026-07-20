@@ -95,15 +95,12 @@ The player implementation is split across `player-controller.gd`,
   preset with an embedded PCK. `tests/verify-windows-export.ps1` validates the selected
   preset, official 4.7.1 template/archive hashes, PE architecture, notices, fresh logs,
   direct headless startup, exclusive locking, staging, and active/rollback publication.
-  Its `0.9.0.0` file/product version is unreleased release-candidate metadata, not a tag
-  or published release claim.
+  The release contract is an unsigned Windows x64 portable ZIP plus a SHA-256 record;
+  those assets are available only when listed on the GitHub Release page.
 - `Dockerfile` and `docker-compose.yml` package a non-root Godot 4.7.1 headless suite
-  image named `nguyenson1710/horror-game-suite`. This is a CI/test image, not the player
-  game. Public API verification on 2026-07-20 confirmed `latest` and SHA-named
-  `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` at digest
-  `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
-  A passing `main` push auto-publishes when `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`
-  are configured; every future SHA-named publication still requires verification.
+  image published as `ghcr.io/jasontm17/horror-game-suite`. This is a CI/test image, not
+  the player game. Use a named release tag or recorded immutable digest; Docker Hub's
+  2026-07-20 lookup is a dated legacy-mirror snapshot, not a current package identity.
   `tests/verify-docker-packaging.ps1` and `.sh` are structural contract checks.
 - `docs/.gdignore` keeps documentation-only media out of Godot import; the Windows
   export preset also excludes `docs/`, tests, plans, and local output paths.
@@ -188,20 +185,13 @@ hostile same-profile reparse/TOCTOU limitation; they are not a hostile-filesyste
 
 ## Public container follow-up — 2026-07-20
 
-Docker Hub's unauthenticated public API verified the
-[`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite)
-repository and both recorded tags. `latest` reported update time
-`2026-07-19T22:27:08.669248Z`; SHA-named tag
-`001068f6defa1a7d5bd2e68c43b26fcfe732cf63` reported
-`2026-07-19T22:27:17.684309Z`. Both resolve to digest
-`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
-Local `docker compose run --rm suite` exited 0 with all twelve named `OK` lines and the
-exact terminal marker `ALL_TWELVE_HEADLESS_CHECKS_OK`.
-
-This evidence proves public availability of the CI/test image at those tags. It does not
-prove a future SHA-named CI publication and does not convert the image into a playable
-release, Git tag, GitHub release, signed executable, or installer. See the
-[Docker Hub publication evidence](../plans/260718-1319-final-horror-release-candidate/reports/260720-docker-hub-publication-evidence.md).
+The current public test-package contract is
+`ghcr.io/jasontm17/horror-game-suite`. A named release tag or immutable digest identifies
+one headless-suite image; it never identifies the playable Windows ZIP. The Docker Hub
+lookup recorded on 2026-07-20 is a historical legacy-mirror observation. Its mutable
+`latest` tag and historical digest must not be used as current release facts. See
+[Release v0.9.0](release-v0.9.0.md) and the
+[Deployment guide](deployment-guide.md) for current package boundaries.
 
 ## Documentation map
 

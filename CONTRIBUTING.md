@@ -61,20 +61,14 @@ docker compose build suite
 docker compose run --rm suite
 ```
 
-Public image: [`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite).
-As verified through the public registry API on 2026-07-20, `latest` and
-`001068f6defa1a7d5bd2e68c43b26fcfe732cf63` resolve to
-`sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d`.
-Treat `latest` as mutable and use the digest when reproducibility matters. This image is
-for CI/headless testing only, not gameplay distribution.
+Public package: `ghcr.io/jasontm17/horror-game-suite`. Use a named release tag or recorded
+immutable digest when reproducibility matters; never use a mutable `latest` tag as durable
+evidence. This image is for CI/headless testing only, not gameplay distribution.
 
-CI (`.github/workflows/docker-suite.yml`) builds and runs the suite on every PR/push to
-`main`. Hub publish happens only on main when repository secrets named
-`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured; both names were configured as
-of 2026-07-20. Never place their values in source, documentation, logs, or pull requests.
-The Dockerfile pins the Godot 4.7.1 Linux download SHA-256. A local Docker build/run on
-2026-07-20 emitted `ALL_TWELVE_HEADLESS_CHECKS_OK`; this does not claim that the next CI
-run passed.
+CI builds and runs the suite on PRs and `main`. Registry publication must never place
+credentials in source, documentation, logs, or pull requests. Docker Hub's 2026-07-20
+lookup is a dated legacy-mirror record, not the current package contract. The Dockerfile
+pins the Godot 4.7.1 Linux download SHA-256.
 
 The suite must stay at **exactly twelve** Godot headless checks. Do not add a
 thirteenth runner entry without an explicit project decision.
@@ -108,6 +102,10 @@ ci(scope): short imperative summary
 - Design and architecture: `docs/`
 - Known limits and open gates: `docs/limitations.md`, `docs/project-overview-pdr.md`
 - Changelog: `CHANGELOG.md` (Keep a Changelog style under `[Unreleased]`)
+- Release contract: `docs/release-v0.9.0.md`; update it whenever archive names, checksum
+  format, launch behavior, signing, or player-facing limits change.
+- Vietnamese guide: `docs/vi/README.md`; keep it a curated user/release guide and retain
+  English as the canonical source for technical evidence.
 
 ## Code of conduct
 

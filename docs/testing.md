@@ -42,10 +42,9 @@ docker compose run --rm suite
 
 The image is multi-stage, pins Godot **4.7.1** standard (not .NET) with a fixed download
 SHA-256 (`c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba`), runs as
-non-root UID **65532**, and uses `HEALTHCHECK` via `godot --version`. Registry target:
-[`nguyenson1710/horror-game-suite`](https://hub.docker.com/r/nguyenson1710/horror-game-suite)
-(`:latest` and `:<git-sha>` on successful main-branch CI publish). Structural packaging
-contracts (no Docker Engine required):
+non-root UID **65532**, and uses `HEALTHCHECK` via `godot --version`. Its public CI/test
+package is `ghcr.io/jasontm17/horror-game-suite`; it is never the playable game. Structural
+packaging contracts (no Docker Engine required):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
@@ -53,26 +52,20 @@ powershell -ExecutionPolicy Bypass -File .\tests\verify-docker-packaging.ps1
 
 On Linux: `bash tests/verify-docker-packaging.sh`.
 
-After the suite passes on a `main` push, configured secrets named
-`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` cause the workflow to publish `latest` and the
-full `GITHUB_SHA` automatically. Both secret names were configured as of 2026-07-20;
-their values must not appear in documentation or logs. There is no separate
-publish-approval step. Missing secrets skip publication without failing the build.
+Use a release tag or recorded immutable digest for the public GHCR package. If a mutable
+`latest` tag exists, it is not durable evidence. Registry credentials must never appear in
+source, documentation, logs, or pull requests.
 
 ## Registry Artifact Identity — 2026-07-20
 
-The public registry API verified both published tags. `latest` is mutable; the digest is
-the immutable identity to use for a reproducible pull or rollback.
+`ghcr.io/jasontm17/horror-game-suite` is the current public headless-suite package. Use a
+named release tag or immutable digest once the registry publication records one. A package
+pull or local container run verifies the headless suite contract only; it does not claim a
+human playthrough or provide a player-facing game build.
 
-| Tag | Registry update time (UTC) | Digest |
-|---|---|---|
-| `latest` | `2026-07-19T22:27:08.669248Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
-| `001068f6defa1a7d5bd2e68c43b26fcfe732cf63` | `2026-07-19T22:27:17.684309Z` | `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
-
-A local Docker build/run on 2026-07-20 emitted
-`ALL_TWELVE_HEADLESS_CHECKS_OK`. This verifies the local headless suite contract only;
-it does not claim that the next GitHub Actions run passed, that a human playthrough
-occurred, or that the image is a player-facing build.
+The 2026-07-20 Docker Hub `latest`/SHA-tag lookup is a historical legacy-mirror snapshot.
+It intentionally is not repeated here as a current package identity because the mutable
+tag and its old digest do not identify a later release.
 
 The host PowerShell runner sets repository-local `TEMP` and `TMP` to `.tmp/`, creates a unique Godot `APPDATA`/`LOCALAPPDATA` profile below that directory, creates `.artifacts/`, and writes `.artifacts/test-<name>.log` for each check. The shell runner isolates under `.tmp/godot-user-*` with XDG paths. Both combine engine log with captured console output and tear the profile down after success or failure so they do not overwrite the normal `user://room407.cfg`.
 
@@ -139,11 +132,12 @@ maintainer-local conveniences only.
 The verifier parses and binds checks to the selected preset, verifies the exact Godot version and official template-archive/member/installed-template hashes, rejects credentials/signing/remote deployment/resource encryption/unexpected filters, rejects reparse-point output/profile ancestors, and takes an exclusive export lock. It exports through a unique staging tree and isolated profile, scans the fresh export logs, copies `LICENSE`, `THIRD_PARTY_NOTICES.md`, and `GODOT_COPYRIGHT.txt`, runs the staged executable directly in headless mode, scans startup logs, verifies PE machine `0x8664`, and only then replaces the published files in the same directory with the executable last. Temporary profiles, staging trees, publish files, and the lock are removed in `finally`.
 
 Preset `application/file_version` and `application/product_version` are `0.9.0.0`.
-This is unreleased release-candidate metadata, not a Git tag, GitHub release, published
-installer, or distribution claim. Export verification proves exportability,
-architecture, notice staging, and headless process startup only; it does not prove a
-rendered menu, operating-system input, audible output, fullscreen transitions,
-target-GPU performance, code signing, or installer/store behavior.
+The public release contract names an unsigned Windows x64 portable ZIP plus a checksum
+record; confirm availability from the GitHub Release page rather than inferring it from
+preset metadata. Export verification proves exportability, architecture, notice staging,
+and headless process startup only; it does not prove a rendered menu, operating-system
+input, audible output, fullscreen transitions, target-GPU performance, code signing, or
+installer/store behavior.
 
 ## Focused PowerShell Hardening Regressions
 
@@ -197,7 +191,7 @@ For handoff, retain only stable recorded identities in evergreen docs:
 
 | Artifact | Stable recorded identity |
 |---|---|
-| Docker Hub OCI manifest (`latest` and `001068f6defa1a7d5bd2e68c43b26fcfe732cf63`, verified 2026-07-20) | Digest `sha256:dabae8950d8cc8b27b88aaecde69b3573dc79d26156f0c0e09fe3b8ee93cc46d` |
+| Historical Docker Hub OCI manifest (legacy mirror, verified 2026-07-20) | Historical digest only; do not use for current GHCR or player-release identity |
 | `ROOM_407_THE_LAST_SHIFT.exe` (`117920376` bytes) | SHA-256 `74ef9d12288a4f687f9d5a7de29cfc684737d2af98da97c90e80e77024099190` |
 | Official export-template archive | SHA-256 `86409db6200b6f8fd3230989c2d2002851f3dd18acf11d7bdbafddf5a0dd0f72` |
 | Installed `windows_release_x86_64.exe` template | SHA-256 `76269a403bb832599edeee4432a5b7a7e88c018eb5c9c798dfd8289359b0ec07` |
